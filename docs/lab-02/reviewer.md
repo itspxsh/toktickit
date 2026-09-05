@@ -98,7 +98,7 @@ For each row add:
 - Scope: active Category/Related System reference endpoints, requester-scoped Ticket creation, validation and trimming, sequence-backed ticket number/date, idempotency replay/conflict handling, accessible Create Ticket UI, failure preservation, and dirty navigation protection.
 - Explicit exclusions: authentication, Staff workflow, comments, Actions Taken, status transitions, and attachment lifecycle (L2-08).
 - TDD commits: `b687460` (contract tests first), `ca87413` (server API), and `4a9a871` (client flow and shared navigation/a11y updates).
-- Validation: client tests 20/20 and build; focused server Lab 2 suite 20/20, build, Prisma validate, and `git diff --check` passed. Full server suite is 22/23 because the existing Lab 1 database-backed category test requires `DATABASE_URL` and returned the safe 500 in this environment.
+- Validation: client tests 20/20 and build; focused server Lab 2 suite 21/21, build, Prisma validate, and `git diff --check` passed. Full server suite is 22/23 because the existing Lab 1 database-backed category test requires `DATABASE_URL` and returned the safe 500 in this environment.
 - Review status: Review requested from [@justfepwx12](https://github.com/justfepwx12); waiting for substantive peer review.
 
 ## Board and release evidence
