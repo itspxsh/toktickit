@@ -54,7 +54,7 @@ For each row add:
 
 - Reviewer: [@justfepwx12](https://github.com/justfepwx12)
 - PR: [#21](https://github.com/itspxsh/toktickit/pull/21)
-- Issue status: [#13](https://github.com/itspxsh/toktickit/issues/13) is Started in the sprint project.
+- Issue status: [#13](https://github.com/itspxsh/toktickit/issues/13) is in `PR Review` in the sprint project.
 - Author response: Rebased `feature/lab2-02-data-foundation` onto `lab2-staging` at `2970cae`, then pushed the branch and opened PR #21. [Issue progress comment](https://github.com/itspxsh/toktickit/issues/13#issuecomment-5553946828)
 - Validation: targeted data-foundation tests 5/5, TypeScript build, Prisma schema validation, and `git diff --check` passed.
 - Approval URL/date: Pending peer review.
