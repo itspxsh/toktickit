@@ -65,8 +65,9 @@ model RelatedSystem {
 
 model Ticket {
   id                Int               @id @default(autoincrement())
+  /// Always derived with allocateTicketNumber together with ticketSequence.
   ticketNumber      String            @unique
-  ticketSequence    BigInt            @unique @default(dbgenerated("nextval('ticket_number_seq'::regclass)"))
+  ticketSequence    BigInt            @unique
   ticketDate        DateTime          @default(now())
   requesterId       Int
   categoryId        Int

@@ -33,7 +33,7 @@ CREATE TABLE "RelatedSystem" (
 CREATE TABLE "Ticket" (
     "id" SERIAL NOT NULL,
     "ticketNumber" TEXT NOT NULL,
-    "ticketSequence" BIGINT NOT NULL DEFAULT nextval('"ticket_number_seq"'::regclass),
+    "ticketSequence" BIGINT NOT NULL,
     "ticketDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "requesterId" INTEGER NOT NULL,
     "categoryId" INTEGER NOT NULL,

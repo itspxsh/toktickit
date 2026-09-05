@@ -165,6 +165,9 @@ has foreign keys to Requester, Category, and RelatedSystem; Attachment has a
 foreign key to Ticket and audit requester references. Ticket Number allocation
 uses a PostgreSQL sequence so concurrent creates remain unique and the official
 number is backend-controlled. `clientRequestId`/`Idempotency-Key` is unique.
+The server uses one `allocateTicketNumber` application path to obtain the next
+sequence value and derive the official number; a Ticket insert supplies both
+values together, so the database does not silently generate an unpaired value.
 
 The migration must preserve existing Lab 1 categories. The repeatable seed must
 contain the four required Categories, at least six realistic Related Systems,
