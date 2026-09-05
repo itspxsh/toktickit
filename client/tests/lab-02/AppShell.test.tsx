@@ -86,6 +86,29 @@ describe("Lab 2 shared UI primitives", () => {
     expect(onCancel).toHaveBeenCalledOnce();
     expect(onConfirm).not.toHaveBeenCalled();
   });
+
+  it("keeps keyboard focus inside the confirmation dialog and describes its message", () => {
+    render(
+      <ConfirmationDialog
+        open
+        title="Discard changes?"
+        message="Unsaved values will be removed."
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+      />,
+    );
+
+    const dialog = screen.getByRole("alertdialog");
+    expect(dialog).toHaveAttribute("aria-describedby", "confirmation-message");
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    const confirm = screen.getByRole("button", { name: "Confirm" });
+    expect(document.activeElement).toBe(cancel);
+
+    fireEvent.keyDown(cancel, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(confirm);
+    fireEvent.keyDown(confirm, { key: "Tab" });
+    expect(document.activeElement).toBe(cancel);
+  });
 });
 
 describe("Zen Green design tokens", () => {
