@@ -84,8 +84,8 @@ For each row add:
 - PR: [#23](https://github.com/itspxsh/toktickit/pull/23)
 - Branch: `feature/lab2-04-requester-context`, based on `lab2-staging` merge `b2f758e`.
 - Scope: active requester API/selector, safe errors, local testing-context persistence and revalidation, route guard, switching confirmation, and stale-request protection.
-- TDD commits: `cf34aa2` (contract tests first), `aa6c3af` (API), `38449f7` (client implementation).
-- Validation: client tests 14/14 and build; server tests 14/14 and build; `git diff --check` passed.
+- TDD commits: `cf34aa2` (contract tests first), `aa6c3af` (API), `38449f7` (client implementation), and `83806ad` (explicit route-guard redirect test/fix).
+- Validation: client tests 15/15 and build; server tests 14/14 and build; `git diff --check` passed.
 - Review status: Requested from [@justfepwx12](https://github.com/justfepwx12); approval pending.
 
 ## Board and release evidence
