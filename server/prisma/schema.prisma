@@ -30,7 +30,7 @@ model Category {
   name      String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   tickets Ticket[]
 
@@ -43,7 +43,7 @@ model Requester {
   email     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   tickets            Ticket[]
   removedAttachments Attachment[] @relation("AttachmentRemovedBy")
@@ -56,7 +56,7 @@ model RelatedSystem {
   name      String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   tickets Ticket[]
 
@@ -78,7 +78,7 @@ model Ticket {
   currentStatus     CurrentStatus     @default(NEW)
   clientRequestId   String            @unique
   createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  updatedAt         DateTime          @default(now()) @updatedAt
 
   requester     Requester     @relation(fields: [requesterId], references: [id], onDelete: Restrict)
   category      Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
@@ -106,7 +106,7 @@ model Attachment {
   removalReason        String?
   removedByRequesterId Int?
   createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  updatedAt            DateTime         @default(now()) @updatedAt
 
   ticket             Ticket     @relation(fields: [ticketId], references: [id], onDelete: Restrict)
   removedByRequester Requester? @relation("AttachmentRemovedBy", fields: [removedByRequesterId], references: [id], onDelete: Restrict)
