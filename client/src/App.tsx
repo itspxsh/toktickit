@@ -1,13 +1,46 @@
 import { useState } from "react";
-import { checkSystem, Category } from "./api.js";
+import { checkSystem, type Category } from "./api.ts";
+import {
+  Alert,
+  AppShell,
+  AttachmentList,
+  ConfirmationDialog,
+  EmptyState,
+  ErrorState,
+  FormField,
+  LoadingState,
+  Pagination,
+  PriorityBadge,
+  StatusBadge,
+  ZEN_GREEN_TOKENS,
+} from "./components/ui.tsx";
+import "./styles.css";
 
-// UI states you must handle for Issue 4: idle, loading, success, error.
+export {
+  Alert,
+  AppShell,
+  AttachmentList,
+  ConfirmationDialog,
+  EmptyState,
+  ErrorState,
+  FormField,
+  LoadingState,
+  Pagination,
+  PriorityBadge,
+  StatusBadge,
+  ZEN_GREEN_TOKENS,
+};
+
 type UiState = "idle" | "loading" | "success" | "error";
 
+/**
+ * Lab 1's health check remains available inside the new Lab 2 shell while the
+ * requester and ticket routes are built in their dedicated Issues.
+ */
 export default function App() {
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   async function handleCheck() {
     setState("loading");
@@ -16,54 +49,56 @@ export default function App() {
       const result = await checkSystem();
       setCategories(result.categories);
       setState("success");
-    } catch (err: any) {
-      setErrorMessage(err.message || "Unable to connect to TokTickIT API");
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : "Unable to connect to TokTickIT API");
       setState("error");
     }
   }
 
+  const activePath = typeof window === "undefined" ? "/" : window.location.pathname;
+
   return (
-    <div className="container py-5" style={{ maxWidth: 640 }}>
-      <h1 className="h3 mb-4">
-        TokTickIT <span className="text-success">IT Service Desk</span>
-      </h1>
-
-      <button className="btn btn-success mb-3" onClick={handleCheck} disabled={state === "loading"}>
-        {state === "loading" ? "Loading…" : "Check System"}
-      </button>
-
-      {state === "loading" && (
-        <div className="mt-2 text-muted">
-          ⌛ loading
+    <AppShell activePath={activePath}>
+      <section className="card stack" aria-labelledby="health-check-title">
+        <div>
+          <p className="eyebrow">Lab 1 compatibility check</p>
+          <h1 id="health-check-title">TokTickIT service status</h1>
+          <p>Use this diagnostic while the Lab 2 requester and ticket screens are being assembled.</p>
         </div>
-      )}
 
-      {state === "success" && (
-        <div className="mt-2">
-          <p className="fw-bold">System Status: <span className="text-success">Online</span></p>
-          {categories.length > 0 && (
-            <div className="mt-3">
-              <p className="fw-bold mb-2">Supported Request Categories:</p>
-              <ul className="list-group">
-                {categories.map((cat) => (
-                  <li key={cat.id} className="list-group-item">
-                    {cat.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
+        <button className="button button--primary" type="button" onClick={handleCheck} disabled={state === "loading"}>
+          {state === "loading" ? "Loading…" : "Check System"}
+        </button>
 
-      {state === "error" && (
-        <div className="mt-2">
-          <p className="fw-bold">System Status: <span className="text-danger">Offline</span></p>
-          <div className="alert alert-danger py-2">
-            {errorMessage}
+        {state === "loading" && <LoadingState label="loading" />}
+
+        {state === "success" && (
+          <div className="stack" aria-live="polite">
+            <p>
+              <strong>System Status:</strong> <StatusBadge label="Online" tone="success" />
+            </p>
+            {categories.length > 0 && (
+              <div>
+                <h2>Supported Request Categories</h2>
+                <ul>
+                  {categories.map((category) => (
+                    <li key={category.id}>{category.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-    </div>
+        )}
+
+        {state === "error" && (
+          <div className="stack" aria-live="assertive">
+            <p>
+              <strong>System Status:</strong> <StatusBadge label="Offline" tone="error" />
+            </p>
+            <Alert tone="error">{errorMessage}</Alert>
+          </div>
+        )}
+      </section>
+    </AppShell>
   );
 }

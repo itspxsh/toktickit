@@ -13,8 +13,8 @@ the code alone.
 | Issue | Branch | PR | Review focus | Reviewer verdict |
 |---|---|---|---|---|
 | L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Approved and merged into `lab2-staging` |
-| L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Required changes addressed; pending re-review |
-| L2-03 UI foundation | `feature/lab2-03-ui-foundation` | _URL_ | Tokens, reusable components, keyboard/responsive behavior | Pending |
+| L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Approved and merged into `lab2-staging` |
+| L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Peer review requested |
 | L2-04 Requester | `feature/lab2-04-requester-context` | _URL_ | Active-only selection, persistence, switching | Pending |
 | L2-05 Create | `feature/lab2-05-create-ticket` | _URL_ | Validation, number, idempotency, failure preservation | Pending |
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | _URL_ | Query contract and ownership isolation | Pending |
@@ -54,7 +54,7 @@ For each row add:
 
 - Reviewer: [@justfepwx12](https://github.com/justfepwx12)
 - PR: [#21](https://github.com/itspxsh/toktickit/pull/21)
-- Issue status: [#13](https://github.com/itspxsh/toktickit/issues/13) is in `PR Review` in the sprint project.
+- Issue status: [#13](https://github.com/itspxsh/toktickit/issues/13) was completed through PR #21 and is now marked Done in the sprint project.
 - Author response: Rebased `feature/lab2-02-data-foundation` onto `lab2-staging` at `2970cae`, then pushed the branch and opened PR #21. [Issue progress comment](https://github.com/itspxsh/toktickit/issues/13#issuecomment-5553946828)
 - Validation: targeted data-foundation tests 5/5, TypeScript build, Prisma schema validation, and `git diff --check` passed.
 - Review URL: [requested changes review](https://github.com/itspxsh/toktickit/pull/21#pullrequestreview-5122667468)
@@ -62,7 +62,18 @@ For each row add:
 - Author response: Changed all seed updates to `{}`, added the migration/seed safety integration probe, introduced `allocateTicketNumber`, removed the implicit sequence default, and aligned the migration workflow script with the README.
 - Requested changes and fix commits: `f6d838c` (`fix(lab2): preserve reference state on seed reruns`), `76dd0e5` (`feat(lab2): centralize ticket number allocation`), and `6ec21c6` (`test(lab2): verify migration safety on guarded database`).
 - Validation after fixes: server unit/API suite 11/11, migration-safety integration 1/1 against `toktickit_test`, build, Prisma validate/generate, and `git diff --check` passed.
-- Approval URL/date: Pending re-review.
+- Approval URL/date: [approved re-review](https://github.com/itspxsh/toktickit/pull/21#pullrequestreview-5122739775), 2026-09-06; merged into `lab2-staging` as `27a5d3b`.
+
+### L2-03 UI foundation / PR #22
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Issue: [#14](https://github.com/itspxsh/toktickit/issues/14)
+- PR: [#22](https://github.com/itspxsh/toktickit/pull/22)
+- Branch: `feature/lab2-03-ui-foundation`, based on merged `lab2-staging` commit `27a5d3b`.
+- Scope: Zen Green tokens, responsive AppShell/navigation, shared UI primitives, and keyboard/accessibility foundations; no requester or ticket workflow.
+- TDD commits: `8c3861d` (contract tests first), `f10e010` (implementation).
+- Validation: client tests 9/9, production build, and `git diff --check` passed.
+- Review status: Requested from [@justfepwx12](https://github.com/justfepwx12); approval pending.
 
 ## Board and release evidence
 
