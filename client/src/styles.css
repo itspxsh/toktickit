@@ -266,6 +266,29 @@ button:disabled {
   gap: var(--space-2);
 }
 
+.create-ticket__system-info,
+.create-ticket__grid {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.create-ticket__system-info {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.create-ticket__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
 .form-field {
   display: flex;
   flex-direction: column;
@@ -505,5 +528,10 @@ select[aria-readonly="true"] {
   .pagination {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .create-ticket__system-info,
+  .create-ticket__grid {
+    grid-template-columns: 1fr;
   }
 }
