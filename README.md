@@ -80,6 +80,7 @@ cp server/.env.example server/.env
 Inside `server/.env`:
 ```env
 DATABASE_URL="postgresql://<username>:<password>@localhost:5432/<db_name>?schema=public"
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public"
 PORT=3000
 ```
 *(Make sure to replace `<username>`, `<password>`, and `<db_name>` with your local PostgreSQL credentials).*
@@ -94,14 +95,32 @@ Initialize the database schema and populate it with seed data using Prisma:
    Run the following command inside the `server` directory to apply the database migrations:
    ```bash
    cd server
-   npx prisma migrate dev --name init
+   npx prisma migrate deploy
    ```
 
 2. **Seed the Database**:
-   Populate the database with the initial categories using the idempotent seeding script:
+   Populate the database with idempotent categories, related systems, and development requesters:
    ```bash
    npx prisma db seed
    ```
+
+For integration tests, create a separate PostgreSQL database whose name ends in
+`_test`, set `DATABASE_URL_TEST` in the environment, and never point it at the
+development database. The reset command refuses URLs that are not explicitly
+test-scoped, then truncates only the test schema and reruns the reference seed:
+
+```bash
+cd server
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run db:test:reset
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run test
+```
+
+Apply migrations to the test database before resetting it by temporarily using
+the same URL as `DATABASE_URL`:
+
+```bash
+DATABASE_URL="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npx prisma migrate deploy
+```
 
 ---
 
