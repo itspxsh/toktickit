@@ -34,6 +34,7 @@ describe("L2-02 data foundation", () => {
       expect(schema).toContain(enumName);
     }
     expect(schema).toMatch(/clientRequestId\s+String\s+@unique/);
+    expect(schema).toContain("ticketSequence    BigInt            @unique");
     expect(schema).toContain("@@index([requesterId, updatedAt, id])");
     expect(schema).toContain("@@index([ticketId, status, createdAt])");
   });
@@ -42,6 +43,8 @@ describe("L2-02 data foundation", () => {
     expect(migration).toContain('ALTER TABLE "Category"');
     expect(migration).toContain('ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT true');
     expect(migration).toContain('CREATE SEQUENCE "ticket_number_seq"');
+    expect(migration).toContain('"ticketSequence" BIGINT NOT NULL,');
+    expect(migration).not.toContain('"ticketSequence" BIGINT NOT NULL DEFAULT');
     expect(migration).toContain('CREATE UNIQUE INDEX "Ticket_clientRequestId_key"');
     expect(migration).toContain('CREATE INDEX "Ticket_requesterId_updatedAt_id_idx"');
   });
@@ -67,5 +70,26 @@ describe("L2-02 data foundation", () => {
     expect(calls.relatedSystem.upsert).toHaveLength(7);
     expect(calls.requester.upsert).toHaveLength(5);
     expect(calls.requester.upsert[4]).toMatchObject({ where: { email: "taylor@example.test" } });
+  });
+
+  it("does not reactivate or mutate existing reference rows on rerun", async () => {
+    const updates: unknown[] = [];
+    const transaction = {
+      category: { upsert: async (args: { update: unknown }) => updates.push(args.update) },
+      relatedSystem: { upsert: async (args: { update: unknown }) => updates.push(args.update) },
+      requester: { upsert: async (args: { update: unknown }) => updates.push(args.update) },
+    };
+    const prisma = {
+      $transaction: async (callback: (tx: typeof transaction) => Promise<void>) => callback(transaction),
+    } as never;
+
+    await seedReferenceData(prisma);
+
+    expect(updates).toHaveLength(
+      REFERENCE_SEED.categories.length +
+        REFERENCE_SEED.relatedSystems.length +
+        REFERENCE_SEED.requesters.length,
+    );
+    expect(updates.every((update) => Object.keys(update as object).length === 0)).toBe(true);
   });
 });

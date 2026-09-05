@@ -31,7 +31,7 @@ export async function seedReferenceData(prisma: PrismaClient): Promise<void> {
     for (const name of REFERENCE_SEED.categories) {
       await tx.category.upsert({
         where: { name },
-        update: { isActive: true },
+        update: {},
         create: { name, isActive: true },
       });
     }
@@ -39,7 +39,7 @@ export async function seedReferenceData(prisma: PrismaClient): Promise<void> {
     for (const name of REFERENCE_SEED.relatedSystems) {
       await tx.relatedSystem.upsert({
         where: { name },
-        update: { isActive: true },
+        update: {},
         create: { name, isActive: true },
       });
     }
@@ -47,7 +47,7 @@ export async function seedReferenceData(prisma: PrismaClient): Promise<void> {
     for (const requester of REFERENCE_SEED.requesters) {
       await tx.requester.upsert({
         where: { email: requester.email },
-        update: { name: requester.name, isActive: requester.isActive },
+        update: {},
         create: requester,
       });
     }
