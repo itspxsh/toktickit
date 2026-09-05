@@ -14,7 +14,7 @@ the code alone.
 |---|---|---|---|---|
 | L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Approved and merged into `lab2-staging` |
 | L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Approved and merged into `lab2-staging` |
-| L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Peer review requested |
+| L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Approved and merged into `lab2-staging` |
 | L2-04 Requester | `feature/lab2-04-requester-context` | _URL_ | Active-only selection, persistence, switching | Pending |
 | L2-05 Create | `feature/lab2-05-create-ticket` | _URL_ | Validation, number, idempotency, failure preservation | Pending |
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | _URL_ | Query contract and ownership isolation | Pending |
@@ -73,7 +73,9 @@ For each row add:
 - Scope: Zen Green tokens, responsive AppShell/navigation, shared UI primitives, and keyboard/accessibility foundations; no requester or ticket workflow.
 - TDD commits: `8c3861d` (contract tests first), `f10e010` (implementation).
 - Validation: client tests 9/9, production build, and `git diff --check` passed.
-- Review status: Requested from [@justfepwx12](https://github.com/justfepwx12); approval pending.
+- Review status: Approved by [@justfepwx12](https://github.com/justfepwx12); merged into `lab2-staging` as `b2f758e`.
+- Approval URL/date: [approved review](https://github.com/itspxsh/toktickit/pull/22#pullrequestreview-5122808290), 2026-09-06; [follow-up approval](https://github.com/itspxsh/toktickit/pull/22#pullrequestreview-5122812066).
+- Non-blocking recommendations recorded for later work: dedicated priority tones, page-link affordances for data-backed pagination, and focus trapping plus `aria-describedby` in the reusable confirmation dialog.
 
 ## Board and release evidence
 
