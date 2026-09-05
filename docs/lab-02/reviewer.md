@@ -15,8 +15,8 @@ the code alone.
 | L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Approved and merged into `lab2-staging` |
 | L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Approved and merged into `lab2-staging` |
 | L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Approved and merged into `lab2-staging` |
-| L2-04 Requester | `feature/lab2-04-requester-context` | [PR #23](https://github.com/itspxsh/toktickit/pull/23) | Active-only selection, persistence, switching | Peer review requested |
-| L2-05 Create | `feature/lab2-05-create-ticket` | _URL_ | Validation, number, idempotency, failure preservation | Pending |
+| L2-04 Requester | `feature/lab2-04-requester-context` | [PR #23](https://github.com/itspxsh/toktickit/pull/23) | Active-only selection, persistence, switching | Approved and merged into `lab2-staging` |
+| L2-05 Create | `feature/lab2-05-create-ticket` | [PR #24](https://github.com/itspxsh/toktickit/pull/24) | Validation, number, idempotency, failure preservation | Peer review requested |
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | _URL_ | Query contract and ownership isolation | Pending |
 | L2-07 Detail | `feature/lab2-07-ticket-detail` | _URL_ | Read-only detail and cross-owner rejection | Pending |
 | L2-08 Attachments | `feature/lab2-08-attachments` | _URL_ | File safety, soft removal, compensation | Pending |
@@ -86,7 +86,20 @@ For each row add:
 - Scope: active requester API/selector, safe errors, local testing-context persistence and revalidation, route guard, switching confirmation, and stale-request protection.
 - TDD commits: `cf34aa2` (contract tests first), `aa6c3af` (API), `38449f7` (client implementation), and `83806ad` (explicit route-guard redirect test/fix).
 - Validation: client tests 15/15 and build; server tests 14/14 and build; `git diff --check` passed.
-- Review status: Requested from [@justfepwx12](https://github.com/justfepwx12); approval pending.
+- Review status: Approved by [@justfepwx12](https://github.com/justfepwx12); merged into `lab2-staging` as `84072db`.
+- Approval URL/date: [approved review](https://github.com/itspxsh/toktickit/pull/23#pullrequestreview-5122882110), 2026-09-06; [follow-up approval](https://github.com/itspxsh/toktickit/pull/23#pullrequestreview-5122885332).
+
+### L2-05 Create Ticket / PR #24
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Issue: [#16](https://github.com/itspxsh/toktickit/issues/16)
+- PR: [#24](https://github.com/itspxsh/toktickit/pull/24)
+- Branch: `feature/lab2-05-create-ticket`, based on the merged L2-04 requester context and `lab2-staging`.
+- Scope: active Category/Related System reference endpoints, requester-scoped Ticket creation, validation and trimming, sequence-backed ticket number/date, idempotency replay/conflict handling, accessible Create Ticket UI, failure preservation, and dirty navigation protection.
+- Explicit exclusions: authentication, Staff workflow, comments, Actions Taken, status transitions, and attachment lifecycle (L2-08).
+- TDD commits: `b687460` (contract tests first), `ca87413` (server API), and `4a9a871` (client flow and shared navigation/a11y updates).
+- Validation: client tests 20/20 and build; focused server Lab 2 suite 20/20, build, Prisma validate, and `git diff --check` passed. Full server suite is 22/23 because the existing Lab 1 database-backed category test requires `DATABASE_URL` and returned the safe 500 in this environment.
+- Review status: Review requested from [@justfepwx12](https://github.com/justfepwx12); waiting for substantive peer review.
 
 ## Board and release evidence
 
