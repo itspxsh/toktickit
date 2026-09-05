@@ -12,7 +12,7 @@ the code alone.
 
 | Issue | Branch | PR | Review focus | Reviewer verdict |
 |---|---|---|---|---|
-| L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Changes requested; fix committed locally, re-review pending |
+| L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Changes requested; fix pushed, re-review pending |
 | L2-02 Data | `feature/lab2-02-data-foundation` | _URL_ | Migration, seed, constraints, ownership indexes | Pending |
 | L2-03 UI foundation | `feature/lab2-03-ui-foundation` | _URL_ | Tokens, reusable components, keyboard/responsive behavior | Pending |
 | L2-04 Requester | `feature/lab2-04-requester-context` | _URL_ | Active-only selection, persistence, switching | Pending |
