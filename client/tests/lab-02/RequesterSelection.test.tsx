@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import * as api from "../../src/api.ts";
+import App from "../../src/App.tsx";
 import {
   RequesterProvider,
   RequesterSelection,
@@ -156,5 +157,15 @@ describe("L2-04 Development Requester context", () => {
     await user.click(screen.getByRole("button", { name: "Confirm" }));
     expect(screen.getByTestId("selected-id")).toHaveTextContent("none");
     expect(localStorage.getItem(REQUESTER_STORAGE_KEY)).toBeNull();
+  });
+
+  it("AC-03: redirects requester-required routes to the selection screen when context is absent", async () => {
+    window.history.pushState({}, "", "/tickets");
+    vi.spyOn(api, "fetchRequesters").mockResolvedValue(requesters);
+
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: /Choose a Development Requester/ })).toBeInTheDocument();
+    await waitFor(() => expect(window.location.pathname).toBe("/select-requester"));
   });
 });

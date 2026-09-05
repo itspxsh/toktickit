@@ -137,6 +137,12 @@ function RequesterAwareApp() {
   const selectionRoute = activePath === "/select-requester";
   const mustSelect = selectionRoute || (requesterRequired && !context.selectedRequester);
 
+  useEffect(() => {
+    if (requesterRequired && !context.selectedRequester && !selectionRoute) {
+      navigate("/select-requester");
+    }
+  }, [activePath, context.selectedRequester, requesterRequired, selectionRoute]);
+
   function handleChangeRequester() {
     context.requestChangeRequester(() => navigate("/select-requester"));
   }
