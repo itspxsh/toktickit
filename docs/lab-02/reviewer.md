@@ -13,7 +13,7 @@ the code alone.
 | Issue | Branch | PR | Review focus | Reviewer verdict |
 |---|---|---|---|---|
 | L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Approved and merged into `lab2-staging` |
-| L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Pending peer review |
+| L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Required changes addressed; pending re-review |
 | L2-03 UI foundation | `feature/lab2-03-ui-foundation` | _URL_ | Tokens, reusable components, keyboard/responsive behavior | Pending |
 | L2-04 Requester | `feature/lab2-04-requester-context` | _URL_ | Active-only selection, persistence, switching | Pending |
 | L2-05 Create | `feature/lab2-05-create-ticket` | _URL_ | Validation, number, idempotency, failure preservation | Pending |
@@ -57,7 +57,12 @@ For each row add:
 - Issue status: [#13](https://github.com/itspxsh/toktickit/issues/13) is in `PR Review` in the sprint project.
 - Author response: Rebased `feature/lab2-02-data-foundation` onto `lab2-staging` at `2970cae`, then pushed the branch and opened PR #21. [Issue progress comment](https://github.com/itspxsh/toktickit/issues/13#issuecomment-5553946828)
 - Validation: targeted data-foundation tests 5/5, TypeScript build, Prisma schema validation, and `git diff --check` passed.
-- Approval URL/date: Pending peer review.
+- Review URL: [requested changes review](https://github.com/itspxsh/toktickit/pull/21#pullrequestreview-5122667468)
+- Comment received: Required fixes for create-only reference upserts, real guarded-database migration verification, and one application-level Ticket number allocator pairing `ticketNumber` with `ticketSequence`.
+- Author response: Changed all seed updates to `{}`, added the migration/seed safety integration probe, introduced `allocateTicketNumber`, removed the implicit sequence default, and aligned the migration workflow script with the README.
+- Requested changes and fix commits: `f6d838c` (`fix(lab2): preserve reference state on seed reruns`), `76dd0e5` (`feat(lab2): centralize ticket number allocation`), and `6ec21c6` (`test(lab2): verify migration safety on guarded database`).
+- Validation after fixes: server unit/API suite 11/11, migration-safety integration 1/1 against `toktickit_test`, build, Prisma validate/generate, and `git diff --check` passed.
+- Approval URL/date: Pending re-review.
 
 ## Board and release evidence
 
