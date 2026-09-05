@@ -14,8 +14,8 @@ the code alone.
 |---|---|---|---|---|
 | L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Approved and merged into `lab2-staging` |
 | L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Approved and merged into `lab2-staging` |
-| L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Peer review requested |
-| L2-04 Requester | `feature/lab2-04-requester-context` | _URL_ | Active-only selection, persistence, switching | Pending |
+| L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Approved and merged into `lab2-staging` |
+| L2-04 Requester | `feature/lab2-04-requester-context` | [PR #23](https://github.com/itspxsh/toktickit/pull/23) | Active-only selection, persistence, switching | Peer review requested |
 | L2-05 Create | `feature/lab2-05-create-ticket` | _URL_ | Validation, number, idempotency, failure preservation | Pending |
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | _URL_ | Query contract and ownership isolation | Pending |
 | L2-07 Detail | `feature/lab2-07-ticket-detail` | _URL_ | Read-only detail and cross-owner rejection | Pending |
@@ -73,6 +73,19 @@ For each row add:
 - Scope: Zen Green tokens, responsive AppShell/navigation, shared UI primitives, and keyboard/accessibility foundations; no requester or ticket workflow.
 - TDD commits: `8c3861d` (contract tests first), `f10e010` (implementation).
 - Validation: client tests 9/9, production build, and `git diff --check` passed.
+- Review status: Approved by [@justfepwx12](https://github.com/justfepwx12); merged into `lab2-staging` as `b2f758e`.
+- Approval URL/date: [approved review](https://github.com/itspxsh/toktickit/pull/22#pullrequestreview-5122808290), 2026-09-06; [follow-up approval](https://github.com/itspxsh/toktickit/pull/22#pullrequestreview-5122812066).
+- Non-blocking recommendations recorded for later work: dedicated priority tones, page-link affordances for data-backed pagination, and focus trapping plus `aria-describedby` in the reusable confirmation dialog.
+
+### L2-04 Requester context / PR #23
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Issue: [#15](https://github.com/itspxsh/toktickit/issues/15)
+- PR: [#23](https://github.com/itspxsh/toktickit/pull/23)
+- Branch: `feature/lab2-04-requester-context`, based on `lab2-staging` merge `b2f758e`.
+- Scope: active requester API/selector, safe errors, local testing-context persistence and revalidation, route guard, switching confirmation, and stale-request protection.
+- TDD commits: `cf34aa2` (contract tests first), `aa6c3af` (API), `38449f7` (client implementation), and `83806ad` (explicit route-guard redirect test/fix).
+- Validation: client tests 15/15 and build; server tests 14/14 and build; `git diff --check` passed.
 - Review status: Requested from [@justfepwx12](https://github.com/justfepwx12); approval pending.
 
 ## Board and release evidence

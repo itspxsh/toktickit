@@ -27,6 +27,7 @@ export interface AppShellProps {
   children?: ReactNode;
   requesterLabel?: string | null;
   onChangeRequester?: () => void;
+  onNavigate?: (path: string) => void;
 }
 
 export function AppShell({
@@ -34,6 +35,7 @@ export function AppShell({
   children,
   requesterLabel = null,
   onChangeRequester,
+  onNavigate,
 }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -76,7 +78,13 @@ export function AppShell({
               href="/tickets"
               className={`app-shell__nav-link${isActive("/tickets") ? " app-shell__nav-link--active" : ""}`}
               aria-current={isActive("/tickets") ? "page" : undefined}
-              onClick={() => setMenuOpen(false)}
+              onClick={(event) => {
+                setMenuOpen(false);
+                if (onNavigate) {
+                  event.preventDefault();
+                  onNavigate("/tickets");
+                }
+              }}
             >
               My Tickets
             </a>
@@ -84,7 +92,13 @@ export function AppShell({
               href="/create-ticket"
               className={`app-shell__nav-link${isActive("/create-ticket") ? " app-shell__nav-link--active" : ""}`}
               aria-current={isActive("/create-ticket") ? "page" : undefined}
-              onClick={() => setMenuOpen(false)}
+              onClick={(event) => {
+                setMenuOpen(false);
+                if (onNavigate) {
+                  event.preventDefault();
+                  onNavigate("/create-ticket");
+                }
+              }}
             >
               Create Ticket
             </a>
