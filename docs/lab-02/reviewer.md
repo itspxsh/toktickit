@@ -6,13 +6,13 @@ approval. Do not fabricate a review or mark a PR approved from a screenshot of
 the code alone.
 
 **Author:** Pawarisa Thongchua - 67070501032 - GitHub: [@itspxsh](https://github.com/itspxsh)
-**Peer reviewer:** _Record partner name, student ID, and GitHub username_
+**Peer reviewer:** [@justfepwx12](https://github.com/justfepwx12)
 
 ## PRs authored by me
 
 | Issue | Branch | PR | Review focus | Reviewer verdict |
 |---|---|---|---|---|
-| L2-01 Contract | `feature/lab2-01-engineering-contract` | _URL_ | Spec completeness and traceability | Pending |
+| L2-01 Contract | `feature/lab2-01-engineering-contract` | [PR #12](https://github.com/itspxsh/toktickit/pull/12) | Spec completeness and traceability | Changes requested; fix committed locally, re-review pending |
 | L2-02 Data | `feature/lab2-02-data-foundation` | _URL_ | Migration, seed, constraints, ownership indexes | Pending |
 | L2-03 UI foundation | `feature/lab2-03-ui-foundation` | _URL_ | Tokens, reusable components, keyboard/responsive behavior | Pending |
 | L2-04 Requester | `feature/lab2-04-requester-context` | _URL_ | Active-only selection, persistence, switching | Pending |
@@ -40,6 +40,15 @@ For each row add:
 | Issue | PR | My substantive review comment | Partner response | Approval |
 |---|---|---|---|---|
 | _Record each partner PR_ | _URL_ | _Comment_ | _Response_ | Pending |
+
+### L2-01 Contract / PR #12
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Review URL: [review comment](https://github.com/itspxsh/toktickit/pull/12#pullrequestreview-5122356383)
+- Comment received: Required correction for AC-16 → UI-11 and AC-17 → UI-12; recommendation to make dirty Create Ticket requester-switch confirmation explicit in an AC and test mapping.
+- Author response: Updated `specification.md` mappings, expanded AC-03 with explicit cancel/confirm behavior, aligned UI-03 and E2E-02 in `tests.md`, and documented the dialog behavior in `ui-spec.md`.
+- Requested changes and fix commit: `e7d0851` (`fix(lab2): align review traceability and requester switch AC`); commit is local and has not been pushed yet.
+- Approval URL/date: Pending re-review.
 
 ## Board and release evidence
 
