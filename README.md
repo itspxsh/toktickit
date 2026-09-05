@@ -115,6 +115,14 @@ DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_t
 DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run test
 ```
 
+The migration-safety integration check is an explicit, destructive test-database
+probe. It is kept separate from the unit suite so a missing test database cannot
+silently become a skipped test:
+
+```bash
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run test:integration
+```
+
 Apply migrations to the test database before resetting it by temporarily using
 the same URL as `DATABASE_URL`:
 
