@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { checkSystem, type Category } from "./api.ts";
 import {
   Alert,
@@ -14,6 +14,12 @@ import {
   StatusBadge,
   ZEN_GREEN_TOKENS,
 } from "./components/ui.tsx";
+import {
+  RequesterChangeConfirmation,
+  RequesterProvider,
+  RequesterSelection,
+  useRequesterContext,
+} from "./requester.tsx";
 import "./styles.css";
 
 export {
@@ -29,15 +35,36 @@ export {
   PriorityBadge,
   StatusBadge,
   ZEN_GREEN_TOKENS,
+  RequesterChangeConfirmation,
+  RequesterProvider,
+  RequesterSelection,
+  useRequesterContext,
 };
 
 type UiState = "idle" | "loading" | "success" | "error";
 
-/**
- * Lab 1's health check remains available inside the new Lab 2 shell while the
- * requester and ticket routes are built in their dedicated Issues.
- */
-export default function App() {
+function usePathname(): [string, (path: string) => void] {
+  const [pathname, setPathname] = useState(() =>
+    typeof window === "undefined" ? "/" : window.location.pathname,
+  );
+
+  useEffect(() => {
+    const onPopState = () => setPathname(window.location.pathname);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  function navigate(path: string) {
+    if (typeof window === "undefined") return;
+    if (window.location.pathname !== path) window.history.pushState({}, "", path);
+    setPathname(path);
+  }
+
+  return [pathname, navigate];
+}
+
+/** Lab 1's health check remains available inside the Lab 2 application shell. */
+function HealthCheck() {
   const [state, setState] = useState<UiState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -55,11 +82,8 @@ export default function App() {
     }
   }
 
-  const activePath = typeof window === "undefined" ? "/" : window.location.pathname;
-
   return (
-    <AppShell activePath={activePath}>
-      <section className="card stack" aria-labelledby="health-check-title">
+    <section className="card stack" aria-labelledby="health-check-title">
         <div>
           <p className="eyebrow">Lab 1 compatibility check</p>
           <h1 id="health-check-title">TokTickIT service status</h1>
@@ -98,7 +122,56 @@ export default function App() {
             <Alert tone="error">{errorMessage}</Alert>
           </div>
         )}
-      </section>
+    </section>
+  );
+}
+
+function RequesterAwareApp() {
+  const [activePath, navigate] = usePathname();
+  const context = useRequesterContext();
+  const requesterRequired =
+    activePath === "/tickets" ||
+    activePath.startsWith("/tickets/") ||
+    activePath === "/create-ticket" ||
+    activePath.startsWith("/create-ticket/");
+  const selectionRoute = activePath === "/select-requester";
+  const mustSelect = selectionRoute || (requesterRequired && !context.selectedRequester);
+
+  function handleChangeRequester() {
+    context.requestChangeRequester(() => navigate("/select-requester"));
+  }
+
+  return (
+    <AppShell
+      activePath={activePath}
+      requesterLabel={context.selectedRequester?.name}
+      onChangeRequester={handleChangeRequester}
+      onNavigate={navigate}
+    >
+      {mustSelect ? (
+        <RequesterSelection onContinue={() => navigate("/tickets")} />
+      ) : activePath === "/tickets" ? (
+        <section className="card stack" aria-labelledby="tickets-placeholder-title">
+          <h1 id="tickets-placeholder-title">My Tickets</h1>
+          <p>Requester-scoped ticket list will be delivered in the next Lab 2 issue.</p>
+        </section>
+      ) : activePath === "/create-ticket" ? (
+        <section className="card stack" aria-labelledby="create-placeholder-title">
+          <h1 id="create-placeholder-title">Create Ticket</h1>
+          <p>Ticket creation will be delivered in the next Lab 2 issue.</p>
+        </section>
+      ) : (
+        <HealthCheck />
+      )}
+      <RequesterChangeConfirmation />
     </AppShell>
+  );
+}
+
+export default function App() {
+  return (
+    <RequesterProvider>
+      <RequesterAwareApp />
+    </RequesterProvider>
   );
 }
