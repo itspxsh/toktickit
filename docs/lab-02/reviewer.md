@@ -47,7 +47,7 @@ For each row add:
 - Review URL: [review comment](https://github.com/itspxsh/toktickit/pull/12#pullrequestreview-5122356383)
 - Comment received: Required correction for AC-16 → UI-11 and AC-17 → UI-12; recommendation to make dirty Create Ticket requester-switch confirmation explicit in an AC and test mapping.
 - Author response: Updated `specification.md` mappings, expanded AC-03 with explicit cancel/confirm behavior, aligned UI-03 and E2E-02 in `tests.md`, and documented the dialog behavior in `ui-spec.md`.
-- Requested changes and fix commit: `e7d0851` (`fix(lab2): align review traceability and requester switch AC`); commit is local and has not been pushed yet.
+- Requested changes and fix commit: `e7d0851` (`fix(lab2): align review traceability and requester switch AC`); pushed to the PR branch.
 - Approval URL/date: Pending re-review.
 
 ## Board and release evidence
