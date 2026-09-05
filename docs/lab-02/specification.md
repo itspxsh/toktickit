@@ -194,8 +194,11 @@ Each criterion maps to at least one planned test in `tests.md`.
 - **AC-02:** Given no active Requesters or a failed endpoint, then the selector
   shows a useful empty/error recovery state. (UI-02, API-02)
 - **AC-03:** Given a valid selection, when the app refreshes or the requester
-  changes, then the shell and all requester-scoped data use the new context.
-  (UI-03, E2E-02)
+  changes, then the shell and all requester-scoped data use the new context. If
+  the Create Ticket form has unsaved values, changing requester first requires
+  an explicit confirmation to discard them; cancelling keeps the current
+  requester and form unchanged, while confirming clears the dirty form and
+  reloads requester-scoped data. (UI-03, E2E-01, E2E-02)
 - **AC-04:** Given an inactive/missing persisted id, when the app starts, then it
   clears the id and returns to selection. (UNIT-01, UI-03)
 - **AC-05:** Given valid Ticket data, when submitted, then one database Ticket is
@@ -225,11 +228,11 @@ Each criterion maps to at least one planned test in `tests.md`.
   then upload is rejected with the documented status and no active metadata is
   created. (UNIT-06, API-11, UI-11)
 - **AC-16:** Given an active owned Attachment, download/preview succeeds; after
-  soft removal it is blocked while metadata remains visible. (API-12, UI-12,
+  soft removal it is blocked while metadata remains visible. (API-12, UI-11,
   E2E-03)
 - **AC-17:** Given a partial initial upload failure, the Ticket remains saved,
   successful files remain, and each failed file has a retryable message. (API-13,
-  UI-13, E2E-03)
+  UI-12, E2E-03)
 - **AC-18:** Given desktop, tablet, and mobile viewports, all required screens
   have no clipping, overlap, hidden action, or horizontal page scroll. (STYLE-01,
   RESP-01, RESP-02, RESP-03)

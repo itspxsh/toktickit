@@ -44,7 +44,7 @@ actual repository path.
 | API-14 | API | FR-02, AC-01 | Active categories and systems | Only active reference rows returned | `server/tests/lab-02/reference-data.api.test.ts` | Pending |
 | UI-01 | UI | FR-02, AC-01 | Requester selector loading and success | Accessible select and active options render | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
 | UI-02 | UI | FR-02, AC-02 | Selector empty and failure states | Useful message, retry, no unsafe fallback | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
-| UI-03 | UI | FR-03-04, AC-03-04 | Persist and switch requester | Shell identity changes and stale data clears | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
+| UI-03 | UI | FR-03-04, BR-06, AC-03-04 | Persist and switch requester, including dirty-form confirmation | Cancel keeps the current requester and unsaved form; confirm switches identity and clears stale data | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
 | UI-04 | UI | FR-05, AC-06 | Create field validation | Required markers/messages; API not called | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |
 | UI-05 | UI | FR-07-08, AC-07 | Busy/disabled/idempotent submit | Double click cannot create two requests | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |
 | UI-06 | UI | FR-18, AC-08 | Create failure preservation | Values and file selections remain visible | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |
@@ -61,7 +61,7 @@ actual repository path.
 | RESP-03 | Responsive | AC-18 | Ticket Detail/Attachment at all breakpoints | Attachment names/actions remain visible | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
 | A11Y-01 | Accessibility | AC-19 | Keyboard-only requester/create/detail flow | Logical tab order, visible focus, labelled controls | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
 | E2E-01 | E2E | AC-03,05,08,12 | Select -> create -> list -> detail | Official number and saved values visible | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| E2E-02 | E2E | AC-03,09,11,13 | A/B switching and isolation | A tickets disappear for B; direct access rejected | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
+| E2E-02 | E2E | AC-03,09,11,13 | A/B switching, dirty-form confirmation, and isolation | Cancel preserves the dirty form; confirmed switch changes context, A tickets disappear for B, and direct access is rejected | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
 | E2E-03 | E2E | AC-14-17 | Attachment lifecycle | Add/download/remove/blocked download and partial error | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
 | TEST-01 | Release | AC-20 | Full final test command from main | No skipped/flaky tests; all required suites green | `docs/lab-02/tests.md` | Pending |
 | RELEASE-01 | Release | DoD | Contract, board, PR, review, and PDF evidence audit | Every required link and screenshot exists | `docs/lab-02/reviewer.md` | Pending |

@@ -72,6 +72,11 @@ Centered white card on the quiet background:
    selected.
 8. Amber callout states explicitly that authentication arrives in Lab 3.
 
+When `Change Requester` is invoked while the Create Ticket form has unsaved
+values, show a labelled confirmation dialog before changing context. Cancel
+keeps the current requester and form values; confirming discards the unsaved
+values, changes requester, and reloads requester-scoped data.
+
 ## 5. Create Ticket screen
 
 Use a card with these groups:
