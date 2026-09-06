@@ -5,9 +5,376 @@ export interface Category {
   name: string;
 }
 
+export interface RelatedSystem {
+  id: number;
+  name: string;
+}
+
+export type RequestedPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
+export interface CreateTicketPayload {
+  categoryId: number;
+  relatedSystemId: number;
+  summary: string;
+  requestedPriority: RequestedPriority;
+  description: string;
+}
+
+export interface TicketView {
+  id: number;
+  ticketNumber: string;
+  ticketDate: string;
+  requester: Pick<Requester, "id" | "name">;
+  category: Category;
+  relatedSystem: RelatedSystem;
+  summary: string;
+  requestedPriority: RequestedPriority;
+  description: string;
+  itPriority: string | null;
+  currentStatus: "NEW";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TicketAttachmentStatus = "ACTIVE" | "REMOVED";
+
+export interface TicketAttachmentView {
+  id: number;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  status: TicketAttachmentStatus;
+  removedAt: string | null;
+  removalReason: string | null;
+  createdAt: string;
+}
+
+export interface TicketDetailView extends TicketView {
+  attachments: TicketAttachmentView[];
+}
+
+export interface CreateTicketResponse {
+  data: TicketView;
+  replayed: boolean;
+}
+
+export type TicketListSortBy = "updatedAt" | "createdAt" | "ticketNumber" | "requestedPriority";
+export type TicketListSortOrder = "asc" | "desc";
+
+export interface TicketListQuery {
+  search?: string;
+  categoryId?: number;
+  relatedSystemId?: number;
+  requestedPriority?: RequestedPriority;
+  status?: "NEW";
+  sortBy?: TicketListSortBy;
+  sortOrder?: TicketListSortOrder;
+  page?: number;
+  pageSize?: 10 | 20 | 50;
+}
+
+export interface TicketListItem {
+  id: number;
+  ticketNumber: string;
+  ticketDate: string;
+  summary: string;
+  requestedPriority: RequestedPriority;
+  currentStatus: "NEW";
+  createdAt: string;
+  updatedAt: string;
+  category: Category;
+  relatedSystem: RelatedSystem;
+}
+
+export interface TicketListResponse {
+  data: TicketListItem[];
+  pagination: {
+    page: number;
+    pageSize: 10 | 20 | 50;
+    totalItems: number;
+    totalPages: number;
+  };
+}
+
+export class ApiError extends Error {
+  readonly fieldErrors?: Record<string, string>;
+  readonly status: number;
+
+  constructor(message: string, status: number, fieldErrors?: Record<string, string>) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.fieldErrors = fieldErrors;
+  }
+}
+
 export interface SystemStatus {
   online: boolean;
   categories: Category[];
+}
+
+export interface Requester {
+  id: number;
+  name: string;
+  email: string;
+}
+
+/** The selector endpoint is intentionally unscoped: no requester exists yet. */
+export async function fetchRequesters(signal?: AbortSignal): Promise<Requester[]> {
+  const response = await fetch(`${API_URL}/api/requesters`, { signal });
+  if (!response.ok) {
+    throw new Error("Unable to load Development Requesters");
+  }
+
+  const payload: unknown = await response.json();
+  if (!Array.isArray(payload)) {
+    throw new Error("Unable to load Development Requesters");
+  }
+
+  return payload.filter(isRequester);
+}
+
+function isRequester(value: unknown): value is Requester {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Record<string, unknown>;
+  return typeof row.id === "number" && typeof row.name === "string" && typeof row.email === "string";
+}
+
+/** Headers for later requester-scoped calls; this is testing context only. */
+export function developmentRequesterHeaders(requesterId: number): HeadersInit {
+  return { "X-Development-Requester-Id": String(requesterId) };
+}
+
+function isReferenceRow(value: unknown): value is Category {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Record<string, unknown>;
+  return typeof row.id === "number" && typeof row.name === "string";
+}
+
+/** Load active classification options for the Create Ticket form. */
+export async function fetchReferenceData(signal?: AbortSignal): Promise<{
+  categories: Category[];
+  relatedSystems: RelatedSystem[];
+}> {
+  const [categoriesResponse, systemsResponse] = await Promise.all([
+    fetch(`${API_URL}/api/categories`, { signal }),
+    fetch(`${API_URL}/api/related-systems`, { signal }),
+  ]);
+  if (!categoriesResponse.ok || !systemsResponse.ok) {
+    throw new Error("Unable to load Categories and Related Systems");
+  }
+  const [categories, relatedSystems]: [unknown, unknown] = await Promise.all([
+    categoriesResponse.json(),
+    systemsResponse.json(),
+  ]);
+  if (!Array.isArray(categories) || !Array.isArray(relatedSystems)) {
+    throw new Error("Unable to load Categories and Related Systems");
+  }
+  return {
+    categories: categories.filter(isReferenceRow),
+    relatedSystems: relatedSystems.filter(isReferenceRow),
+  };
+}
+
+export function createIdempotencyKey(): string {
+  if (typeof globalThis.crypto?.randomUUID === "function") return globalThis.crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  if (typeof globalThis.crypto?.getRandomValues === "function") {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) bytes[index] = Math.floor(Math.random() * 256);
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (value) => value.toString(16).padStart(2, "0"));
+  return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
+}
+
+/** Submit one requester-scoped Ticket using a stable idempotency key. */
+export async function createTicket(
+  payload: CreateTicketPayload,
+  requesterId: number,
+  idempotencyKey = createIdempotencyKey(),
+): Promise<CreateTicketResponse> {
+  const response = await fetch(`${API_URL}/api/tickets`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...developmentRequesterHeaders(requesterId),
+      "Idempotency-Key": idempotencyKey,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = body && typeof body === "object" && "error" in body
+      ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+      : undefined;
+    const fieldErrors = error?.fieldErrors && typeof error.fieldErrors === "object"
+      ? error.fieldErrors as Record<string, string>
+      : undefined;
+    const message =
+      body && typeof body === "object" && "error" in body &&
+      (body as { error?: { message?: unknown } }).error?.message;
+    throw new ApiError(typeof message === "string" ? message : "Unable to create Ticket.", response.status, fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("data" in body)) {
+    throw new Error("Unable to create Ticket.");
+  }
+  return body as CreateTicketResponse;
+}
+
+/** Load one requester-owned Ticket and read-only attachment metadata. */
+export async function fetchTicketDetail(
+  ticketNumber: string,
+  requesterId: number,
+  signal?: AbortSignal,
+): Promise<TicketDetailView> {
+  const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}`, {
+    headers: developmentRequesterHeaders(requesterId),
+    signal,
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = body && typeof body === "object" && "error" in body
+      ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+      : undefined;
+    const fieldErrors = error?.fieldErrors && typeof error.fieldErrors === "object"
+      ? error.fieldErrors as Record<string, string>
+      : undefined;
+    throw new ApiError(
+      typeof error?.message === "string" ? error.message : "Unable to load Ticket.",
+      response.status,
+      fieldErrors,
+    );
+  }
+  if (!body || typeof body !== "object" || !("data" in body)) {
+    throw new Error("Unable to load Ticket.");
+  }
+  return (body as { data: TicketDetailView }).data;
+}
+
+function readApiError(body: unknown, fallback: string): { message: string; fieldErrors?: Record<string, string> } {
+  const error = body && typeof body === "object" && "error" in body
+    ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+    : undefined;
+  const fieldErrors = error?.fieldErrors && typeof error.fieldErrors === "object"
+    ? error.fieldErrors as Record<string, string>
+    : undefined;
+  return {
+    message: typeof error?.message === "string" ? error.message : fallback,
+    fieldErrors,
+  };
+}
+
+async function parseAttachmentResponse(response: Response, fallback: string): Promise<TicketAttachmentView> {
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, fallback);
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("data" in body)) throw new Error(fallback);
+  return (body as { data: TicketAttachmentView }).data;
+}
+
+/** Upload one file; callers may invoke this once per selected file. */
+export async function uploadAttachment(
+  ticketNumber: string,
+  requesterId: number,
+  file: File,
+  signal?: AbortSignal,
+): Promise<TicketAttachmentView> {
+  const form = new FormData();
+  form.append("file", file, file.name);
+  const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments`, {
+    method: "POST",
+    headers: developmentRequesterHeaders(requesterId),
+    body: form,
+    signal,
+  });
+  return parseAttachmentResponse(response, "Unable to upload Attachment.");
+}
+
+/** Fetch a private active attachment stream using the testing requester context. */
+export async function downloadAttachment(
+  ticketNumber: string,
+  requesterId: number,
+  attachmentId: number,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  const response = await fetch(
+    `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}/download`,
+    { headers: developmentRequesterHeaders(requesterId), signal },
+  );
+  if (!response.ok) {
+    const body: unknown = await response.json().catch(() => null);
+    const error = readApiError(body, "Unable to download Attachment.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  return response.blob();
+}
+
+/** Soft-remove one owned active attachment and preserve its metadata. */
+export async function removeAttachment(
+  ticketNumber: string,
+  requesterId: number,
+  attachmentId: number,
+  reason: string,
+  signal?: AbortSignal,
+): Promise<TicketAttachmentView> {
+  const response = await fetch(
+    `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", ...developmentRequesterHeaders(requesterId) },
+      body: JSON.stringify({ reason }),
+      signal,
+    },
+  );
+  return parseAttachmentResponse(response, "Unable to remove Attachment.");
+}
+
+/** Load the selected requester's Ticket list using only the testing context header. */
+export async function fetchMyTickets(
+  requesterId: number,
+  query: TicketListQuery = {},
+  signal?: AbortSignal,
+): Promise<TicketListResponse> {
+  const params = new URLSearchParams();
+  if (query.search?.trim()) params.set("search", query.search.trim());
+  if (query.categoryId !== undefined) params.set("categoryId", String(query.categoryId));
+  if (query.relatedSystemId !== undefined) params.set("relatedSystemId", String(query.relatedSystemId));
+  if (query.requestedPriority) params.set("requestedPriority", query.requestedPriority);
+  if (query.status) params.set("status", query.status);
+  if (query.sortBy) params.set("sortBy", query.sortBy);
+  if (query.sortOrder) params.set("sortOrder", query.sortOrder);
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.pageSize !== undefined) params.set("pageSize", String(query.pageSize));
+
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_URL}/api/tickets${suffix}`, {
+    headers: developmentRequesterHeaders(requesterId),
+    signal,
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = body && typeof body === "object" && "error" in body
+      ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+      : undefined;
+    const fieldErrors = error?.fieldErrors && typeof error.fieldErrors === "object"
+      ? error.fieldErrors as Record<string, string>
+      : undefined;
+    throw new ApiError(
+      typeof error?.message === "string" ? error.message : "Unable to load My Tickets.",
+      response.status,
+      fieldErrors,
+    );
+  }
+  if (!body || typeof body !== "object" || !("data" in body) || !("pagination" in body)) {
+    throw new Error("Unable to load My Tickets.");
+  }
+  return body as TicketListResponse;
 }
 
 // Issue 2 + Issue 4 — call the backend.

@@ -7,7 +7,7 @@ TokTickIT is a professional, full-stack IT Service Desk application designed to 
 - **Frontend**: React, TypeScript, Vite, Bootstrap 5 (for styling)
 - **Backend**: Node.js, Express, TypeScript (TSX for execution)
 - **Database**: PostgreSQL with Prisma ORM
-- **Testing**: Vitest (Unit/Integration) and Supertest (API/HTTP assertions)
+- **Testing**: Vitest (Unit/Integration), Supertest (API/HTTP assertions), and Playwright (integrated browser/release evidence)
 
 ---
 
@@ -80,9 +80,16 @@ cp server/.env.example server/.env
 Inside `server/.env`:
 ```env
 DATABASE_URL="postgresql://<username>:<password>@localhost:5432/<db_name>?schema=public"
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public"
 PORT=3000
+# Optional; defaults to the private server/storage/attachments directory.
+ATTACHMENT_STORAGE_DIR="/absolute/private/path/toktickit-attachments"
 ```
 *(Make sure to replace `<username>`, `<password>`, and `<db_name>` with your local PostgreSQL credentials).*
+
+`ATTACHMENT_STORAGE_DIR` must not be served as a static directory or committed to
+the repository. Uploads use UUID storage names and the API exposes content only
+through the requester-owned download route.
 
 ---
 
@@ -94,14 +101,40 @@ Initialize the database schema and populate it with seed data using Prisma:
    Run the following command inside the `server` directory to apply the database migrations:
    ```bash
    cd server
-   npx prisma migrate dev --name init
+   npx prisma migrate deploy
    ```
 
 2. **Seed the Database**:
-   Populate the database with the initial categories using the idempotent seeding script:
+   Populate the database with idempotent categories, related systems, and development requesters:
    ```bash
    npx prisma db seed
    ```
+
+For integration tests, create a separate PostgreSQL database whose name ends in
+`_test`, set `DATABASE_URL_TEST` in the environment, and never point it at the
+development database. The reset command refuses URLs that are not explicitly
+test-scoped, then truncates only the test schema and reruns the reference seed:
+
+```bash
+cd server
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run db:test:reset
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run test
+```
+
+The migration-safety integration check is an explicit, destructive test-database
+probe. It is kept separate from the unit suite so a missing test database cannot
+silently become a skipped test:
+
+```bash
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run test:integration
+```
+
+Apply migrations to the test database before resetting it by temporarily using
+the same URL as `DATABASE_URL`:
+
+```bash
+DATABASE_URL="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npx prisma migrate deploy
+```
 
 ---
 
@@ -125,6 +158,32 @@ npm run dev
 ```
 The application will be available in your browser at `http://localhost:5173`.
 
+### 3. Run the integrated Lab 2 browser suite
+
+The release-readiness suite runs against both local services and a seeded
+PostgreSQL database. It deliberately fails when the database or seed is not
+available; it never skips or mocks the integrated API. Install the Chromium
+binary once after `npm install`:
+
+```bash
+cd client
+npx playwright install chromium
+npm run test:e2e
+```
+
+The equivalent repository-root command is:
+
+```bash
+npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02
+```
+
+The suite exercises requester selection, dirty-form navigation protection,
+Ticket creation/list/detail ownership, attachment upload/download/removal,
+responsive viewports (desktop/tablet/mobile), and keyboard/accessibility
+checks. Successful runs write screenshots to
+`artifacts/lab-02/screenshots/` and the HTML report to
+`artifacts/lab-02/playwright-report/`.
+
 ---
 
 ## Running Tests
@@ -144,3 +203,19 @@ Runs Vitest unit and rendering checks:
 cd client
 npm run test
 ```
+
+### Release evidence prerequisites
+
+Before running Playwright, apply migrations and seed the development database
+used by `DATABASE_URL`:
+
+```bash
+cd server
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+Keep `DATABASE_URL_TEST` pointed at a separate database whose name ends in
+`_test` for destructive integration-test commands. Do not commit `.env`, test
+database credentials, private attachment storage, or generated Playwright
+results that are not part of the reviewed evidence set.
