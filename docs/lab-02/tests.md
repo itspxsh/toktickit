@@ -121,6 +121,9 @@ cd .. && npx playwright test -c client/playwright.config.ts e2e/lab-02
 
 The README must document how to set `DATABASE_URL_TEST`, seed/reset the test
 database, start both dev servers, and run the same commands locally and in CI.
+Because Playwright is installed in the `client` package, the repository-root
+equivalent is `npx --prefix client playwright test -c
+client/playwright.config.ts e2e/lab-02` (or `cd client && npm run test:e2e`).
 
 ## 6. Final Results
 
@@ -130,6 +133,23 @@ database, start both dev servers, and run the same commands locally and in CI.
 | Client unit/UI | `cd client && npm run test` | Pending | Add terminal capture from final `main` |
 | Client build | `cd client && npm run build` | Pending | Add output and confirm no generated source `.js` files |
 | Playwright E2E/responsive | `npx playwright test -c client/playwright.config.ts e2e/lab-02` | Pending | Add report and screenshots |
+
+### L2-09 staging verification (not final-main evidence)
+
+The following checks were run on `feature/lab2-09-release-readiness` after
+`lab2-staging` commit `b403d57` on 2026-09-06. They are intentionally not
+marked as final until the release branch is merged and rerun from `main`.
+The screenshot set below was generated during the validated implementation
+sequence `1fe874e` through `93c996f` (including the test/config corrections
+recorded in that range).
+
+| Check | Result | Evidence / risk |
+|---|---|---|
+| `cd client && npm run test` | 34/34 passed | Local Vitest output |
+| `cd client && npm run build` | Passed | TypeScript and Vite production build |
+| `cd server && npm run build` | Passed | TypeScript server build |
+| `cd server && npm run test` | 39/39 passed | Lab 1 and Lab 2 suites pass after applying the committed migrations and deterministic seed |
+| `npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02` | 3/3 passed | Desktop, tablet, and mobile Chromium projects; screenshots are stored under `artifacts/lab-02/screenshots/` |
 
 ## 7. Known Limitations or Deferred Tests
 
