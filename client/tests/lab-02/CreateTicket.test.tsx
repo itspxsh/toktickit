@@ -134,4 +134,19 @@ describe("L2-05 Create Ticket", () => {
     await user.click(screen.getByRole("button", { name: "Confirm" }));
     expect(window.location.pathname).toBe("/tickets");
   });
+
+  it("renders a read-only placeholder for the ticket detail handoff route", async () => {
+    window.localStorage.setItem(REQUESTER_STORAGE_KEY, "1");
+    window.history.pushState({}, "", "/tickets/TKT-2026-000042");
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Ticket TKT-2026-000042" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/read-only detail view is a placeholder/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to My Tickets" })).toBeInTheDocument();
+  });
 });
