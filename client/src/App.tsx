@@ -23,6 +23,7 @@ import {
 import { CreateTicket } from "./create-ticket.tsx";
 import { MyTickets } from "./my-tickets.tsx";
 import { TicketDetailPlaceholder } from "./ticket-detail-placeholder.tsx";
+import { RequesterTicketDetail } from "./requester-ticket-detail.tsx";
 import "./styles.css";
 
 export {
@@ -43,6 +44,7 @@ export {
   RequesterSelection,
   CreateTicket,
   MyTickets,
+  RequesterTicketDetail,
   TicketDetailPlaceholder,
   useRequesterContext,
 };
@@ -175,7 +177,7 @@ function RequesterAwareApp() {
       {mustSelect ? (
         <RequesterSelection onContinue={() => navigate("/tickets")} />
       ) : ticketDetailMatch ? (
-        <TicketDetailPlaceholder
+        <RequesterTicketDetail
           ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
           onNavigate={handleNavigate}
         />

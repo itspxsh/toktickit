@@ -4,6 +4,7 @@ import { allocateTicketNumber, type TicketSequenceClient } from "../ticket-numbe
 
 type Model = {
   findUnique(args: unknown): Promise<unknown>;
+  findFirst(args: unknown): Promise<unknown>;
   create(args: unknown): Promise<unknown>;
 };
 
@@ -26,10 +27,33 @@ type SortOrder = "asc" | "desc";
 
 const PRIORITIES = new Set<RequestedPriority>(["LOW", "MEDIUM", "HIGH", "URGENT"]);
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const TICKET_NUMBER_PATTERN = /^TKT-\d{4}-\d{6}$/;
 const TICKET_INCLUDE = {
   requester: { select: { id: true, name: true } },
   category: { select: { id: true, name: true } },
   relatedSystem: { select: { id: true, name: true } },
+};
+const TICKET_DETAIL_INCLUDE = {
+  requester: { select: { id: true, name: true } },
+  category: { select: { id: true, name: true } },
+  relatedSystem: { select: { id: true, name: true } },
+  attachments: {
+    select: {
+      id: true,
+      originalName: true,
+      mimeType: true,
+      sizeBytes: true,
+      status: true,
+      removedAt: true,
+      removalReason: true,
+      createdAt: true,
+    },
+    orderBy: [
+      { status: "asc" },
+      { createdAt: "asc" },
+      { id: "asc" },
+    ],
+  },
 };
 
 const TICKET_LIST_SELECT = {
@@ -168,6 +192,26 @@ function serialiseTicket(row: Record<string, unknown>): Record<string, unknown> 
     currentStatus: row.currentStatus,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+  };
+}
+
+function serialiseTicketDetail(row: Record<string, unknown>): Record<string, unknown> {
+  const attachments = Array.isArray(row.attachments) ? row.attachments : [];
+  return {
+    ...serialiseTicket(row),
+    attachments: attachments.map((attachment) => {
+      const value = attachment as Record<string, unknown>;
+      return {
+        id: value.id,
+        originalName: value.originalName,
+        mimeType: value.mimeType,
+        sizeBytes: value.sizeBytes,
+        status: value.status,
+        removedAt: value.removedAt ?? null,
+        removalReason: value.removalReason ?? null,
+        createdAt: value.createdAt,
+      };
+    }),
   };
 }
 
@@ -348,6 +392,51 @@ export function registerTicketRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
 ): void {
+  app.get("/api/tickets/:ticketNumber", async (req: Request, res: Response) => {
+    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    if (requesterId === null) {
+      res.status(400).json({
+        error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
+      });
+      return;
+    }
+
+    const ticketNumber = req.params.ticketNumber?.trim();
+    if (!ticketNumber || !TICKET_NUMBER_PATTERN.test(ticketNumber)) {
+      res.status(400).json({
+        error: { code: "INVALID_TICKET_NUMBER", message: "Ticket Number must match TKT-YYYY-NNNNNN." },
+      });
+      return;
+    }
+
+    const prisma = prismaProvider();
+    try {
+      // Ownership and active requester checks are part of the same ticket query
+      // so a missing and a cross-requester Ticket have identical safe responses.
+      const ticket = await prisma.ticket.findFirst({
+        where: {
+          ticketNumber,
+          requesterId,
+          requester: { isActive: true },
+        },
+        include: TICKET_DETAIL_INCLUDE,
+      }) as Record<string, unknown> | null;
+
+      if (!ticket) {
+        res.status(404).json({
+          error: { code: "TICKET_NOT_FOUND", message: "Ticket was not found." },
+        });
+        return;
+      }
+
+      res.status(200).json({ data: serialiseTicketDetail(ticket) });
+    } catch {
+      res.status(500).json({
+        error: { code: "INTERNAL_ERROR", message: "Unable to load Ticket." },
+      });
+    }
+  });
+
   app.get("/api/tickets", async (req: Request, res: Response) => {
     const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
     if (requesterId === null) {
