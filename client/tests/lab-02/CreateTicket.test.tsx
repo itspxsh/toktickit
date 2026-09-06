@@ -9,6 +9,22 @@ import { RequesterProvider, REQUESTER_STORAGE_KEY } from "../../src/requester.ts
 const requester = { id: 1, name: "Jennifer Anderson", email: "jennifer@example.test" };
 const categories = [{ id: 2, name: "Hardware" }];
 const systems = [{ id: 7, name: "Corporate Laptop" }];
+const ticketDetail: api.TicketDetailView = {
+  id: 42,
+  ticketNumber: "TKT-2026-000042",
+  ticketDate: "2026-09-06T00:00:00.000Z",
+  requester: { id: 1, name: requester.name },
+  category: categories[0],
+  relatedSystem: systems[0],
+  summary: "Laptop battery drains quickly",
+  requestedPriority: "MEDIUM",
+  description: "The battery drains faster than usual during normal use.",
+  itPriority: null,
+  currentStatus: "NEW",
+  createdAt: "2026-09-06T00:00:00.000Z",
+  updatedAt: "2026-09-06T00:00:00.000Z",
+  attachments: [],
+};
 
 function renderCreateTicket() {
   window.localStorage.setItem(REQUESTER_STORAGE_KEY, "1");
@@ -42,6 +58,7 @@ describe("L2-05 Create Ticket", () => {
     storage.clear();
     vi.spyOn(api, "fetchRequesters").mockResolvedValue([requester]);
     vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories, relatedSystems: systems });
+    vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(ticketDetail);
   });
 
   it("UI-04 / AC-06: validates required fields before calling the API", async () => {
@@ -135,7 +152,7 @@ describe("L2-05 Create Ticket", () => {
     expect(window.location.pathname).toBe("/tickets");
   });
 
-  it("renders a read-only placeholder for the ticket detail handoff route", async () => {
+  it("renders the requester-owned detail route after the handoff placeholder", async () => {
     window.localStorage.setItem(REQUESTER_STORAGE_KEY, "1");
     window.history.pushState({}, "", "/tickets/TKT-2026-000042");
 
@@ -144,9 +161,7 @@ describe("L2-05 Create Ticket", () => {
     expect(
       await screen.findByRole("heading", { name: "Ticket TKT-2026-000042" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/read-only detail view is a placeholder/i),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Summary")).toHaveValue(ticketDetail.summary);
     expect(screen.getByRole("link", { name: "Back to My Tickets" })).toBeInTheDocument();
   });
 });
