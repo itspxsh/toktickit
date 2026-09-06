@@ -21,6 +21,7 @@ import {
   useRequesterContext,
 } from "./requester.tsx";
 import { CreateTicket } from "./create-ticket.tsx";
+import { MyTickets } from "./my-tickets.tsx";
 import { TicketDetailPlaceholder } from "./ticket-detail-placeholder.tsx";
 import "./styles.css";
 
@@ -41,6 +42,7 @@ export {
   RequesterProvider,
   RequesterSelection,
   CreateTicket,
+  MyTickets,
   TicketDetailPlaceholder,
   useRequesterContext,
 };
@@ -178,10 +180,7 @@ function RequesterAwareApp() {
           onNavigate={handleNavigate}
         />
       ) : activePath === "/tickets" ? (
-        <section className="card stack" aria-labelledby="tickets-placeholder-title">
-          <h1 id="tickets-placeholder-title">My Tickets</h1>
-          <p>Requester-scoped ticket list will be delivered in the next Lab 2 issue.</p>
-        </section>
+        <MyTickets onNavigate={handleNavigate} />
       ) : activePath === "/create-ticket" ? (
         <CreateTicket onNavigate={handleNavigate} />
       ) : (

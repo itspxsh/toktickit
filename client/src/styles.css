@@ -419,6 +419,69 @@ select[aria-readonly="true"] {
   margin-top: 0;
 }
 
+.my-tickets__toolbar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+  align-items: end;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-pale);
+}
+
+.my-tickets__toolbar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-tickets__toolbar-field label {
+  min-height: 24px;
+  font-weight: 700;
+}
+
+.my-tickets__toolbar-field--search {
+  grid-column: span 2;
+}
+
+.my-tickets__toolbar > .button {
+  width: 100%;
+}
+
+.my-tickets__table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.my-tickets__table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+}
+
+.my-tickets__table th,
+.my-tickets__table td {
+  padding: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.my-tickets__table thead th {
+  color: var(--color-text);
+  background: var(--color-pale);
+  font-size: 0.875rem;
+}
+
+.my-tickets__table tbody th {
+  font-weight: 700;
+}
+
+.my-tickets__table td:last-child {
+  white-space: nowrap;
+}
+
 .pagination {
   display: flex;
   align-items: center;
@@ -533,5 +596,60 @@ select[aria-readonly="true"] {
   .create-ticket__system-info,
   .create-ticket__grid {
     grid-template-columns: 1fr;
+  }
+
+  .my-tickets__toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .my-tickets__toolbar-field--search {
+    grid-column: auto;
+  }
+
+  .my-tickets__table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .my-tickets__table,
+  .my-tickets__table tbody,
+  .my-tickets__table tr,
+  .my-tickets__table th,
+  .my-tickets__table td {
+    display: block;
+  }
+
+  .my-tickets__table tr {
+    margin-bottom: var(--space-2);
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgb(24 53 42 / 6%);
+  }
+
+  .my-tickets__table tbody th,
+  .my-tickets__table tbody td {
+    display: grid;
+    grid-template-columns: minmax(120px, 40%) minmax(0, 1fr);
+    gap: var(--space-1);
+    padding: 6px 0;
+    border: 0;
+  }
+
+  .my-tickets__table tbody th::before,
+  .my-tickets__table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+  }
+
+  .my-tickets__table tbody td:last-child {
+    white-space: normal;
   }
 }
