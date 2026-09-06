@@ -29,7 +29,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "npm --prefix server run build && npm --prefix server run start",
+      command: "set -a; . server/.env; set +a; npm --prefix server run build && npm --prefix server run start",
       cwd: "..",
       url: "http://127.0.0.1:3000/api/health",
       timeout: 30_000,

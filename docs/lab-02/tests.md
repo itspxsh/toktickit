@@ -145,8 +145,8 @@ marked as final until the release branch is merged and rerun from `main`.
 | `cd client && npm run test` | 34/34 passed | Local Vitest output |
 | `cd client && npm run build` | Passed | TypeScript and Vite production build |
 | `cd server && npm run build` | Passed | TypeScript server build |
-| `cd server && npm run test` | 38/39 passed | Existing Lab 1 `categories.test.ts` needs a live `DATABASE_URL`; all Lab 2 tests passed |
-| `npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02 --project=desktop` | Failed fast | Required local PostgreSQL/seed is unavailable; preflight returned safe `500 INTERNAL_ERROR`. No E2E result or screenshot is claimed. |
+| `cd server && npm run test` | 39/39 passed | Lab 1 and Lab 2 suites pass after applying the committed migrations and deterministic seed |
+| `npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02` | 3/3 passed | Desktop, tablet, and mobile Chromium projects; screenshots are stored under `artifacts/lab-02/screenshots/` |
 
 ## 7. Known Limitations or Deferred Tests
 

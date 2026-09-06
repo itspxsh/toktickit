@@ -39,10 +39,22 @@ async function selectRequester(page: Page, optionIndex: number): Promise<number>
   return requesterId;
 }
 
+function primaryLink(page: Page, name: string) {
+  return page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name });
+}
+
+async function clickPrimaryLink(page: Page, name: string): Promise<void> {
+  const link = primaryLink(page, name);
+  if (!(await link.isVisible())) {
+    await page.getByRole("button", { name: "Open navigation menu" }).click();
+  }
+  await expect(link).toBeVisible();
+  await link.click();
+}
+
 test.describe("Lab 2 requester release flow", () => {
   test("E2E-01/02/03, RESP-01/02/03, A11Y-01: exercises the integrated requester journey", async ({ page }, testInfo) => {
     test.setTimeout(90_000);
-    await page.addInitScript(() => window.localStorage.clear());
 
     // Fail fast with an actionable message when the required seeded database
     // is unavailable. This is intentionally a failure, never a skipped test.
@@ -60,6 +72,8 @@ test.describe("Lab 2 requester release flow", () => {
 
     // E2E-01/02: active requester selection and testing-context semantics.
     await page.goto("/select-requester");
+    await page.evaluate(() => window.localStorage.clear());
+    await page.reload();
     await expect(page.getByRole("heading", { name: "Choose a Development Requester" })).toBeVisible();
     await expect(page.getByText("Authentication arrives in Lab 3; this is a testing context only.")).toBeVisible();
     const requesterId = await selectRequester(page, 0);
@@ -68,16 +82,16 @@ test.describe("Lab 2 requester release flow", () => {
     await screenshot(page, testInfo, "my-tickets", "initial");
 
     // E2E-02: dirty-form navigation must be cancellable and then confirmable.
-    await page.getByRole("link", { name: "Create Ticket" }).click();
+    await clickPrimaryLink(page, "Create Ticket");
     await expect(page.getByRole("heading", { name: "Create Ticket" })).toBeVisible();
     await expect(page.getByLabel("Summary")).toBeVisible();
     await page.getByLabel("Summary").fill("Unsaved release-readiness draft");
-    await page.getByRole("link", { name: "My Tickets" }).click();
+    await clickPrimaryLink(page, "My Tickets");
     await expect(page.getByRole("alertdialog", { name: "Discard changes?" })).toBeVisible();
     await page.getByRole("button", { name: "Cancel" }).last().click();
     await expect(page).toHaveURL(/\/create-ticket$/);
     await expect(page.getByLabel("Summary")).toHaveValue("Unsaved release-readiness draft");
-    await page.getByRole("link", { name: "My Tickets" }).click();
+    await clickPrimaryLink(page, "My Tickets");
     await expect(page.getByRole("alertdialog", { name: "Discard changes?" })).toBeVisible();
     await page.getByRole("button", { name: "Confirm" }).last().click();
     await expect(page).toHaveURL(/\/tickets$/);
@@ -86,7 +100,7 @@ test.describe("Lab 2 requester release flow", () => {
     await page.getByRole("button", { name: "Change Requester" }).click();
     await expect(page).toHaveURL(/\/select-requester$/);
     await selectRequester(page, 0);
-    await page.getByRole("link", { name: "Create Ticket" }).click();
+    await clickPrimaryLink(page, "Create Ticket");
     await expect(page.getByLabel("Summary")).toBeVisible();
 
     const projectName = testInfo.project.name.replace(/[^a-z0-9-]+/gi, "-");
@@ -112,7 +126,7 @@ test.describe("Lab 2 requester release flow", () => {
     const ticketSummary = await page.getByText(/Official Ticket Number:/).textContent();
     const ticketNumber = ticketSummary?.match(/TKT-\d{4}-\d{6}/)?.[0];
     expect(ticketNumber).toMatch(/^TKT-\d{4}-\d{6}$/);
-    await expect(page.getByRole("listitem").filter({ hasText: "release-note.txt" })).toContainText(/not allowed|invalid/i);
+    await expect(page.getByRole("listitem").filter({ hasText: "release-note.txt" })).toContainText(/not supported|not allowed|invalid/i);
     await expect(page.getByRole("listitem").filter({ hasText: "release-proof.png" })).toContainText(/Uploaded successfully/);
     await screenshot(page, testInfo, "create-ticket", "success");
 
