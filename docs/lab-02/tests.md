@@ -116,7 +116,7 @@ their actual output:
 ```bash
 cd server && npm ci && npx prisma migrate deploy && npm run test
 cd ../client && npm ci && npm run test && npm run build
-cd .. && npx playwright test -c client/playwright.config.ts e2e/lab-02
+cd .. && npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02
 ```
 
 The README must document how to set `DATABASE_URL_TEST`, seed/reset the test
@@ -132,16 +132,16 @@ client/playwright.config.ts e2e/lab-02` (or `cd client && npm run test:e2e`).
 | Server unit/API | `cd server && npm run test` | Pending | Add terminal capture from final `main` |
 | Client unit/UI | `cd client && npm run test` | Pending | Add terminal capture from final `main` |
 | Client build | `cd client && npm run build` | Pending | Add output and confirm no generated source `.js` files |
-| Playwright E2E/responsive | `npx playwright test -c client/playwright.config.ts e2e/lab-02` | Pending | Add report and screenshots |
+| Playwright E2E/responsive | `npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02` | Pending | Add report and screenshots |
 
 ### L2-09 staging verification (not final-main evidence)
 
-The following checks were run on `feature/lab2-09-release-readiness` after
-`lab2-staging` commit `b403d57` on 2026-09-06. They are intentionally not
+The following checks were run from a clean local checkout of `lab2-staging` at
+merge commit `58b04cc` on 2026-09-06. They are intentionally not
 marked as final until the release branch is merged and rerun from `main`.
-The screenshot set below was generated during the validated implementation
-sequence `1fe874e` through `93c996f` (including the test/config corrections
-recorded in that range).
+The screenshot set below was regenerated during staging verification at merge
+commit `58b04cc` after the implementation/test corrections in commits
+`1fe874e` through `93c996f`.
 
 | Check | Result | Evidence / risk |
 |---|---|---|
