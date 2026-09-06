@@ -22,7 +22,7 @@ explicitly as pending; no approval is inferred from local code or screenshots.
 | L2-08 Attachments | `feature/lab2-08-attachments` | [PR #27](https://github.com/itspxsh/toktickit/pull/27) | File safety, soft removal, compensation | Approved and merged into `lab2-staging`; Issue #19 closed |
 | L2-09 Release readiness | `feature/lab2-09-release-readiness` | [PR #28](https://github.com/itspxsh/toktickit/pull/28) | E2E, visual evidence, final audit | Approved and merged into `lab2-staging` |
 | L2-09 Evidence follow-up | `feature/lab2-09-release-readiness` | [PR #29](https://github.com/itspxsh/toktickit/pull/29) | Post-merge staging evidence and partner-review record | LGTM by `@justfepwx12`; merged into `lab2-staging` |
-| Release | `lab2-staging -> main` | [PR #30](https://github.com/itspxsh/toktickit/pull/30) | Final branch, tests, PDF evidence | Open; awaiting `@justfepwx12` review |
+| Release | `lab2-staging -> main` | [PR #30](https://github.com/itspxsh/toktickit/pull/30) | Final branch, tests, PDF evidence | LGTM by `@justfepwx12`; merged into `main` |
 
 For every PR that is opened, append its review URL, substantive review
 comment, author response, any fix commits, and approval date below the matching
@@ -165,7 +165,9 @@ exists.
 - Reviewer: [@justfepwx12](https://github.com/justfepwx12)
 - PR: [#30](https://github.com/itspxsh/toktickit/pull/30), promoting `lab2-staging` to `main`.
 - Scope: final release gate only; no new product behavior.
-- Review status: Open; review requested from [@justfepwx12](https://github.com/justfepwx12). Approval and merge will be recorded after the GitHub events occur.
+- Review comment: [LGTM](https://github.com/itspxsh/toktickit/pull/30#issuecomment-5560297404) from [@justfepwx12](https://github.com/justfepwx12), confirming the reviewed Lab 2 feature set, validation evidence, and release checklist.
+- Author response: [Acknowledged the approval and merge](https://github.com/itspxsh/toktickit/pull/30#issuecomment-5560314148) and committed to final validation from `main`.
+- Approval/merge: Approved and merged by [@justfepwx12](https://github.com/justfepwx12) into `main` as [`f4647e0`](https://github.com/itspxsh/toktickit/commit/f4647e0) on 2026-09-06.
 
 ## Lab 2 submission evidence map
 
@@ -192,4 +194,4 @@ must be refreshed from `main` after the release PR is merged.
 - Final `main` commit graph screenshot: _path_
 - Directory tree screenshot: _path_
 - Rendered README and `.gitignore`: _path_
-- Final release PR approval: [PR #30](https://github.com/itspxsh/toktickit/pull/30) — pending reviewer approval and merge.
+- Final release PR approval: [PR #30](https://github.com/itspxsh/toktickit/pull/30) — approved by `@justfepwx12` and merged into `main` as [`f4647e0`](https://github.com/itspxsh/toktickit/commit/f4647e0).
