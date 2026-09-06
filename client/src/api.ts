@@ -255,6 +255,86 @@ export async function fetchTicketDetail(
   return (body as { data: TicketDetailView }).data;
 }
 
+function readApiError(body: unknown, fallback: string): { message: string; fieldErrors?: Record<string, string> } {
+  const error = body && typeof body === "object" && "error" in body
+    ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+    : undefined;
+  const fieldErrors = error?.fieldErrors && typeof error.fieldErrors === "object"
+    ? error.fieldErrors as Record<string, string>
+    : undefined;
+  return {
+    message: typeof error?.message === "string" ? error.message : fallback,
+    fieldErrors,
+  };
+}
+
+async function parseAttachmentResponse(response: Response, fallback: string): Promise<TicketAttachmentView> {
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, fallback);
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("data" in body)) throw new Error(fallback);
+  return (body as { data: TicketAttachmentView }).data;
+}
+
+/** Upload one file; callers may invoke this once per selected file. */
+export async function uploadAttachment(
+  ticketNumber: string,
+  requesterId: number,
+  file: File,
+  signal?: AbortSignal,
+): Promise<TicketAttachmentView> {
+  const form = new FormData();
+  form.append("file", file, file.name);
+  const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments`, {
+    method: "POST",
+    headers: developmentRequesterHeaders(requesterId),
+    body: form,
+    signal,
+  });
+  return parseAttachmentResponse(response, "Unable to upload Attachment.");
+}
+
+/** Fetch a private active attachment stream using the testing requester context. */
+export async function downloadAttachment(
+  ticketNumber: string,
+  requesterId: number,
+  attachmentId: number,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  const response = await fetch(
+    `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}/download`,
+    { headers: developmentRequesterHeaders(requesterId), signal },
+  );
+  if (!response.ok) {
+    const body: unknown = await response.json().catch(() => null);
+    const error = readApiError(body, "Unable to download Attachment.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  return response.blob();
+}
+
+/** Soft-remove one owned active attachment and preserve its metadata. */
+export async function removeAttachment(
+  ticketNumber: string,
+  requesterId: number,
+  attachmentId: number,
+  reason: string,
+  signal?: AbortSignal,
+): Promise<TicketAttachmentView> {
+  const response = await fetch(
+    `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", ...developmentRequesterHeaders(requesterId) },
+      body: JSON.stringify({ reason }),
+      signal,
+    },
+  );
+  return parseAttachmentResponse(response, "Unable to remove Attachment.");
+}
+
 /** Load the selected requester's Ticket list using only the testing context header. */
 export async function fetchMyTickets(
   requesterId: number,

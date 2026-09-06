@@ -3,6 +3,7 @@ import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { registerRequesterRoutes } from "./routes/requesters.js";
 import { registerTicketRoutes } from "./routes/tickets.js";
+import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerReferenceDataRoutes } from "./routes/reference-data.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
@@ -37,5 +38,6 @@ app.get("/api/health", (_req: Request, res: Response) => {
 registerReferenceDataRoutes(app);
 registerRequesterRoutes(app);
 registerTicketRoutes(app);
+registerAttachmentRoutes(app);
 
 export default app;

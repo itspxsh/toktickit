@@ -24,6 +24,7 @@ import { CreateTicket } from "./create-ticket.tsx";
 import { MyTickets } from "./my-tickets.tsx";
 import { TicketDetailPlaceholder } from "./ticket-detail-placeholder.tsx";
 import { RequesterTicketDetail } from "./requester-ticket-detail.tsx";
+import { AttachmentSection } from "./attachment-section.tsx";
 import "./styles.css";
 
 export {
@@ -45,6 +46,7 @@ export {
   CreateTicket,
   MyTickets,
   RequesterTicketDetail,
+  AttachmentSection,
   TicketDetailPlaceholder,
   useRequesterContext,
 };

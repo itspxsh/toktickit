@@ -11,6 +11,7 @@ import {
   PriorityBadge,
   StatusBadge,
 } from "./components/ui.tsx";
+import { AttachmentSection } from "./attachment-section.tsx";
 import { useRequesterContext } from "./requester.tsx";
 
 export interface RequesterTicketDetailProps {
@@ -28,11 +29,7 @@ function displayStatus(value: string): string {
   return value === "NEW" ? "New" : value;
 }
 
-function formatAttachmentStatus(status: string): string {
-  return status === "REMOVED" ? "Removed" : "Active";
-}
-
-/** Read-only requester Ticket Detail; attachment mutations belong to L2-08. */
+/** Requester-owned Ticket Detail with the L2-08 Attachment lifecycle panel. */
 export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTicketDetailProps) {
   const requesterContext = useRequesterContext();
   const [state, setState] = useState<DetailState>("loading");
@@ -177,35 +174,14 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
         </FormField>
       </fieldset>
 
-      <section className="ticket-detail__attachments" aria-labelledby="ticket-attachments-title">
-        <div>
-          <p className="eyebrow">Attachment metadata</p>
-          <h2 id="ticket-attachments-title">Attachments</h2>
-          <p>Upload, download, preview, and removal actions are delivered in the next Lab 2 issue.</p>
-        </div>
-        {ticket.attachments.length === 0 ? (
-          <p>No attachments.</p>
-        ) : (
-          <ul className="attachment-list" aria-label="Attachments">
-            {ticket.attachments.map((attachment) => (
-              <li
-                key={attachment.id}
-                className={attachment.status === "REMOVED" ? "attachment-list__item--removed" : undefined}
-              >
-                <div className="ticket-detail__attachment-main">
-                  <strong>{attachment.originalName} — {formatAttachmentStatus(attachment.status)}</strong>
-                  <span>{attachment.mimeType} · {attachment.sizeBytes} bytes</span>
-                  {attachment.status === "REMOVED" && (
-                    <span>
-                      Reason: {attachment.removalReason ?? "Not provided"}; removed {attachment.removedAt ?? "time unavailable"}
-                    </span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <AttachmentSection
+        ticketNumber={ticket.ticketNumber}
+        requesterId={requesterContext.selectedRequesterId as number}
+        attachments={ticket.attachments}
+        onAttachmentsChange={(attachments) => {
+          setTicket((current) => current ? { ...current, attachments } : current);
+        }}
+      />
     </section>
   );
 }

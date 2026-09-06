@@ -82,8 +82,14 @@ Inside `server/.env`:
 DATABASE_URL="postgresql://<username>:<password>@localhost:5432/<db_name>?schema=public"
 DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public"
 PORT=3000
+# Optional; defaults to the private server/storage/attachments directory.
+ATTACHMENT_STORAGE_DIR="/absolute/private/path/toktickit-attachments"
 ```
 *(Make sure to replace `<username>`, `<password>`, and `<db_name>` with your local PostgreSQL credentials).*
+
+`ATTACHMENT_STORAGE_DIR` must not be served as a static directory or committed to
+the repository. Uploads use UUID storage names and the API exposes content only
+through the requester-owned download route.
 
 ---
 
