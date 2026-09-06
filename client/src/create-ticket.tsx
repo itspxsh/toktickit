@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -9,11 +10,16 @@ import {
   createIdempotencyKey,
   fetchReferenceData,
   ApiError,
+  uploadAttachment,
   type Category,
   type CreateTicketResponse,
   type RelatedSystem,
   type RequestedPriority,
 } from "./api.ts";
+import {
+  ATTACHMENT_ACCEPT,
+  validateAttachmentFile,
+} from "./attachment-validation.ts";
 import {
   Alert,
   EmptyState,
@@ -34,6 +40,14 @@ const EMPTY_VALUES = {
 
 type FormValues = typeof EMPTY_VALUES;
 type FormErrors = Partial<Record<keyof FormValues | "submit", string>>;
+type InitialUploadStatus = "uploading" | "success" | "error" | "invalid";
+
+interface InitialUploadItem {
+  key: string;
+  file: File;
+  status: InitialUploadStatus;
+  message?: string;
+}
 
 function validate(values: FormValues): FormErrors {
   const errors: FormErrors = {};
@@ -68,6 +82,13 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [created, setCreated] = useState<CreateTicketResponse | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState(createIdempotencyKey);
+  const [initialUploads, setInitialUploads] = useState<InitialUploadItem[]>([]);
+  const uploadControllers = useRef(new Map<string, AbortController>());
+
+  useEffect(() => () => {
+    uploadControllers.current.forEach((controller) => controller.abort());
+    uploadControllers.current.clear();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -108,12 +129,62 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
   }
 
   function clearForm() {
+    uploadControllers.current.forEach((controller) => controller.abort());
+    uploadControllers.current.clear();
     setValues(EMPTY_VALUES);
     setAttachments([]);
     setFileInputKey((key) => key + 1);
     setErrors({});
     setCreated(null);
+    setInitialUploads([]);
     setIdempotencyKey(createIdempotencyKey());
+  }
+
+  function updateInitialUpload(key: string, update: Partial<InitialUploadItem>) {
+    setInitialUploads((current) => current.map((item) => item.key === key ? { ...item, ...update } : item));
+  }
+
+  async function processInitialUpload(item: InitialUploadItem, ticket: CreateTicketResponse, requesterId: number) {
+    const controller = new AbortController();
+    uploadControllers.current.set(item.key, controller);
+    updateInitialUpload(item.key, { status: "uploading", message: undefined });
+    try {
+      const validationError = await validateAttachmentFile(item.file);
+      if (validationError) {
+        updateInitialUpload(item.key, { status: "invalid", message: validationError });
+        return;
+      }
+      await uploadAttachment(
+        ticket.data.ticketNumber,
+        requesterId,
+        item.file,
+        controller.signal,
+      );
+      updateInitialUpload(item.key, { status: "success", message: "Uploaded successfully." });
+    } catch (reason: unknown) {
+      if (reason instanceof DOMException && reason.name === "AbortError") return;
+      updateInitialUpload(item.key, {
+        status: "error",
+        message: reason instanceof ApiError || reason instanceof Error ? reason.message : "Unable to upload Attachment.",
+      });
+    } finally {
+      uploadControllers.current.delete(item.key);
+    }
+  }
+
+  function beginInitialUploads(ticket: CreateTicketResponse) {
+    const requesterId = requesterContext.selectedRequesterId;
+    if (attachments.length === 0 || requesterId === null) return;
+    const items = attachments.map((file, index): InitialUploadItem => ({
+      key: `${file.name}-${file.size}-${file.lastModified}-${index}`,
+      file,
+      status: "uploading",
+    }));
+    setInitialUploads(items);
+    void items.reduce(
+      (promise, item) => promise.then(() => processInitialUpload(item, ticket, requesterId)),
+      Promise.resolve(),
+    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -138,6 +209,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
       );
       setCreated(response);
       setErrors({});
+      beginInitialUploads(response);
     } catch (reason: unknown) {
       if (reason instanceof ApiError && reason.fieldErrors) {
         setErrors({ ...reason.fieldErrors, submit: reason.message });
@@ -159,6 +231,35 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
           Official Ticket Number: <strong>{created.data.ticketNumber}</strong>
         </Alert>
         <p>Your request is saved with status New. You can review it or create another request.</p>
+        {initialUploads.length > 0 && (
+          <section className="stack" aria-labelledby="initial-attachments-title">
+            <div>
+              <h2 id="initial-attachments-title">Initial attachment results</h2>
+              <p>Ticket creation succeeded; each file is reported independently.</p>
+            </div>
+            <ul className="attachment-upload-list" aria-label="Initial attachment upload results" aria-live="polite">
+              {initialUploads.map((item) => (
+                <li key={item.key}>
+                  <strong>{item.file.name}</strong>
+                  <span role={item.status === "invalid" || item.status === "error" ? "alert" : undefined}>
+                    {item.status === "uploading" && "Uploading…"}
+                    {item.status === "success" && (item.message ?? "Uploaded successfully.")}
+                    {(item.status === "invalid" || item.status === "error") && (item.message ?? "Unable to upload Attachment.")}
+                  </span>
+                  {(item.status === "invalid" || item.status === "error") && (
+                    <button
+                      type="button"
+                      className="button button--tertiary"
+                      onClick={() => void processInitialUpload(item, created, created.data.requester.id)}
+                    >
+                      Retry upload {item.file.name}
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <div className="form-actions">
           <a className="button button--secondary" href={ticketPath} onClick={(event) => {
             if (onNavigate) {
@@ -257,6 +358,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
             id="ticket-attachments"
             type="file"
             multiple
+            accept={ATTACHMENT_ACCEPT}
             disabled={controlsDisabled}
             onChange={(event) => setAttachments(Array.from(event.target.files ?? []))}
           />

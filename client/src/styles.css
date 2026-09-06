@@ -546,6 +546,18 @@ select[aria-readonly="true"] {
   margin: 0;
 }
 
+.attachment-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.attachment-section__header > .form-field {
+  flex: 0 1 360px;
+  min-width: min(100%, 240px);
+}
+
 .ticket-detail__attachment-main {
   display: grid;
   gap: 4px;
@@ -570,6 +582,48 @@ select[aria-readonly="true"] {
   gap: var(--space-1);
   padding: var(--space-1);
   border-bottom: 1px solid var(--color-border);
+}
+
+.attachment-list__actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.attachment-list__actions .button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.attachment-upload-list {
+  display: grid;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.attachment-upload-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-pale);
+}
+
+.attachment-upload-list li > span {
+  overflow-wrap: anywhere;
+}
+
+.attachment-upload-list li > strong {
+  overflow-wrap: anywhere;
 }
 
 .attachment-list__item--removed {
@@ -722,6 +776,26 @@ select[aria-readonly="true"] {
 
   .ticket-detail__header {
     flex-direction: column;
+  }
+
+  .attachment-section__header {
+    flex-direction: column;
+  }
+
+  .attachment-section__header > .form-field {
+    width: 100%;
+  }
+
+  .attachment-list li {
+    flex-direction: column;
+  }
+
+  .attachment-list__actions {
+    justify-content: flex-start;
+  }
+
+  .attachment-upload-list li {
+    grid-template-columns: 1fr;
   }
 
   .ticket-detail__grid {

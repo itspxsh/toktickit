@@ -303,6 +303,9 @@ export function AttachmentList({ attachments }: { attachments: AttachmentSummary
 }
 
 export interface ConfirmationDialogProps {
+  children?: ReactNode;
+  confirmDisabled?: boolean;
+  confirmLabel?: string;
   message: string;
   onCancel: () => void;
   onConfirm: () => void;
@@ -311,6 +314,9 @@ export interface ConfirmationDialogProps {
 }
 
 export function ConfirmationDialog({
+  children,
+  confirmDisabled = false,
+  confirmLabel = "Confirm",
   message,
   onCancel,
   onConfirm,
@@ -370,12 +376,13 @@ export function ConfirmationDialog({
       >
         <h2 id="confirmation-title">{title}</h2>
         <p id="confirmation-message">{message}</p>
+        {children}
         <div className="confirmation-dialog__actions">
           <button type="button" className="button button--tertiary" onClick={onCancel}>
             Cancel
           </button>
-          <button type="button" className="button button--destructive" onClick={onConfirm}>
-            Confirm
+          <button type="button" className="button button--destructive" onClick={onConfirm} disabled={confirmDisabled}>
+            {confirmLabel}
           </button>
         </div>
       </section>
