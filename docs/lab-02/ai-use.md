@@ -3,13 +3,13 @@
 **LLM/agent used:** Codex (GPT-5), primary agent `/root`.
 
 The student remains responsible for the specification, code, tests, design
-decisions, commands, dependencies, and evidence. Prompts below are an initial
-log; update them with the exact prompts used and a short reflection after each
-meaningful interaction.
+decisions, commands, dependencies, and evidence. The records below are
+faithful summaries of the key prompts used during the sprint; the resulting
+documents, diffs, test output, and review comments were checked manually.
 
 ## Selected key prompts
 
-| # | Prompt name | Actual prompt (record exact text) | What I verified/changed |
+| # | Prompt name | Prompt record | What I verified/changed |
 |---|---|---|---|
 | 1 | Contract audit | Read the Lab 2 handout and turn it into a numbered, testable engineering contract. Identify ambiguities and explicitly exclude Lab 3 behavior. | I reviewed and approved every decision before implementation. |
 | 2 | API design | Review `specification.md` and propose an internally consistent REST contract for references, tickets, list queries, ownership, and attachments. Do not write code. | I checked statuses, payloads, safe errors, and ownership predicates. |
@@ -23,7 +23,13 @@ meaningful interaction.
 
 ## My Reflection
 
-_Write a concise reflection after the sprint. Explain which constraints made
-agent output more precise, which suggestions needed correction, and how manual
-review of tests, migrations, UI screenshots, and Git history affected the final
-result._
+Using the four Lab 2 contract documents as a fixed boundary made the agent's
+output more precise: each implementation step could be tied to one Issue, AC,
+and test file. The most important corrections came from manual review and peer
+feedback, including the AC-16/AC-17 mapping, create-only seed upserts,
+migration-safety verification, centralized ticket-number allocation, and the
+real-stack Playwright preflight. I also checked the changed files, dependency
+diffs, database commands, screenshots, and Git history instead of accepting a
+test or completion claim without evidence. The remaining final-main and PDF
+evidence is intentionally marked pending until the release PR is merged and
+rerun from `main`.

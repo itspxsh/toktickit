@@ -1,9 +1,9 @@
 # Lab 2 Peer Review Record
 
-This file is a living delivery record. Replace every placeholder with the real
+This file is a living delivery record. Each completed row records the real
 reviewer identity, Issue/PR URL, substantive comment, author response, and
-approval. Do not fabricate a review or mark a PR approved from a screenshot of
-the code alone.
+approval. Work that is still awaiting a GitHub PR or peer review is labelled
+explicitly as pending; no approval is inferred from local code or screenshots.
 
 **Author:** Pawarisa Thongchua - 67070501032 - GitHub: [@itspxsh](https://github.com/itspxsh)
 **Peer reviewer:** [@justfepwx12](https://github.com/justfepwx12)
@@ -20,20 +20,13 @@ the code alone.
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | [PR #25](https://github.com/itspxsh/toktickit/pull/25) | Query contract and ownership isolation | Approved and merged into `lab2-staging` |
 | L2-07 Detail | `feature/lab2-07-ticket-detail` | [PR #26](https://github.com/itspxsh/toktickit/pull/26) | Read-only detail and cross-owner rejection | Approved and merged into `lab2-staging` |
 | L2-08 Attachments | `feature/lab2-08-attachments` | [PR #27](https://github.com/itspxsh/toktickit/pull/27) | File safety, soft removal, compensation | Approved and merged into `lab2-staging`; Issue #19 closed |
-| L2-09 Release readiness | `feature/lab2-09-release-readiness` | _URL_ | E2E, visual evidence, final audit | In progress |
+| L2-09 Release readiness | `feature/lab2-09-release-readiness` | Pending GitHub PR URL | E2E, visual evidence, final audit | Branch pushed; awaiting PR/review |
 | Release | `lab2-staging -> main` | _URL_ | Final branch, tests, PDF evidence | Pending |
 
-For each row add:
-
-```md
-### Issue / PR
-- Reviewer:
-- Review URL:
-- Comment received:
-- Author response:
-- Requested changes and fix commit (if any):
-- Approval URL/date:
-```
+For every PR that is opened, append its review URL, substantive review
+comment, author response, any fix commits, and approval date below the matching
+issue section. Do not fill those fields before the corresponding GitHub event
+exists.
 
 ## PRs I reviewed for my partner
 
@@ -142,7 +135,26 @@ For each row add:
 - Issue: [#20](https://github.com/itspxsh/toktickit/issues/20)
 - Branch: `feature/lab2-09-release-readiness`, based on the latest `lab2-staging` merge `b403d57`.
 - Scope: integrated Playwright requester flows, responsive/accessibility evidence, documented test/build commands, contract-wide AC audit, and release evidence only. No new product behavior, authentication, Staff workflow, comments, Actions Taken, or status transitions.
-- Status: Implementation and evidence collection in progress. No approval or release PR is inferred before the integrated database-backed suite and final audit pass.
+- Local evidence: commits `c5ed319` through `5ebdc20`; server 39/39 tests, client 34/34 tests, both builds, Playwright desktop/tablet/mobile 3/3, and `git diff --check` passed on the feature branch.
+- Status: Branch pushed to `origin`; record the PR URL, review comment, response, approval, and merge commit here only after each GitHub event occurs. The Issue remains open during review.
+
+## Lab 2 submission evidence map
+
+The handout requires one concise PDF with these headings in this exact order.
+The repository is the source of truth; screenshots and final command output
+must be refreshed from `main` after the release PR is merged.
+
+| PDF heading | Evidence to include | Repository source |
+|---|---|---|
+| Answer Part 1 | Git graph, Project board with all Issues Done, reviewer record, README, `.gitignore`, directory tree | GitHub Project, `reviewer.md`, `README.md`, `.gitignore` |
+| Answer Part 2 | Numbered specification and proof it preceded implementation PRs | `specification.md`, contract commit history |
+| Answer Part 3 | Planned tests, AC traceability, complete passing output from `main` | `tests.md`, test files and terminal captures |
+| Answer Part 4 | LLM identity, 6-10 key prompts, reflection | `ai-use.md` |
+| Answer Part 5 | Development Requester selection screen | E2E screenshots and UI tests |
+| Answer Part 6 | Create Ticket states and backend-generated values | `artifacts/lab-02/screenshots/create-ticket/` |
+| Answer Part 7 | My Tickets requester A/B, query states, pagination, isolation | `artifacts/lab-02/screenshots/my-tickets/` and E2E evidence |
+| Answer Part 8 | Detail, attachment lifecycle, removal metadata, blocked access | `artifacts/lab-02/screenshots/ticket-detail/` and API tests |
+| Answer Part 9 | Zen Green UI, responsive screenshots, completed visual checklist | `ui-spec.md`, `tests.md`, `artifacts/lab-02/screenshots/responsive/` |
 
 ## Board and release evidence
 
