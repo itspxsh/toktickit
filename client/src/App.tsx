@@ -20,6 +20,8 @@ import {
   RequesterSelection,
   useRequesterContext,
 } from "./requester.tsx";
+import { CreateTicket } from "./create-ticket.tsx";
+import { TicketDetailPlaceholder } from "./ticket-detail-placeholder.tsx";
 import "./styles.css";
 
 export {
@@ -38,6 +40,8 @@ export {
   RequesterChangeConfirmation,
   RequesterProvider,
   RequesterSelection,
+  CreateTicket,
+  TicketDetailPlaceholder,
   useRequesterContext,
 };
 
@@ -135,16 +139,28 @@ function RequesterAwareApp() {
     activePath === "/create-ticket" ||
     activePath.startsWith("/create-ticket/");
   const selectionRoute = activePath === "/select-requester";
-  const mustSelect = selectionRoute || (requesterRequired && !context.selectedRequester);
+  const ticketDetailMatch = activePath.match(/^\/tickets\/([^/]+)$/);
+  const mustSelect =
+    selectionRoute ||
+    (requesterRequired && (context.status !== "success" || !context.selectedRequester));
 
   useEffect(() => {
-    if (requesterRequired && !context.selectedRequester && !selectionRoute) {
+    if (
+      requesterRequired &&
+      context.status === "success" &&
+      !context.selectedRequester &&
+      !selectionRoute
+    ) {
       navigate("/select-requester");
     }
-  }, [activePath, context.selectedRequester, requesterRequired, selectionRoute]);
+  }, [activePath, context.selectedRequester, context.status, requesterRequired, selectionRoute]);
 
   function handleChangeRequester() {
     context.requestChangeRequester(() => navigate("/select-requester"));
+  }
+
+  function handleNavigate(path: string) {
+    context.requestNavigation(() => navigate(path));
   }
 
   return (
@@ -152,26 +168,36 @@ function RequesterAwareApp() {
       activePath={activePath}
       requesterLabel={context.selectedRequester?.name}
       onChangeRequester={handleChangeRequester}
-      onNavigate={navigate}
+      onNavigate={handleNavigate}
     >
       {mustSelect ? (
         <RequesterSelection onContinue={() => navigate("/tickets")} />
+      ) : ticketDetailMatch ? (
+        <TicketDetailPlaceholder
+          ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
+          onNavigate={handleNavigate}
+        />
       ) : activePath === "/tickets" ? (
         <section className="card stack" aria-labelledby="tickets-placeholder-title">
           <h1 id="tickets-placeholder-title">My Tickets</h1>
           <p>Requester-scoped ticket list will be delivered in the next Lab 2 issue.</p>
         </section>
       ) : activePath === "/create-ticket" ? (
-        <section className="card stack" aria-labelledby="create-placeholder-title">
-          <h1 id="create-placeholder-title">Create Ticket</h1>
-          <p>Ticket creation will be delivered in the next Lab 2 issue.</p>
-        </section>
+        <CreateTicket onNavigate={handleNavigate} />
       ) : (
         <HealthCheck />
       )}
       <RequesterChangeConfirmation />
     </AppShell>
   );
+}
+
+function decodeTicketNumber(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 export default function App() {

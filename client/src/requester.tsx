@@ -29,6 +29,7 @@ export interface RequesterContextValue {
   confirmRequesterChange: () => void;
   reload: () => void;
   requestChangeRequester: (onCleared?: () => void) => void;
+  requestNavigation: (onNavigate: () => void) => void;
   selectRequester: (id: number) => boolean;
   setCreateTicketDirty: (dirty: boolean) => void;
 }
@@ -61,7 +62,10 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
   const [reloadToken, setReloadToken] = useState(0);
   const [createTicketDirty, setCreateTicketDirty] = useState(false);
   const [pendingChange, setPendingChange] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | undefined>();
+  const [pendingAction, setPendingAction] = useState<{
+    kind: "requester" | "navigation";
+    run?: () => void;
+  }>();
   const [contextVersion, setContextVersion] = useState(0);
 
   useEffect(() => {
@@ -122,7 +126,7 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
     (onCleared?: () => void) => {
       const navigation = typeof onCleared === "function" ? onCleared : undefined;
       if (createTicketDirty) {
-        setPendingNavigation(() => navigation);
+        setPendingAction({ kind: "requester", run: navigation });
         setPendingChange(true);
         return;
       }
@@ -132,19 +136,31 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
     [clearRequester, createTicketDirty],
   );
 
+  const requestNavigation = useCallback(
+    (onNavigate: () => void) => {
+      if (createTicketDirty) {
+        setPendingAction({ kind: "navigation", run: onNavigate });
+        setPendingChange(true);
+        return;
+      }
+      onNavigate();
+    },
+    [createTicketDirty],
+  );
+
   const cancelRequesterChange = useCallback(() => {
     setPendingChange(false);
-    setPendingNavigation(undefined);
+    setPendingAction(undefined);
   }, []);
 
   const confirmRequesterChange = useCallback(() => {
-    const onCleared = pendingNavigation;
+    const action = pendingAction;
     setPendingChange(false);
-    setPendingNavigation(undefined);
+    setPendingAction(undefined);
     setCreateTicketDirty(false);
-    clearRequester();
-    onCleared?.();
-  }, [clearRequester, pendingNavigation]);
+    if (action?.kind === "requester") clearRequester();
+    action?.run?.();
+  }, [clearRequester, pendingAction]);
 
   const value = useMemo<RequesterContextValue>(
     () => ({
@@ -161,6 +177,7 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
       confirmRequesterChange,
       reload: () => setReloadToken((token) => token + 1),
       requestChangeRequester,
+      requestNavigation,
       selectRequester,
       setCreateTicketDirty,
     }),
@@ -173,6 +190,7 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
       error,
       pendingChange,
       requestChangeRequester,
+      requestNavigation,
       requesters,
       selectedRequester,
       selectedRequesterId,

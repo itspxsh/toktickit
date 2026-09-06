@@ -52,7 +52,17 @@ export function AppShell({
     <div className="app-shell">
       <header className="app-shell__header" role="banner">
         <div className="app-shell__header-inner">
-          <a className="app-shell__brand" href="/" aria-label="TokTickIT home">
+          <a
+            className="app-shell__brand"
+            href="/"
+            aria-label="TokTickIT home"
+            onClick={(event) => {
+              if (onNavigate) {
+                event.preventDefault();
+                onNavigate("/");
+              }
+            }}
+          >
             <span className="app-shell__brand-name">TokTickIT</span>
             <span className="app-shell__brand-subtitle">IT Service Desk</span>
           </a>
@@ -324,6 +334,24 @@ export function ConfirmationDialog({
     if (event.key === "Escape") {
       event.preventDefault();
       onCancel();
+      return;
+    }
+    if (event.key === "Tab") {
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+        ) ?? [],
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
   };
 
@@ -337,10 +365,11 @@ export function ConfirmationDialog({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirmation-title"
+        aria-describedby="confirmation-message"
         onKeyDown={handleKeyDown}
       >
         <h2 id="confirmation-title">{title}</h2>
-        <p>{message}</p>
+        <p id="confirmation-message">{message}</p>
         <div className="confirmation-dialog__actions">
           <button type="button" className="button button--tertiary" onClick={onCancel}>
             Cancel
