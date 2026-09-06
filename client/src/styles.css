@@ -489,6 +489,73 @@ select[aria-readonly="true"] {
   gap: var(--space-1);
 }
 
+.ticket-detail__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ticket-detail__group {
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ticket-detail__group legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.ticket-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.ticket-detail__badge-field,
+.ticket-detail__value-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-height: 90px;
+  margin: 0;
+}
+
+.ticket-detail__label {
+  min-height: 24px;
+  font-weight: 700;
+}
+
+.ticket-detail__attachments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.ticket-detail__attachments h2 {
+  margin: 0;
+}
+
+.ticket-detail__attachments p {
+  margin: 0;
+}
+
+.ticket-detail__attachment-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ticket-detail__attachment-main span {
+  overflow-wrap: anywhere;
+}
+
 .attachment-list {
   display: grid;
   gap: var(--space-1);
@@ -651,5 +718,13 @@ select[aria-readonly="true"] {
 
   .my-tickets__table tbody td:last-child {
     white-space: normal;
+  }
+
+  .ticket-detail__header {
+    flex-direction: column;
+  }
+
+  .ticket-detail__grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -16,9 +16,9 @@ the code alone.
 | L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Approved and merged into `lab2-staging` |
 | L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Approved and merged into `lab2-staging` |
 | L2-04 Requester | `feature/lab2-04-requester-context` | [PR #23](https://github.com/itspxsh/toktickit/pull/23) | Active-only selection, persistence, switching | Approved and merged into `lab2-staging` |
-| L2-05 Create | `feature/lab2-05-create-ticket` | [PR #24](https://github.com/itspxsh/toktickit/pull/24) | Validation, number, idempotency, failure preservation | Merged into `lab2-staging`; post-merge follow-up approval pending |
-| L2-06 My Tickets | `feature/lab2-06-my-tickets` | [PR #25](https://github.com/itspxsh/toktickit/pull/25) | Query contract and ownership isolation | Peer review requested |
-| L2-07 Detail | `feature/lab2-07-ticket-detail` | _URL_ | Read-only detail and cross-owner rejection | Pending |
+| L2-05 Create | `feature/lab2-05-create-ticket` | [PR #24](https://github.com/itspxsh/toktickit/pull/24) | Validation, number, idempotency, failure preservation | Approved and merged into `lab2-staging` |
+| L2-06 My Tickets | `feature/lab2-06-my-tickets` | [PR #25](https://github.com/itspxsh/toktickit/pull/25) | Query contract and ownership isolation | Approved and merged into `lab2-staging` |
+| L2-07 Detail | `feature/lab2-07-ticket-detail` | [PR #26](https://github.com/itspxsh/toktickit/pull/26) | Read-only detail and cross-owner rejection | Peer review requested |
 | L2-08 Attachments | `feature/lab2-08-attachments` | _URL_ | File safety, soft removal, compensation | Pending |
 | L2-09 Release readiness | `feature/lab2-09-release-readiness` | _URL_ | E2E, visual evidence, final audit | Pending |
 | Release | `lab2-staging -> main` | _URL_ | Final branch, tests, PDF evidence | Pending |
@@ -99,7 +99,7 @@ For each row add:
 - Explicit exclusions: authentication, Staff workflow, comments, Actions Taken, status transitions, and attachment lifecycle (L2-08).
 - TDD commits: `b687460` (contract tests first), `ca87413` (server API), `4a9a871` (client flow and shared navigation/a11y updates), `5851a6c` (placeholder route test first), and `38c5ac9` (read-only placeholder route).
 - Validation: client tests 21/21 and build; focused server Lab 2 suite 21/21, build, Prisma validate, and `git diff --check` passed. Full server suite is 22/23 because the existing Lab 1 database-backed category test requires `DATABASE_URL` and returned the safe 500 in this environment.
-- Review status: Initial review approved the implementation and requested a non-blocking read-only `/tickets/:ticketNumber` placeholder; the recommendation is addressed by `38c5ac9`. The PR was merged by the reviewer into `lab2-staging` as `4854743`; a separate post-merge approval comment is not yet recorded.
+- Review status: Approved by [@justfepwx12](https://github.com/justfepwx12) in [review](https://github.com/itspxsh/toktickit/pull/24#pullrequestreview-5123145060); the non-blocking read-only `/tickets/:ticketNumber` placeholder recommendation was addressed by `38c5ac9`. The PR was merged by the reviewer into `lab2-staging` as `4854743`; the reviewer confirmed post-merge with [LGTM approval](https://github.com/itspxsh/toktickit/pull/24#issuecomment-5558588020), and the author recorded the closure response [here](https://github.com/itspxsh/toktickit/pull/24#issuecomment-5558770792).
 
 ### L2-06 My Tickets / Issue #17
 
@@ -111,6 +111,18 @@ For each row add:
 - TDD commits: `7347262` (contract tests first), `f140b41` (server list API), `2c427d2` (client query API), and `ed85b4f` (My Tickets UI and route integration).
 - Validation: client tests 26/26 and build; focused server Lab 2 suite 27/27 and build; `git diff --check` passed.
 - PR: [#25](https://github.com/itspxsh/toktickit/pull/25), opened against `lab2-staging`; reviewer requested from [@justfepwx12](https://github.com/justfepwx12).
+- Review status: Approved by [@justfepwx12](https://github.com/justfepwx12) in [review](https://github.com/itspxsh/toktickit/pull/25#pullrequestreview-5125140633) with follow-up approval [recorded here](https://github.com/itspxsh/toktickit/pull/25#pullrequestreview-5125146241); merged into `lab2-staging` as `ec5bd73`.
+
+### L2-07 Ticket Detail / Issue #18
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Issue: [#18](https://github.com/itspxsh/toktickit/issues/18)
+- PR: [#26](https://github.com/itspxsh/toktickit/pull/26), opened against `lab2-staging`; reviewer requested from [@justfepwx12](https://github.com/justfepwx12).
+- Branch: `feature/lab2-07-ticket-detail`, based on the merged L2-06 commit `ec5bd73`.
+- Scope: requester-owned read-only Ticket Detail API/UI, safe cross-requester rejection, reference fields, UTC timestamps, attachment metadata, loading/error/retry states, and responsive accessible navigation.
+- Explicit exclusions: Ticket editing, status transitions, attachment upload/download/removal, authentication, Staff workflow, comments, Actions Taken, and other Lab 3 behavior.
+- TDD commits: `a40cbaa` (contract tests first) and `7a4d362` (API, typed client boundary, detail view, and responsive styles).
+- Validation: server focused Lab 2 suite 31/31 and build; client suite 30/30 and build; `git diff --check` passed. Red state was confirmed before implementation; no tests are skipped or disabled.
 - Review status: Peer review requested; approval and any requested-change response will be recorded from the PR review timeline. No approval is being inferred from code publication.
 
 ## Board and release evidence

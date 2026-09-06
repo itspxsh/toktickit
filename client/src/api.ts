@@ -36,6 +36,23 @@ export interface TicketView {
   updatedAt: string;
 }
 
+export type TicketAttachmentStatus = "ACTIVE" | "REMOVED";
+
+export interface TicketAttachmentView {
+  id: number;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  status: TicketAttachmentStatus;
+  removedAt: string | null;
+  removalReason: string | null;
+  createdAt: string;
+}
+
+export interface TicketDetailView extends TicketView {
+  attachments: TicketAttachmentView[];
+}
+
 export interface CreateTicketResponse {
   data: TicketView;
   replayed: boolean;
@@ -206,6 +223,36 @@ export async function createTicket(
     throw new Error("Unable to create Ticket.");
   }
   return body as CreateTicketResponse;
+}
+
+/** Load one requester-owned Ticket and read-only attachment metadata. */
+export async function fetchTicketDetail(
+  ticketNumber: string,
+  requesterId: number,
+  signal?: AbortSignal,
+): Promise<TicketDetailView> {
+  const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}`, {
+    headers: developmentRequesterHeaders(requesterId),
+    signal,
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = body && typeof body === "object" && "error" in body
+      ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+      : undefined;
+    const fieldErrors = error?.fieldErrors && typeof error.fieldErrors === "object"
+      ? error.fieldErrors as Record<string, string>
+      : undefined;
+    throw new ApiError(
+      typeof error?.message === "string" ? error.message : "Unable to load Ticket.",
+      response.status,
+      fieldErrors,
+    );
+  }
+  if (!body || typeof body !== "object" || !("data" in body)) {
+    throw new Error("Unable to load Ticket.");
+  }
+  return (body as { data: TicketDetailView }).data;
 }
 
 /** Load the selected requester's Ticket list using only the testing context header. */
