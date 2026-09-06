@@ -16,7 +16,7 @@ the code alone.
 | L2-02 Data | `feature/lab2-02-data-foundation` | [PR #21](https://github.com/itspxsh/toktickit/pull/21) | Migration, seed, constraints, ownership indexes | Approved and merged into `lab2-staging` |
 | L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Approved and merged into `lab2-staging` |
 | L2-04 Requester | `feature/lab2-04-requester-context` | [PR #23](https://github.com/itspxsh/toktickit/pull/23) | Active-only selection, persistence, switching | Approved and merged into `lab2-staging` |
-| L2-05 Create | `feature/lab2-05-create-ticket` | [PR #24](https://github.com/itspxsh/toktickit/pull/24) | Validation, number, idempotency, failure preservation | Merged into `lab2-staging`; post-merge follow-up approval pending |
+| L2-05 Create | `feature/lab2-05-create-ticket` | [PR #24](https://github.com/itspxsh/toktickit/pull/24) | Validation, number, idempotency, failure preservation | Approved and merged into `lab2-staging` |
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | [PR #25](https://github.com/itspxsh/toktickit/pull/25) | Query contract and ownership isolation | Approved and merged into `lab2-staging` |
 | L2-07 Detail | `feature/lab2-07-ticket-detail` | [PR #26](https://github.com/itspxsh/toktickit/pull/26) | Read-only detail and cross-owner rejection | Peer review requested |
 | L2-08 Attachments | `feature/lab2-08-attachments` | _URL_ | File safety, soft removal, compensation | Pending |
@@ -99,7 +99,7 @@ For each row add:
 - Explicit exclusions: authentication, Staff workflow, comments, Actions Taken, status transitions, and attachment lifecycle (L2-08).
 - TDD commits: `b687460` (contract tests first), `ca87413` (server API), `4a9a871` (client flow and shared navigation/a11y updates), `5851a6c` (placeholder route test first), and `38c5ac9` (read-only placeholder route).
 - Validation: client tests 21/21 and build; focused server Lab 2 suite 21/21, build, Prisma validate, and `git diff --check` passed. Full server suite is 22/23 because the existing Lab 1 database-backed category test requires `DATABASE_URL` and returned the safe 500 in this environment.
-- Review status: Initial review approved the implementation and requested a non-blocking read-only `/tickets/:ticketNumber` placeholder; the recommendation is addressed by `38c5ac9`. The PR was merged by the reviewer into `lab2-staging` as `4854743`; a separate post-merge approval comment is not yet recorded.
+- Review status: Approved by [@justfepwx12](https://github.com/justfepwx12) in [review](https://github.com/itspxsh/toktickit/pull/24#pullrequestreview-5123145060); the non-blocking read-only `/tickets/:ticketNumber` placeholder recommendation was addressed by `38c5ac9`. The PR was merged by the reviewer into `lab2-staging` as `4854743`; the reviewer confirmed post-merge with [LGTM approval](https://github.com/itspxsh/toktickit/pull/24#issuecomment-5558588020), and the author recorded the closure response [here](https://github.com/itspxsh/toktickit/pull/24#issuecomment-5558770792).
 
 ### L2-06 My Tickets / Issue #17
 
