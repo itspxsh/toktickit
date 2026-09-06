@@ -116,7 +116,7 @@ their actual output:
 ```bash
 cd server && npm ci && npx prisma migrate deploy && npm run test
 cd ../client && npm ci && npm run test && npm run build
-cd .. && npx playwright test -c client/playwright.config.ts e2e/lab-02
+cd .. && npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02
 ```
 
 The README must document how to set `DATABASE_URL_TEST`, seed/reset the test
@@ -139,9 +139,9 @@ client/playwright.config.ts e2e/lab-02` (or `cd client && npm run test:e2e`).
 The following checks were run on `feature/lab2-09-release-readiness` after
 `lab2-staging` commit `b403d57` on 2026-09-06. They are intentionally not
 marked as final until the release branch is merged and rerun from `main`.
-The screenshot set below was generated during the validated implementation
-sequence `1fe874e` through `93c996f` (including the test/config corrections
-recorded in that range).
+The screenshot set below was regenerated during staging verification at merge
+commit `58b04cc` after the implementation/test corrections in commits
+`1fe874e` through `93c996f`.
 
 | Check | Result | Evidence / risk |
 |---|---|---|

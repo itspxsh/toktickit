@@ -20,7 +20,7 @@ explicitly as pending; no approval is inferred from local code or screenshots.
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | [PR #25](https://github.com/itspxsh/toktickit/pull/25) | Query contract and ownership isolation | Approved and merged into `lab2-staging` |
 | L2-07 Detail | `feature/lab2-07-ticket-detail` | [PR #26](https://github.com/itspxsh/toktickit/pull/26) | Read-only detail and cross-owner rejection | Approved and merged into `lab2-staging` |
 | L2-08 Attachments | `feature/lab2-08-attachments` | [PR #27](https://github.com/itspxsh/toktickit/pull/27) | File safety, soft removal, compensation | Approved and merged into `lab2-staging`; Issue #19 closed |
-| L2-09 Release readiness | `feature/lab2-09-release-readiness` | Pending GitHub PR URL | E2E, visual evidence, final audit | Branch pushed; awaiting PR/review |
+| L2-09 Release readiness | `feature/lab2-09-release-readiness` | [PR #28](https://github.com/itspxsh/toktickit/pull/28) | E2E, visual evidence, final audit | Approved and merged into `lab2-staging` |
 | Release | `lab2-staging -> main` | _URL_ | Final branch, tests, PDF evidence | Pending |
 
 For every PR that is opened, append its review URL, substantive review
@@ -136,7 +136,11 @@ exists.
 - Branch: `feature/lab2-09-release-readiness`, based on the latest `lab2-staging` merge `b403d57`.
 - Scope: integrated Playwright requester flows, responsive/accessibility evidence, documented test/build commands, contract-wide AC audit, and release evidence only. No new product behavior, authentication, Staff workflow, comments, Actions Taken, or status transitions.
 - Local evidence: commits `c5ed319` through `5ebdc20`; server 39/39 tests, client 34/34 tests, both builds, Playwright desktop/tablet/mobile 3/3, and `git diff --check` passed on the feature branch.
-- Status: Branch pushed to `origin`; record the PR URL, review comment, response, approval, and merge commit here only after each GitHub event occurs. The Issue remains open during review.
+- PR: [#28](https://github.com/itspxsh/toktickit/pull/28), opened against `lab2-staging`; reviewer requested from [@justfepwx12](https://github.com/justfepwx12).
+- Review comment received: Approved after verifying the real-stack Playwright E2E journey, responsive/accessibility screenshots, evidence provenance, server start entrypoint, and AC/test traceability. The reviewer recorded the bash portability and package-scoped Playwright import as non-blocking recommendations.
+- Author response: Thanked the reviewer for validating the E2E, responsive/accessibility evidence, and release traceability.
+- Approval/merge: Approved by [@justfepwx12](https://github.com/justfepwx12) and merged into `lab2-staging` as `58b04cc` on 2026-09-06.
+- Status: L2-09 implementation is complete. The remaining release step is the single `lab2-staging -> main` PR; no approval is inferred for that release PR yet.
 
 ## Lab 2 submission evidence map
 
