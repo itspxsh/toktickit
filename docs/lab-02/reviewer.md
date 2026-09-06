@@ -97,9 +97,9 @@ For each row add:
 - Branch: `feature/lab2-05-create-ticket`, based on the merged L2-04 requester context and `lab2-staging`.
 - Scope: active Category/Related System reference endpoints, requester-scoped Ticket creation, validation and trimming, sequence-backed ticket number/date, idempotency replay/conflict handling, accessible Create Ticket UI, failure preservation, and dirty navigation protection.
 - Explicit exclusions: authentication, Staff workflow, comments, Actions Taken, status transitions, and attachment lifecycle (L2-08).
-- TDD commits: `b687460` (contract tests first), `ca87413` (server API), and `4a9a871` (client flow and shared navigation/a11y updates).
-- Validation: client tests 20/20 and build; focused server Lab 2 suite 21/21, build, Prisma validate, and `git diff --check` passed. Full server suite is 22/23 because the existing Lab 1 database-backed category test requires `DATABASE_URL` and returned the safe 500 in this environment.
-- Review status: Review requested from [@justfepwx12](https://github.com/justfepwx12); waiting for substantive peer review.
+- TDD commits: `b687460` (contract tests first), `ca87413` (server API), `4a9a871` (client flow and shared navigation/a11y updates), `5851a6c` (placeholder route test first), and `38c5ac9` (read-only placeholder route).
+- Validation: client tests 21/21 and build; focused server Lab 2 suite 21/21, build, Prisma validate, and `git diff --check` passed. Full server suite is 22/23 because the existing Lab 1 database-backed category test requires `DATABASE_URL` and returned the safe 500 in this environment.
+- Review status: Initial review approved the implementation and requested a non-blocking read-only `/tickets/:ticketNumber` placeholder; the recommendation is addressed by `38c5ac9`. Re-review is requested for the new commit before merge.
 
 ## Board and release evidence
 
