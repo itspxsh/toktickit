@@ -132,7 +132,7 @@ client/playwright.config.ts e2e/lab-02` (or `cd client && npm run test:e2e`).
 | Server unit/API | `cd server && npm run test` | Pending | Add terminal capture from final `main` |
 | Client unit/UI | `cd client && npm run test` | Pending | Add terminal capture from final `main` |
 | Client build | `cd client && npm run build` | Pending | Add output and confirm no generated source `.js` files |
-| Playwright E2E/responsive | `npx playwright test -c client/playwright.config.ts e2e/lab-02` | Pending | Add report and screenshots |
+| Playwright E2E/responsive | `npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02` | Pending | Add report and screenshots |
 
 ### L2-09 staging verification (not final-main evidence)
 
