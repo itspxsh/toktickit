@@ -132,6 +132,65 @@ describe("L2-05 Create Ticket", () => {
     expect(screen.getByText("evidence.pdf")).toBeInTheDocument();
   });
 
+  it("UI-12 / AC-17: keeps the Ticket and reports each initial Attachment outcome", async () => {
+    vi.spyOn(api, "createTicket").mockResolvedValue({
+      data: {
+        id: 1,
+        ticketNumber: "TKT-2026-000042",
+        ticketDate: "2026-09-06T00:00:00.000Z",
+        requester,
+        category: categories[0],
+        relatedSystem: systems[0],
+        summary: "Laptop battery drains quickly",
+        requestedPriority: "MEDIUM",
+        description: "The battery drains faster than usual during normal use.",
+        itPriority: null,
+        currentStatus: "NEW",
+        createdAt: "2026-09-06T00:00:00.000Z",
+        updatedAt: "2026-09-06T00:00:00.000Z",
+      },
+      replayed: false,
+    });
+    const upload = vi.spyOn(api, "uploadAttachment")
+      .mockResolvedValueOnce({
+        id: 101,
+        originalName: "good.png",
+        mimeType: "image/png",
+        sizeBytes: 8,
+        status: "ACTIVE",
+        removedAt: null,
+        removalReason: null,
+        createdAt: "2026-09-06T00:00:00.000Z",
+      })
+      .mockRejectedValueOnce(new api.ApiError("Unable to upload Attachment.", 500));
+    const user = userEvent.setup();
+    renderCreateTicket();
+    await fillValidForm(user);
+    const good = new File([Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], "good.png", { type: "image/png" });
+    const failed = new File([Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], "failed.png", { type: "image/png" });
+    await user.upload(screen.getByLabelText("Attachments"), [good, failed]);
+    await user.click(screen.getByRole("button", { name: "Submit Ticket" }));
+
+    expect(await screen.findByRole("heading", { name: "Ticket created successfully" })).toBeInTheDocument();
+    expect(await screen.findByText("good.png")).toBeInTheDocument();
+    expect(await screen.findByText(/Unable to upload Attachment/)).toBeInTheDocument();
+    const retry = screen.getByRole("button", { name: "Retry upload failed.png" });
+    expect(retry).toBeInTheDocument();
+    upload.mockResolvedValueOnce({
+      id: 102,
+      originalName: "failed.png",
+      mimeType: "image/png",
+      sizeBytes: 8,
+      status: "ACTIVE",
+      removedAt: null,
+      removalReason: null,
+      createdAt: "2026-09-06T00:00:00.000Z",
+    });
+    await user.click(retry);
+    await waitFor(() => expect(screen.getAllByText("Uploaded successfully.")).toHaveLength(2));
+    expect(upload).toHaveBeenCalledTimes(3);
+  });
+
   it("guards in-app navigation while the Create Ticket form is dirty", async () => {
     window.localStorage.setItem(REQUESTER_STORAGE_KEY, "1");
     window.history.pushState({}, "", "/create-ticket");

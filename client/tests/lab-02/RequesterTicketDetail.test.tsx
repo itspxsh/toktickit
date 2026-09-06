@@ -83,10 +83,13 @@ describe("L2-07 Requester Ticket Detail", () => {
     expect(screen.getByRole("status", { name: /Status: New/i })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: /Status: High/i })).toBeInTheDocument();
     expect(screen.getByText("IT Priority: Not assigned")).toBeInTheDocument();
-    expect(screen.getByText(/battery\.png/)).toBeInTheDocument();
+    expect(screen.getByText(/battery\.png — Active/)).toBeInTheDocument();
     expect(screen.getByText(/old-log\.pdf.*Removed/i)).toBeInTheDocument();
     expect(screen.getByText(/Reason: Uploaded by mistake/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /remove|download|preview|upload/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Preview battery.png" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download battery.png" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove battery.png" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /remove old-log|download old-log|preview old-log/i })).not.toBeInTheDocument();
     expect(api.fetchTicketDetail).toHaveBeenCalledWith(ticketNumber, 1, expect.any(AbortSignal));
   });
 
