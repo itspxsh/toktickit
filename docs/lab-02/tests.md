@@ -136,8 +136,8 @@ client/playwright.config.ts e2e/lab-02` (or `cd client && npm run test:e2e`).
 
 ### L2-09 staging verification (not final-main evidence)
 
-The following checks were run on `feature/lab2-09-release-readiness` after
-`lab2-staging` commit `b403d57` on 2026-09-06. They are intentionally not
+The following checks were run from a clean local checkout of `lab2-staging` at
+merge commit `58b04cc` on 2026-09-06. They are intentionally not
 marked as final until the release branch is merged and rerun from `main`.
 The screenshot set below was regenerated during staging verification at merge
 commit `58b04cc` after the implementation/test corrections in commits
