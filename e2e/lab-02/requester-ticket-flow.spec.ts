@@ -1,9 +1,12 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "../../client/node_modules/@playwright/test/index.js";
 import path from "node:path";
 import { mkdir } from "node:fs/promises";
 
 const API_BASE_URL = process.env.E2E_API_URL ?? "http://127.0.0.1:3000";
-const ARTIFACT_ROOT = path.resolve("artifacts/lab-02/screenshots");
+const REPOSITORY_ROOT = path.basename(process.cwd()) === "client"
+  ? path.resolve(process.cwd(), "..")
+  : path.resolve(process.cwd());
+const ARTIFACT_ROOT = path.join(REPOSITORY_ROOT, "artifacts/lab-02/screenshots");
 
 const ONE_BY_ONE_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -20,10 +23,15 @@ async function screenshot(page: Page, testInfo: TestInfo, area: string, state: s
   });
 }
 
-async function selectRequester(page: Page, name: string): Promise<number> {
-  const requester = page.getByLabel("Development Requester");
+async function selectRequester(page: Page, optionIndex: number): Promise<number> {
+  const requester = page.locator("#development-requester");
   await expect(requester).toBeVisible();
-  await requester.selectOption({ label: new RegExp(`^${name} \\(`) });
+  const options = requester.locator("option:not([value=''])");
+  await expect.poll(() => options.count()).toBeGreaterThan(optionIndex);
+  const option = options.nth(optionIndex);
+  const optionValue = await option.getAttribute("value");
+  expect(optionValue).not.toBeNull();
+  await requester.selectOption(optionValue!);
   const value = await requester.inputValue();
   const requesterId = Number(value);
   expect(Number.isSafeInteger(requesterId)).toBeTruthy();
@@ -36,11 +44,25 @@ test.describe("Lab 2 requester release flow", () => {
     test.setTimeout(90_000);
     await page.addInitScript(() => window.localStorage.clear());
 
+    // Fail fast with an actionable message when the required seeded database
+    // is unavailable. This is intentionally a failure, never a skipped test.
+    try {
+      const preflight = await page.request.get(`${API_BASE_URL}/api/requesters`, { timeout: 5_000 });
+      const responseBody = await preflight.text();
+      expect(preflight.ok(), `Integrated API preflight failed (${preflight.status()}): ${responseBody}`).toBeTruthy();
+    } catch (error) {
+      throw new Error(
+        `Integrated API preflight could not reach a seeded database at ${API_BASE_URL}. ` +
+        "Start PostgreSQL, apply migrations, and run db:seed before E2E. " +
+        `Original error: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
     // E2E-01/02: active requester selection and testing-context semantics.
     await page.goto("/select-requester");
     await expect(page.getByRole("heading", { name: "Choose a Development Requester" })).toBeVisible();
     await expect(page.getByText("Authentication arrives in Lab 3; this is a testing context only.")).toBeVisible();
-    const requesterId = await selectRequester(page, "Jennifer Anderson");
+    const requesterId = await selectRequester(page, 0);
     await expect(page).toHaveURL(/\/tickets$/);
     await expect(page.getByRole("heading", { name: "My Tickets" })).toBeVisible();
     await screenshot(page, testInfo, "my-tickets", "initial");
@@ -48,26 +70,32 @@ test.describe("Lab 2 requester release flow", () => {
     // E2E-02: dirty-form navigation must be cancellable and then confirmable.
     await page.getByRole("link", { name: "Create Ticket" }).click();
     await expect(page.getByRole("heading", { name: "Create Ticket" })).toBeVisible();
+    await expect(page.getByLabel("Summary")).toBeVisible();
     await page.getByLabel("Summary").fill("Unsaved release-readiness draft");
     await page.getByRole("link", { name: "My Tickets" }).click();
-    await expect(page.getByRole("dialog", { name: "Discard changes?" })).toBeVisible();
+    await expect(page.getByRole("alertdialog", { name: "Discard changes?" })).toBeVisible();
     await page.getByRole("button", { name: "Cancel" }).last().click();
     await expect(page).toHaveURL(/\/create-ticket$/);
     await expect(page.getByLabel("Summary")).toHaveValue("Unsaved release-readiness draft");
     await page.getByRole("link", { name: "My Tickets" }).click();
-    await expect(page.getByRole("dialog", { name: "Discard changes?" })).toBeVisible();
+    await expect(page.getByRole("alertdialog", { name: "Discard changes?" })).toBeVisible();
     await page.getByRole("button", { name: "Confirm" }).last().click();
     await expect(page).toHaveURL(/\/tickets$/);
 
     // Return to requester selection before creating the release evidence Ticket.
     await page.getByRole("button", { name: "Change Requester" }).click();
     await expect(page).toHaveURL(/\/select-requester$/);
-    await selectRequester(page, "Jennifer Anderson");
+    await selectRequester(page, 0);
     await page.getByRole("link", { name: "Create Ticket" }).click();
+    await expect(page.getByLabel("Summary")).toBeVisible();
 
     const projectName = testInfo.project.name.replace(/[^a-z0-9-]+/gi, "-");
     const summary = `L2-09 release evidence ${projectName} ${Date.now()}`.slice(0, 120);
     const description = "Integrated Lab 2 release-readiness evidence created by Playwright.";
+    await page.getByRole("button", { name: "Submit Ticket" }).click();
+    await expect(page.getByText("Category is required.")).toBeVisible();
+    await expect(page.getByText("Summary must contain 5-120 characters.")).toBeVisible();
+    await screenshot(page, testInfo, "create-ticket", "validation");
     await page.getByLabel("Category").selectOption({ label: "Hardware" });
     await page.getByLabel("Related System").selectOption({ label: "Corporate Laptop" });
     await page.getByLabel("Requested Priority").selectOption("HIGH");
@@ -81,10 +109,11 @@ test.describe("Lab 2 requester release flow", () => {
 
     await page.getByRole("button", { name: "Submit Ticket" }).click();
     await expect(page.getByRole("heading", { name: "Ticket created successfully" })).toBeVisible();
-    const ticketNumber = (await page.getByText(/TKT-\d{4}-\d{6}/).first().textContent())?.trim();
+    const ticketSummary = await page.getByText(/Official Ticket Number:/).textContent();
+    const ticketNumber = ticketSummary?.match(/TKT-\d{4}-\d{6}/)?.[0];
     expect(ticketNumber).toMatch(/^TKT-\d{4}-\d{6}$/);
-    await expect(page.getByText("release-note.txt")).toContainText(/not allowed|invalid/i);
-    await expect(page.getByText("release-proof.png")).toContainText(/Uploaded successfully/);
+    await expect(page.getByRole("listitem").filter({ hasText: "release-note.txt" })).toContainText(/not allowed|invalid/i);
+    await expect(page.getByRole("listitem").filter({ hasText: "release-proof.png" })).toContainText(/Uploaded successfully/);
     await screenshot(page, testInfo, "create-ticket", "success");
 
     // E2E-01/AC-12: the generated number links to the owned read-only detail.
@@ -103,7 +132,7 @@ test.describe("Lab 2 requester release flow", () => {
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe("release-proof.png");
     await page.getByRole("button", { name: "Remove release-proof.png" }).click();
-    const removalDialog = page.getByRole("dialog", { name: "Remove Attachment?" });
+    const removalDialog = page.getByRole("alertdialog", { name: "Remove Attachment?" });
     await expect(removalDialog).toBeVisible();
     await removalDialog.getByLabel("Removal reason").fill("Release evidence cleanup");
     await removalDialog.getByRole("button", { name: "Confirm" }).click();
@@ -124,7 +153,7 @@ test.describe("Lab 2 requester release flow", () => {
 
     // E2E-02/AC-13: switching to requester B cannot enumerate or open A's Ticket.
     await page.getByRole("button", { name: "Change Requester" }).click();
-    await selectRequester(page, "Michael Chen");
+    await selectRequester(page, 1);
     await expect(page).toHaveURL(/\/tickets$/);
     await expect(page.getByText(summary)).toHaveCount(0);
     await page.goto(`/tickets/${encodeURIComponent(ticketNumber!)}`);
