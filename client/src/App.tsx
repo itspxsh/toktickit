@@ -21,6 +21,7 @@ import {
   useRequesterContext,
 } from "./requester.tsx";
 import { CreateTicket } from "./create-ticket.tsx";
+import { TicketDetailPlaceholder } from "./ticket-detail-placeholder.tsx";
 import "./styles.css";
 
 export {
@@ -40,6 +41,7 @@ export {
   RequesterProvider,
   RequesterSelection,
   CreateTicket,
+  TicketDetailPlaceholder,
   useRequesterContext,
 };
 
@@ -137,6 +139,7 @@ function RequesterAwareApp() {
     activePath === "/create-ticket" ||
     activePath.startsWith("/create-ticket/");
   const selectionRoute = activePath === "/select-requester";
+  const ticketDetailMatch = activePath.match(/^\/tickets\/([^/]+)$/);
   const mustSelect =
     selectionRoute ||
     (requesterRequired && (context.status !== "success" || !context.selectedRequester));
@@ -169,6 +172,11 @@ function RequesterAwareApp() {
     >
       {mustSelect ? (
         <RequesterSelection onContinue={() => navigate("/tickets")} />
+      ) : ticketDetailMatch ? (
+        <TicketDetailPlaceholder
+          ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
+          onNavigate={handleNavigate}
+        />
       ) : activePath === "/tickets" ? (
         <section className="card stack" aria-labelledby="tickets-placeholder-title">
           <h1 id="tickets-placeholder-title">My Tickets</h1>
@@ -182,6 +190,14 @@ function RequesterAwareApp() {
       <RequesterChangeConfirmation />
     </AppShell>
   );
+}
+
+function decodeTicketNumber(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 export default function App() {
