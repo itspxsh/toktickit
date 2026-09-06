@@ -7,7 +7,7 @@ TokTickIT is a professional, full-stack IT Service Desk application designed to 
 - **Frontend**: React, TypeScript, Vite, Bootstrap 5 (for styling)
 - **Backend**: Node.js, Express, TypeScript (TSX for execution)
 - **Database**: PostgreSQL with Prisma ORM
-- **Testing**: Vitest (Unit/Integration) and Supertest (API/HTTP assertions)
+- **Testing**: Vitest (Unit/Integration), Supertest (API/HTTP assertions), and Playwright (integrated browser/release evidence)
 
 ---
 
@@ -158,6 +158,32 @@ npm run dev
 ```
 The application will be available in your browser at `http://localhost:5173`.
 
+### 3. Run the integrated Lab 2 browser suite
+
+The release-readiness suite runs against both local services and a seeded
+PostgreSQL database. It deliberately fails when the database or seed is not
+available; it never skips or mocks the integrated API. Install the Chromium
+binary once after `npm install`:
+
+```bash
+cd client
+npx playwright install chromium
+npm run test:e2e
+```
+
+The equivalent repository-root command is:
+
+```bash
+npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02
+```
+
+The suite exercises requester selection, dirty-form navigation protection,
+Ticket creation/list/detail ownership, attachment upload/download/removal,
+responsive viewports (desktop/tablet/mobile), and keyboard/accessibility
+checks. Successful runs write screenshots to
+`artifacts/lab-02/screenshots/` and the HTML report to
+`artifacts/lab-02/playwright-report/`.
+
 ---
 
 ## Running Tests
@@ -177,3 +203,19 @@ Runs Vitest unit and rendering checks:
 cd client
 npm run test
 ```
+
+### Release evidence prerequisites
+
+Before running Playwright, apply migrations and seed the development database
+used by `DATABASE_URL`:
+
+```bash
+cd server
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+Keep `DATABASE_URL_TEST` pointed at a separate database whose name ends in
+`_test` for destructive integration-test commands. Do not commit `.env`, test
+database credentials, private attachment storage, or generated Playwright
+results that are not part of the reviewed evidence set.

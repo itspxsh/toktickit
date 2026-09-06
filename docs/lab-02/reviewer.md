@@ -18,9 +18,9 @@ the code alone.
 | L2-04 Requester | `feature/lab2-04-requester-context` | [PR #23](https://github.com/itspxsh/toktickit/pull/23) | Active-only selection, persistence, switching | Approved and merged into `lab2-staging` |
 | L2-05 Create | `feature/lab2-05-create-ticket` | [PR #24](https://github.com/itspxsh/toktickit/pull/24) | Validation, number, idempotency, failure preservation | Approved and merged into `lab2-staging` |
 | L2-06 My Tickets | `feature/lab2-06-my-tickets` | [PR #25](https://github.com/itspxsh/toktickit/pull/25) | Query contract and ownership isolation | Approved and merged into `lab2-staging` |
-| L2-07 Detail | `feature/lab2-07-ticket-detail` | [PR #26](https://github.com/itspxsh/toktickit/pull/26) | Read-only detail and cross-owner rejection | Peer review requested |
-| L2-08 Attachments | `feature/lab2-08-attachments` | _URL_ | File safety, soft removal, compensation | Pending |
-| L2-09 Release readiness | `feature/lab2-09-release-readiness` | _URL_ | E2E, visual evidence, final audit | Pending |
+| L2-07 Detail | `feature/lab2-07-ticket-detail` | [PR #26](https://github.com/itspxsh/toktickit/pull/26) | Read-only detail and cross-owner rejection | Approved and merged into `lab2-staging` |
+| L2-08 Attachments | `feature/lab2-08-attachments` | [PR #27](https://github.com/itspxsh/toktickit/pull/27) | File safety, soft removal, compensation | Approved and merged into `lab2-staging`; Issue #19 closed |
+| L2-09 Release readiness | `feature/lab2-09-release-readiness` | _URL_ | E2E, visual evidence, final audit | In progress |
 | Release | `lab2-staging -> main` | _URL_ | Final branch, tests, PDF evidence | Pending |
 
 For each row add:
@@ -123,7 +123,26 @@ For each row add:
 - Explicit exclusions: Ticket editing, status transitions, attachment upload/download/removal, authentication, Staff workflow, comments, Actions Taken, and other Lab 3 behavior.
 - TDD commits: `a40cbaa` (contract tests first) and `7a4d362` (API, typed client boundary, detail view, and responsive styles).
 - Validation: server focused Lab 2 suite 31/31 and build; client suite 30/30 and build; `git diff --check` passed. Red state was confirmed before implementation; no tests are skipped or disabled.
-- Review status: Peer review requested; approval and any requested-change response will be recorded from the PR review timeline. No approval is being inferred from code publication.
+- Review status: Approved by [@justfepwx12](https://github.com/justfepwx12); the reviewer verified the read-only detail contract, ownership-safe 404 behavior, attachment metadata, and responsive states. Merged into `lab2-staging` as `e2d6229` on 2026-09-06.
+
+### L2-08 Attachments / Issue #19
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Issue: [#19](https://github.com/itspxsh/toktickit/issues/19)
+- PR: [#27](https://github.com/itspxsh/toktickit/pull/27), opened against `lab2-staging`; reviewer requested from [@justfepwx12](https://github.com/justfepwx12).
+- Branch: `feature/lab2-08-attachments`.
+- Scope: requester-owned attachment upload, private storage, download, metadata, soft removal, compensation, and the integrated Create Ticket/Detail UI lifecycle. Authentication, Staff workflow, comments, Actions Taken, and status transitions remain excluded.
+- Review comment received: Approval verified ownership, extension/MIME/magic-byte checks, 5 MiB and five-active limits, safe UUID storage, active-only download, removal reason confirmation, compensation, and per-file upload outcomes. Two non-blocking hardening recommendations were recorded: make the active-count check atomic and treat file unlink cleanup as best-effort after a successful soft removal.
+- Author response: The review was acknowledged; the recommendations remain explicitly non-blocking follow-up hardening and were not expanded into this closed Issue.
+- Approval/closure: Approved by [@justfepwx12](https://github.com/justfepwx12) and merged into `lab2-staging` as `b403d57` on 2026-09-06. The merge closed Issue #19.
+
+### L2-09 Release Readiness / Issue #20
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Issue: [#20](https://github.com/itspxsh/toktickit/issues/20)
+- Branch: `feature/lab2-09-release-readiness`, based on the latest `lab2-staging` merge `b403d57`.
+- Scope: integrated Playwright requester flows, responsive/accessibility evidence, documented test/build commands, contract-wide AC audit, and release evidence only. No new product behavior, authentication, Staff workflow, comments, Actions Taken, or status transitions.
+- Status: Implementation and evidence collection in progress. No approval or release PR is inferred before the integrated database-backed suite and final audit pass.
 
 ## Board and release evidence
 

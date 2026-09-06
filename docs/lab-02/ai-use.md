@@ -1,6 +1,6 @@
 # Lab 2 AI Use and Reflection
 
-**LLM/agent used:** _Record the exact model and agent for each implementation run._
+**LLM/agent used:** Codex (GPT-5), primary agent `/root`.
 
 The student remains responsible for the specification, code, tests, design
 decisions, commands, dependencies, and evidence. Prompts below are an initial
@@ -19,6 +19,7 @@ meaningful interaction.
 | 6 | Ownership review | Audit every requester-scoped endpoint and test cross-requester access, safe 404 behavior, switching races, and stale response handling. | I manually checked the query predicates and failure evidence. |
 | 7 | Attachment review | Audit type/signature/size/count validation, safe storage names, compensation, soft removal, retained metadata, and blocked download. | I verified both successful and failure paths. |
 | 8 | Completion audit | Compare implementation, tests, screenshots, PRs, and board against every AC and Definition of Done. List missing evidence; do not claim done if anything is skipped. | I fixed gaps and recorded final commands/output. |
+| 9 | Release readiness | Implement L2-09 from the binding Lab 2 contract with TDD: add the integrated Playwright requester flow first, verify an expected failure when the seeded DB is unavailable, then add only the configuration/documentation needed for real E2E, responsive, accessibility, and release evidence. Do not invent product behavior or skip tests. | I added a real-stack Playwright suite, documented its database preflight and evidence paths, and kept the unavailable local database as an explicit release risk. |
 
 ## My Reflection
 
