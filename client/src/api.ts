@@ -41,6 +41,44 @@ export interface CreateTicketResponse {
   replayed: boolean;
 }
 
+export type TicketListSortBy = "updatedAt" | "createdAt" | "ticketNumber" | "requestedPriority";
+export type TicketListSortOrder = "asc" | "desc";
+
+export interface TicketListQuery {
+  search?: string;
+  categoryId?: number;
+  relatedSystemId?: number;
+  requestedPriority?: RequestedPriority;
+  status?: "NEW";
+  sortBy?: TicketListSortBy;
+  sortOrder?: TicketListSortOrder;
+  page?: number;
+  pageSize?: 10 | 20 | 50;
+}
+
+export interface TicketListItem {
+  id: number;
+  ticketNumber: string;
+  ticketDate: string;
+  summary: string;
+  requestedPriority: RequestedPriority;
+  currentStatus: "NEW";
+  createdAt: string;
+  updatedAt: string;
+  category: Category;
+  relatedSystem: RelatedSystem;
+}
+
+export interface TicketListResponse {
+  data: TicketListItem[];
+  pagination: {
+    page: number;
+    pageSize: 10 | 20 | 50;
+    totalItems: number;
+    totalPages: number;
+  };
+}
+
 export class ApiError extends Error {
   readonly fieldErrors?: Record<string, string>;
   readonly status: number;
@@ -168,6 +206,48 @@ export async function createTicket(
     throw new Error("Unable to create Ticket.");
   }
   return body as CreateTicketResponse;
+}
+
+/** Load the selected requester's Ticket list using only the testing context header. */
+export async function fetchMyTickets(
+  requesterId: number,
+  query: TicketListQuery = {},
+  signal?: AbortSignal,
+): Promise<TicketListResponse> {
+  const params = new URLSearchParams();
+  if (query.search?.trim()) params.set("search", query.search.trim());
+  if (query.categoryId !== undefined) params.set("categoryId", String(query.categoryId));
+  if (query.relatedSystemId !== undefined) params.set("relatedSystemId", String(query.relatedSystemId));
+  if (query.requestedPriority) params.set("requestedPriority", query.requestedPriority);
+  if (query.status) params.set("status", query.status);
+  if (query.sortBy) params.set("sortBy", query.sortBy);
+  if (query.sortOrder) params.set("sortOrder", query.sortOrder);
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.pageSize !== undefined) params.set("pageSize", String(query.pageSize));
+
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_URL}/api/tickets${suffix}`, {
+    headers: developmentRequesterHeaders(requesterId),
+    signal,
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = body && typeof body === "object" && "error" in body
+      ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+      : undefined;
+    const fieldErrors = error?.fieldErrors && typeof error.fieldErrors === "object"
+      ? error.fieldErrors as Record<string, string>
+      : undefined;
+    throw new ApiError(
+      typeof error?.message === "string" ? error.message : "Unable to load My Tickets.",
+      response.status,
+      fieldErrors,
+    );
+  }
+  if (!body || typeof body !== "object" || !("data" in body) || !("pagination" in body)) {
+    throw new Error("Unable to load My Tickets.");
+  }
+  return body as TicketListResponse;
 }
 
 // Issue 2 + Issue 4 — call the backend.
