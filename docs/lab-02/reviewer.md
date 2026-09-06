@@ -17,7 +17,7 @@ the code alone.
 | L2-03 UI foundation | `feature/lab2-03-ui-foundation` | [PR #22](https://github.com/itspxsh/toktickit/pull/22) | Tokens, reusable components, keyboard/responsive behavior | Approved and merged into `lab2-staging` |
 | L2-04 Requester | `feature/lab2-04-requester-context` | [PR #23](https://github.com/itspxsh/toktickit/pull/23) | Active-only selection, persistence, switching | Approved and merged into `lab2-staging` |
 | L2-05 Create | `feature/lab2-05-create-ticket` | [PR #24](https://github.com/itspxsh/toktickit/pull/24) | Validation, number, idempotency, failure preservation | Merged into `lab2-staging`; post-merge follow-up approval pending |
-| L2-06 My Tickets | `feature/lab2-06-my-tickets` | _URL_ | Query contract and ownership isolation | Implementation ready; review pending |
+| L2-06 My Tickets | `feature/lab2-06-my-tickets` | [PR #25](https://github.com/itspxsh/toktickit/pull/25) | Query contract and ownership isolation | Peer review requested |
 | L2-07 Detail | `feature/lab2-07-ticket-detail` | _URL_ | Read-only detail and cross-owner rejection | Pending |
 | L2-08 Attachments | `feature/lab2-08-attachments` | _URL_ | File safety, soft removal, compensation | Pending |
 | L2-09 Release readiness | `feature/lab2-09-release-readiness` | _URL_ | E2E, visual evidence, final audit | Pending |
@@ -110,7 +110,8 @@ For each row add:
 - Explicit exclusions: ticket creation/editing, Ticket Detail implementation, attachments, authentication, Staff workflow, comments, Actions Taken, and status transitions.
 - TDD commits: `7347262` (contract tests first), `f140b41` (server list API), `2c427d2` (client query API), and `ed85b4f` (My Tickets UI and route integration).
 - Validation: client tests 26/26 and build; focused server Lab 2 suite 27/27 and build; `git diff --check` passed.
-- Review status: Implementation is ready for peer review; PR URL and review evidence will be recorded after publication.
+- PR: [#25](https://github.com/itspxsh/toktickit/pull/25), opened against `lab2-staging`; reviewer requested from [@justfepwx12](https://github.com/justfepwx12).
+- Review status: Peer review requested; approval and any requested-change response will be recorded from the PR review timeline. No approval is being inferred from code publication.
 
 ## Board and release evidence
 
