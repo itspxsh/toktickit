@@ -21,6 +21,7 @@ explicitly as pending; no approval is inferred from local code or screenshots.
 | L2-07 Detail | `feature/lab2-07-ticket-detail` | [PR #26](https://github.com/itspxsh/toktickit/pull/26) | Read-only detail and cross-owner rejection | Approved and merged into `lab2-staging` |
 | L2-08 Attachments | `feature/lab2-08-attachments` | [PR #27](https://github.com/itspxsh/toktickit/pull/27) | File safety, soft removal, compensation | Approved and merged into `lab2-staging`; Issue #19 closed |
 | L2-09 Release readiness | `feature/lab2-09-release-readiness` | [PR #28](https://github.com/itspxsh/toktickit/pull/28) | E2E, visual evidence, final audit | Approved and merged into `lab2-staging` |
+| L2-09 Evidence follow-up | `feature/lab2-09-release-readiness` | [PR #29](https://github.com/itspxsh/toktickit/pull/29) | Post-merge staging evidence and partner-review record | Open; awaiting `@justfepwx12` review |
 | Release | `lab2-staging -> main` | _URL_ | Final branch, tests, PDF evidence | Pending |
 
 For every PR that is opened, append its review URL, substantive review
@@ -148,6 +149,16 @@ exists.
 - Author response: Thanked the reviewer for validating the E2E, responsive/accessibility evidence, and release traceability.
 - Approval/merge: Approved by [@justfepwx12](https://github.com/justfepwx12) and merged into `lab2-staging` as `58b04cc` on 2026-09-06.
 - Status: L2-09 implementation is complete. The remaining release step is the single `lab2-staging -> main` PR; no approval is inferred for that release PR yet.
+
+### L2-09 Evidence follow-up / PR #29
+
+- Reviewer: [@justfepwx12](https://github.com/justfepwx12)
+- Issue reference: [#20](https://github.com/itspxsh/toktickit/issues/20)
+- PR: [#29](https://github.com/itspxsh/toktickit/pull/29), opened against `lab2-staging` from `feature/lab2-09-release-readiness`.
+- Scope: documentation/evidence only — records the merged PR #28 review, records partner-review evidence, aligns staging provenance, and refreshes committed screenshots; no product behavior is added.
+- Commits: `b8aebf0` (staging evidence), `d5ebf9d` (partner peer-review record), and `8010447` (staging validation provenance).
+- Validation from `lab2-staging` at `58b04cc`: server 39/39, client 34/34, server/client builds, Prisma validate, Playwright desktop/tablet/mobile 3/3, and `git diff --check` all passed.
+- Review status: Open and awaiting the requested review from [@justfepwx12](https://github.com/justfepwx12); no approval or merge is inferred.
 
 ## Lab 2 submission evidence map
 
