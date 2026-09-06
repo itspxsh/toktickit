@@ -139,6 +139,7 @@ client/playwright.config.ts e2e/lab-02` (or `cd client && npm run test:e2e`).
 The following checks were run on `feature/lab2-09-release-readiness` after
 `lab2-staging` commit `b403d57` on 2026-09-06. They are intentionally not
 marked as final until the release branch is merged and rerun from `main`.
+The screenshot set below was generated from implementation commit `1fe874e`.
 
 | Check | Result | Evidence / risk |
 |---|---|---|
