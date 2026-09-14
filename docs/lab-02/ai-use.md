@@ -30,6 +30,7 @@ feedback, including the AC-16/AC-17 mapping, create-only seed upserts,
 migration-safety verification, centralized ticket-number allocation, and the
 real-stack Playwright preflight. I also checked the changed files, dependency
 diffs, database commands, screenshots, and Git history instead of accepting a
-test or completion claim without evidence. The remaining final-main and PDF
-evidence is intentionally marked pending until the release PR is merged and
-rerun from `main`.
+test or completion claim without evidence. The final release PR was merged into
+`main`; this close-out branch refreshes the final-main command record and
+submission PDF so that no pre-merge pending statement remains in the delivered
+evidence.

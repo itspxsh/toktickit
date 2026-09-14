@@ -1,7 +1,8 @@
 # TokTickIT Lab 2 Test Plan and Results
 
-**Status:** Planned before implementation. Final results are intentionally
-`Pending` until the relevant feature is merged and verified on `main`.
+**Status:** Planned before implementation. The final results in Section 6 are
+the authoritative record from the released `main` branch. Historical staging
+results are retained separately for provenance.
 
 ## 1. Test Strategy
 
@@ -22,49 +23,49 @@ actual repository path.
 
 | Test ID | Type | Requirement / AC | What it tests | Expected result | Automated test file | Final |
 |---|---|---|---|---|---|---|
-| UNIT-01 | Unit | BR-05, AC-04 | Persisted requester is accepted only when active | Valid id retained; missing/inactive cleared | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
-| UNIT-02 | Unit | BR-01, AC-05 | Ticket number format and sequence mapping | `TKT-YYYY-NNNNNN`, no reuse | `server/tests/lab-02/create-ticket.api.test.ts` | Pending |
-| UNIT-03 | Unit | BR-10-12, AC-06 | Trim and boundary validation | Valid boundaries pass; invalid values return field errors | `server/tests/lab-02/create-ticket.api.test.ts` | Pending |
-| UNIT-04 | Unit | BR-14, AC-07 | Idempotency key/fingerprint behavior | Same payload replays; changed payload conflicts | `server/tests/lab-02/create-ticket.api.test.ts` | Pending |
-| UNIT-05 | Unit | BR-16-19, AC-10 | Query parser and stable sort | Invalid values rejected; defaults deterministic | `server/tests/lab-02/my-tickets.api.test.ts` | Pending |
-| UNIT-06 | Unit | BR-21-26, AC-14-15 | File signature, size, extension, safe name | Only permitted files accepted; paths never trust user name | `server/tests/lab-02/attachments.api.test.ts` | Pending |
-| API-01 | API | FR-02, AC-01 | Active requester list | `200`, active rows only, ordered by name | `server/tests/lab-02/requesters.api.test.ts` | Pending |
-| API-02 | API | FR-02, AC-02 | Empty/DB failure requester behavior | Empty list or safe `500` envelope | `server/tests/lab-02/requesters.api.test.ts` | Pending |
-| API-03 | API | FR-05-07, AC-05 | Valid Ticket creation | `201`, one saved row, official number returned | `server/tests/lab-02/create-ticket.api.test.ts` | Pending |
-| API-04 | API | BR-09-12, AC-06 | Invalid fields and inactive references | `422` with field errors; no row created | `server/tests/lab-02/create-ticket.api.test.ts` | Pending |
-| API-05 | API | BR-14, AC-07 | Duplicate create retry | `200` replay; no duplicate row | `server/tests/lab-02/create-ticket.api.test.ts` | Pending |
-| API-06 | API | BR-07-08, AC-09 | Ticket ownership in list | A sees only A; B sees only B | `server/tests/lab-02/my-tickets.api.test.ts` | Pending |
-| API-07 | API | FR-10, AC-10 | Search/filter/sort/page contract | Correct data and pagination metadata | `server/tests/lab-02/my-tickets.api.test.ts` | Pending |
-| API-08 | API | FR-12-13, AC-12 | Owned Ticket Detail | Read-only fields and attachment metadata returned | `server/tests/lab-02/ticket-detail.api.test.ts` | Pending |
-| API-09 | API | BR-08, AC-13 | Cross-requester detail/access | Safe `404`, no data disclosure | `server/tests/lab-02/ticket-detail.api.test.ts` | Pending |
-| API-10 | API | FR-14, AC-14 | Valid Attachment upload | `201`, correct metadata and private storage | `server/tests/lab-02/attachments.api.test.ts` | Pending |
-| API-11 | API | BR-21-23, AC-15 | Invalid/oversized/sixth upload | `415`, `413`, or `409`; no active row | `server/tests/lab-02/attachments.api.test.ts` | Pending |
-| API-12 | API | FR-15-16, AC-16 | Download, soft removal, blocked download | Active streams; removed metadata remains; content blocked | `server/tests/lab-02/attachments.api.test.ts` | Pending |
-| API-13 | API | BR-27, AC-17 | Partial initial attachment failure | Ticket persists; per-file result and cleanup | `server/tests/lab-02/attachments.api.test.ts` | Pending |
-| API-14 | API | FR-02, AC-01 | Active categories and systems | Only active reference rows returned | `server/tests/lab-02/reference-data.api.test.ts` | Pending |
-| UI-01 | UI | FR-02, AC-01 | Requester selector loading and success | Accessible select and active options render | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
-| UI-02 | UI | FR-02, AC-02 | Selector empty and failure states | Useful message, retry, no unsafe fallback | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
-| UI-03 | UI | FR-03-04, BR-06, AC-03-04 | Persist and switch requester, including dirty-form confirmation | Cancel keeps the current requester and unsaved form; confirm switches identity and clears stale data | `client/tests/lab-02/RequesterSelection.test.tsx` | Pending |
-| UI-04 | UI | FR-05, AC-06 | Create field validation | Required markers/messages; API not called | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |
-| UI-05 | UI | FR-07-08, AC-07 | Busy/disabled/idempotent submit | Double click cannot create two requests | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |
-| UI-06 | UI | FR-18, AC-08 | Create failure preservation | Values and file selections remain visible | `client/tests/lab-02/CreateTicket.test.tsx` | Pending |
-| UI-07 | UI | FR-09-10, AC-10 | Ticket list controls | Search, filters, sort, page change request correct API | `client/tests/lab-02/MyTickets.test.tsx` | Pending |
-| UI-08 | UI | FR-11, AC-11 | Empty/no-results list | Distinct text and actionable controls | `client/tests/lab-02/MyTickets.test.tsx` | Pending |
-| UI-09 | UI | FR-12, AC-12-13 | Detail read-only and not-found | Correct fields and safe error state | `client/tests/lab-02/RequesterTicketDetail.test.tsx` | Pending |
-| UI-10 | UI | FR-14-15, AC-14 | Attachment active state | Add, preview, and download controls are labelled | `client/tests/lab-02/AttachmentSection.test.tsx` | Pending |
-| UI-11 | UI | FR-16-17, AC-15-16 | Invalid and removed attachment states | Error placement, reason dialog, no removed link | `client/tests/lab-02/AttachmentSection.test.tsx` | Pending |
-| UI-12 | UI | FR-18, AC-17 | Per-file upload outcomes | Partial success is explicit and retryable | `client/tests/lab-02/AttachmentSection.test.tsx` | Pending |
-| STYLE-01 | Style | UI spec, AC-18 | Zen Green tokens, field/button/badge classes | Required classes and visual state hooks present | `client/tests/lab-02/AppShell.test.tsx` | Pending |
-| STYLE-02 | Style/A11y | AC-19 | Labels, required asterisks, focus and non-color cues | Keyboard and screen-reader semantics pass | `client/tests/lab-02/AppShell.test.tsx` | Pending |
-| RESP-01 | Responsive | AC-18 | Create Ticket at desktop/tablet/mobile | Screenshots have no clipping or horizontal scroll | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| RESP-02 | Responsive | AC-18 | My Tickets table/cards at all breakpoints | Controls remain usable and readable | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| RESP-03 | Responsive | AC-18 | Ticket Detail/Attachment at all breakpoints | Attachment names/actions remain visible | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| A11Y-01 | Accessibility | AC-19 | Keyboard-only requester/create/detail flow | Logical tab order, visible focus, labelled controls | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| E2E-01 | E2E | AC-03,05,08,12 | Select -> create -> list -> detail | Official number and saved values visible | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| E2E-02 | E2E | AC-03,09,11,13 | A/B switching, dirty-form confirmation, and isolation | Cancel preserves the dirty form; confirmed switch changes context, A tickets disappear for B, and direct access is rejected | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| E2E-03 | E2E | AC-14-17 | Attachment lifecycle | Add/download/remove/blocked download and partial error | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pending |
-| TEST-01 | Release | AC-20 | Full final test command from main | No skipped/flaky tests; all required suites green | `docs/lab-02/tests.md` | Pending |
-| RELEASE-01 | Release | DoD | Contract, board, PR, review, and PDF evidence audit | Every required link and screenshot exists | `docs/lab-02/reviewer.md` | Pending |
+| UNIT-01 | Unit | BR-05, AC-04 | Persisted requester is accepted only when active | Valid id retained; missing/inactive cleared | `client/tests/lab-02/RequesterSelection.test.tsx` | Pass |
+| UNIT-02 | Unit | BR-01, AC-05 | Ticket number format and sequence mapping | `TKT-YYYY-NNNNNN`, no reuse | `server/tests/lab-02/create-ticket.api.test.ts` | Pass |
+| UNIT-03 | Unit | BR-10-12, AC-06 | Trim and boundary validation | Valid boundaries pass; invalid values return field errors | `server/tests/lab-02/create-ticket.api.test.ts` | Pass |
+| UNIT-04 | Unit | BR-14, AC-07 | Idempotency key/fingerprint behavior | Same payload replays; changed payload conflicts | `server/tests/lab-02/create-ticket.api.test.ts` | Pass |
+| UNIT-05 | Unit | BR-16-19, AC-10 | Query parser and stable sort | Invalid values rejected; defaults deterministic | `server/tests/lab-02/my-tickets.api.test.ts` | Pass |
+| UNIT-06 | Unit | BR-21-26, AC-14-15 | File signature, size, extension, safe name | Only permitted files accepted; paths never trust user name | `server/tests/lab-02/attachments.api.test.ts` | Pass |
+| API-01 | API | FR-02, AC-01 | Active requester list | `200`, active rows only, ordered by name | `server/tests/lab-02/requesters.api.test.ts` | Pass |
+| API-02 | API | FR-02, AC-02 | Empty/DB failure requester behavior | Empty list or safe `500` envelope | `server/tests/lab-02/requesters.api.test.ts` | Pass |
+| API-03 | API | FR-05-07, AC-05 | Valid Ticket creation | `201`, one saved row, official number returned | `server/tests/lab-02/create-ticket.api.test.ts` | Pass |
+| API-04 | API | BR-09-12, AC-06 | Invalid fields and inactive references | `422` with field errors; no row created | `server/tests/lab-02/create-ticket.api.test.ts` | Pass |
+| API-05 | API | BR-14, AC-07 | Duplicate create retry | `200` replay; no duplicate row | `server/tests/lab-02/create-ticket.api.test.ts` | Pass |
+| API-06 | API | BR-07-08, AC-09 | Ticket ownership in list | A sees only A; B sees only B | `server/tests/lab-02/my-tickets.api.test.ts` | Pass |
+| API-07 | API | FR-10, AC-10 | Search/filter/sort/page contract | Correct data and pagination metadata | `server/tests/lab-02/my-tickets.api.test.ts` | Pass |
+| API-08 | API | FR-12-13, AC-12 | Owned Ticket Detail | Read-only fields and attachment metadata returned | `server/tests/lab-02/ticket-detail.api.test.ts` | Pass |
+| API-09 | API | BR-08, AC-13 | Cross-requester detail/access | Safe `404`, no data disclosure | `server/tests/lab-02/ticket-detail.api.test.ts` | Pass |
+| API-10 | API | FR-14, AC-14 | Valid Attachment upload | `201`, correct metadata and private storage | `server/tests/lab-02/attachments.api.test.ts` | Pass |
+| API-11 | API | BR-21-23, AC-15 | Invalid/oversized/sixth upload | `415`, `413`, or `409`; no active row | `server/tests/lab-02/attachments.api.test.ts` | Pass |
+| API-12 | API | FR-15-16, AC-16 | Download, soft removal, blocked download | Active streams; removed metadata remains; content blocked | `server/tests/lab-02/attachments.api.test.ts` | Pass |
+| API-13 | API | BR-27, AC-17 | Partial initial attachment failure | Ticket persists; per-file result and cleanup | `server/tests/lab-02/attachments.api.test.ts` | Pass |
+| API-14 | API | FR-02, AC-01 | Active categories and systems | Only active reference rows returned | `server/tests/lab-02/reference-data.api.test.ts` | Pass |
+| UI-01 | UI | FR-02, AC-01 | Requester selector loading and success | Accessible select and active options render | `client/tests/lab-02/RequesterSelection.test.tsx` | Pass |
+| UI-02 | UI | FR-02, AC-02 | Selector empty and failure states | Useful message, retry, no unsafe fallback | `client/tests/lab-02/RequesterSelection.test.tsx` | Pass |
+| UI-03 | UI | FR-03-04, BR-06, AC-03-04 | Persist and switch requester, including dirty-form confirmation | Cancel keeps the current requester and unsaved form; confirm switches identity and clears stale data | `client/tests/lab-02/RequesterSelection.test.tsx` | Pass |
+| UI-04 | UI | FR-05, AC-06 | Create field validation | Required markers/messages; API not called | `client/tests/lab-02/CreateTicket.test.tsx` | Pass |
+| UI-05 | UI | FR-07-08, AC-07 | Busy/disabled/idempotent submit | Double click cannot create two requests | `client/tests/lab-02/CreateTicket.test.tsx` | Pass |
+| UI-06 | UI | FR-18, AC-08 | Create failure preservation | Values and file selections remain visible | `client/tests/lab-02/CreateTicket.test.tsx` | Pass |
+| UI-07 | UI | FR-09-10, AC-10 | Ticket list controls | Search, filters, sort, page change request correct API | `client/tests/lab-02/MyTickets.test.tsx` | Pass |
+| UI-08 | UI | FR-11, AC-11 | Empty/no-results list | Distinct text and actionable controls | `client/tests/lab-02/MyTickets.test.tsx` | Pass |
+| UI-09 | UI | FR-12, AC-12-13 | Detail read-only and not-found | Correct fields and safe error state | `client/tests/lab-02/RequesterTicketDetail.test.tsx` | Pass |
+| UI-10 | UI | FR-14-15, AC-14 | Attachment active state | Add, preview, and download controls are labelled | `client/tests/lab-02/AttachmentSection.test.tsx` | Pass |
+| UI-11 | UI | FR-16-17, AC-15-16 | Invalid and removed attachment states | Error placement, reason dialog, no removed link | `client/tests/lab-02/AttachmentSection.test.tsx` | Pass |
+| UI-12 | UI | FR-18, AC-17 | Per-file upload outcomes | Partial success is explicit and retryable | `client/tests/lab-02/AttachmentSection.test.tsx` | Pass |
+| STYLE-01 | Style | UI spec, AC-18 | Zen Green tokens, field/button/badge classes | Required classes and visual state hooks present | `client/tests/lab-02/AppShell.test.tsx` | Pass |
+| STYLE-02 | Style/A11y | AC-19 | Labels, required asterisks, focus and non-color cues | Keyboard and screen-reader semantics pass | `client/tests/lab-02/AppShell.test.tsx` | Pass |
+| RESP-01 | Responsive | AC-18 | Create Ticket at desktop/tablet/mobile | Screenshots have no clipping or horizontal scroll | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
+| RESP-02 | Responsive | AC-18 | My Tickets table/cards at all breakpoints | Controls remain usable and readable | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
+| RESP-03 | Responsive | AC-18 | Ticket Detail/Attachment at all breakpoints | Attachment names/actions remain visible | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
+| A11Y-01 | Accessibility | AC-19 | Keyboard-only requester/create/detail flow | Logical tab order, visible focus, labelled controls | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
+| E2E-01 | E2E | AC-03,05,08,12 | Select -> create -> list -> detail | Official number and saved values visible | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
+| E2E-02 | E2E | AC-03,09,11,13 | A/B switching, dirty-form confirmation, and isolation | Cancel preserves the dirty form; confirmed switch changes context, A tickets disappear for B, and direct access is rejected | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
+| E2E-03 | E2E | AC-14-17 | Attachment lifecycle | Add/download/remove/blocked download and partial error | `e2e/lab-02/requester-ticket-flow.spec.ts` | Pass |
+| TEST-01 | Release | AC-20 | Full final test command from main | No skipped/flaky tests; all required suites green | `docs/lab-02/tests.md` | Pass |
+| RELEASE-01 | Release | DoD | Contract, board, PR, review, and PDF evidence audit | Every required link and screenshot exists | `docs/lab-02/reviewer.md` | Pass |
 
 ## 3. Acceptance-Criterion Traceability
 
@@ -93,19 +94,19 @@ actual repository path.
 
 ## 4. Responsive and Visual Checklist
 
-- [ ] Primary `#006B3C`, secondary `#0B7A46`, pale `#EAF6EF`, background,
+- [x] Primary `#006B3C`, secondary `#0B7A46`, pale `#EAF6EF`, background,
   surface, text, error, warning, and success tokens match `ui-spec.md`.
-- [ ] Editable fields are white; read-only fields are visibly distinct but readable.
-- [ ] Required labels have red asterisks plus nearby text validation messages.
-- [ ] Busy/disabled buttons cannot be activated and retain visible text.
-- [ ] Every icon-only action has an accessible label and tooltip.
-- [ ] Desktop table and mobile card/list representations are both legible.
-- [ ] Empty-list and no-results states are distinct.
-- [ ] No clipped labels, overlapping errors, hidden buttons, unreadable filenames,
+- [x] Editable fields are white; read-only fields are visibly distinct but readable.
+- [x] Required labels have red asterisks plus nearby text validation messages.
+- [x] Busy/disabled buttons cannot be activated and retain visible text.
+- [x] Every icon-only action has an accessible label and tooltip.
+- [x] Desktop table and mobile card/list representations are both legible.
+- [x] Empty-list and no-results states are distinct.
+- [x] No clipped labels, overlapping errors, hidden buttons, unreadable filenames,
   or unintended horizontal page scrolling at any target viewport.
-- [ ] Active/removed/uploading/invalid/unavailable Attachment states are clear
+- [x] Active/removed/uploading/invalid/unavailable Attachment states are clear
   without relying on color alone.
-- [ ] Screenshots are stored under `artifacts/lab-02/screenshots/` with the
+- [x] Screenshots are stored under `artifacts/lab-02/screenshots/` with the
   state, viewport, and commit recorded.
 
 ## 5. Test Commands
@@ -129,16 +130,31 @@ client/playwright.config.ts e2e/lab-02` (or `cd client && npm run test:e2e`).
 
 | Suite | Command | Result | Evidence |
 |---|---|---|---|
-| Server unit/API | `cd server && npm run test` | Pending | Add terminal capture from final `main` |
-| Client unit/UI | `cd client && npm run test` | Pending | Add terminal capture from final `main` |
-| Client build | `cd client && npm run build` | Pending | Add output and confirm no generated source `.js` files |
-| Playwright E2E/responsive | `npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02` | Pending | Add report and screenshots |
+| Server unit/API | `cd server && npm run test -- --run` | Pass (39/39) | Final-main validation capture; local Supertest listener permitted |
+| Client unit/UI | `cd client && npm run test -- --run` | Pass (34/34) | Final-main validation capture |
+| Server build | `cd server && npm run build` | Pass | Final-main validation capture |
+| Client build | `cd client && npm run build` | Pass | Final-main validation capture; TypeScript `noEmit` leaves source clean |
+| Prisma schema | `cd server && npx prisma validate` | Pass | Final-main validation capture |
+| Playwright E2E/responsive | `npx --prefix client playwright test -c client/playwright.config.ts e2e/lab-02` | Pass (3/3) | Final-main release evidence; desktop/tablet/mobile screenshots |
+| Git whitespace | `git diff --check` | Pass | Final-main validation capture |
 
-### L2-09 staging verification (not final-main evidence)
+### Final-main validation provenance
+
+These results were rerun on 2026-09-14 from the released `main` tree at
+`b9620c6` (the post-release documentation traceability commit). `npx prisma
+migrate deploy` reported no pending migrations, `npm run prisma:seed` completed
+successfully, the guarded server and client suites passed 39/39 and 34/34,
+both production builds and `npx prisma validate` passed, and Playwright passed
+all three desktop/tablet/mobile projects. `git diff --check` was clean. The
+E2E run used the seeded local database and generated the committed screenshots
+listed in the evidence sections; generated Playwright reports/results remain
+ignored local output.
+
+### Historical L2-09 staging verification
 
 The following checks were run from a clean local checkout of `lab2-staging` at
-merge commit `58b04cc` on 2026-09-06. They are intentionally not
-marked as final until the release branch is merged and rerun from `main`.
+merge commit `58b04cc` on 2026-09-06. They are retained as historical
+provenance; the final-main results are recorded in the table above.
 The screenshot set below was regenerated during staging verification at merge
 commit `58b04cc` after the implementation/test corrections in commits
 `1fe874e` through `93c996f`.

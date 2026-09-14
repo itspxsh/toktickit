@@ -3,3 +3,10 @@ node_modules/
 dist/
 build/
 server/storage/
+
+# Local/editor noise and generated test output.
+.DS_Store
+**/.DS_Store
+artifacts/**/playwright-report/
+artifacts/**/playwright-results/
+output/
