@@ -148,7 +148,10 @@ exists.
 - Review comment received: Approved after verifying the real-stack Playwright E2E journey, responsive/accessibility screenshots, evidence provenance, server start entrypoint, and AC/test traceability. The reviewer recorded the bash portability and package-scoped Playwright import as non-blocking recommendations.
 - Author response: Thanked the reviewer for validating the E2E, responsive/accessibility evidence, and release traceability.
 - Approval/merge: Approved by [@justfepwx12](https://github.com/justfepwx12) and merged into `lab2-staging` as `58b04cc` on 2026-09-06.
-- Status: L2-09 implementation is complete. The remaining release step is the single `lab2-staging -> main` PR; no approval is inferred for that release PR yet.
+- Status: L2-09 implementation, staging evidence follow-up, and the final
+  `lab2-staging -> main` release are complete. PR #30 was approved and merged
+  into `main`; the remaining close-out work is only to refresh final-main
+  evidence and the submission PDF.
 
 ### L2-09 Evidence follow-up / PR #29
 
@@ -190,8 +193,8 @@ must be refreshed from `main` after the release PR is merged.
 ## Board and release evidence
 
 - Project URL: `https://github.com/users/itspxsh/projects/1`
-- Final board screenshot: _path_
-- Final `main` commit graph screenshot: _path_
-- Directory tree screenshot: _path_
-- Rendered README and `.gitignore`: _path_
+- Final board evidence: GitHub Project [TokTickIT Individual Sprints](https://github.com/users/itspxsh/projects/1), verified with 13 Issues in `Done` and no branch/PR cards.
+- Final `main` commit graph evidence: [origin/main at `b9620c6`](https://github.com/itspxsh/toktickit/commit/b9620c6a6b1a019dd481fe9dd28e713534300015), including the PR #32 traceability merge.
+- Directory tree evidence: repository `README.md` structure plus `docs/lab-02` and `artifacts/lab-02/screenshots` paths.
+- Rendered README and `.gitignore`: repository [README.md](../../README.md) and [.gitignore](../../.gitignore), with generated local output excluded.
 - Final release PR approval: [PR #30](https://github.com/itspxsh/toktickit/pull/30) — approved by `@justfepwx12` and merged into `main` as [`f4647e0`](https://github.com/itspxsh/toktickit/commit/f4647e0).
