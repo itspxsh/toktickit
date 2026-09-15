@@ -28,6 +28,9 @@ query, and path fields never grant identity or authorization.
 * Passwords are accepted only over the local HTTPS/dev transport used by the
   course, hashed immediately, and never returned or logged. No endpoint returns
   a session token or password hash.
+* Brute-force protection and request rate limiting are intentionally excluded
+  from Lab 3; this limitation must be stated in release evidence rather than
+  implied to be implemented.
 
 ## 2. Authentication and identity
 
@@ -35,7 +38,8 @@ query, and path fields never grant identity or authorization.
 
 Request: `{ "email": "person@example.test", "password": "..." }`.
 Email is canonicalized by the server. On success, set an opaque `tt_session`
-cookie (`HttpOnly; Secure; SameSite=Lax; Path=/`) and return:
+cookie (`HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=43200`) with a fixed
+12-hour absolute lifetime and no sliding extension, then return:
 
 ```json
 {
@@ -175,7 +179,9 @@ Body `{ "currentStatus": "RESOLVED", "confirm": true }`. The server checks
 the transition matrix in `specification.md`; `confirm:true` is required for a
 transition to `CANCELLED` or `CLOSED`. Return `200` with the new status,
 `400 INVALID_STATUS_TRANSITION` for a disallowed edge, and `409 CONFIRMATION_REQUIRED`
-when a terminal transition is missing confirmation.
+when a terminal transition is missing confirmation. The only permitted
+`CANCELLED → REOPENED` transition is authorized for an Administrator; IT Staff
+cannot reopen a cancelled ticket.
 
 ## 5. Comments and internal notes
 

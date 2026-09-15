@@ -98,6 +98,14 @@ real secret is committed.
 | T-E2E-04 | Desktop/tablet/mobile screenshots cover Login, Change Password, Staff Queue, Staff Detail, and User Management states. | `artifacts/lab-03/screenshots/{authentication,staff-queue,staff-ticket-detail,user-management}/` |
 | T-E2E-05 | Fresh migration/seed and an upgrade from Lab 2 are run from a clean test database with command output retained. | `artifacts/lab-03/migration/` |
 
+Contract/release checks are also required so the documentation gate is
+executable rather than an informal checklist:
+
+| ID | Scenario | Concrete path |
+| --- | --- | --- |
+| T-CONTRACT-01 | Required headings, FR/BR/AC identifiers, and AC-to-Test references are present and internally consistent. | `scripts/lab-03/contract-check.mjs` |
+| T-CONTRACT-02 | Definition-of-Done release gate refuses a release when reviewer evidence, migration evidence, or required test results are missing. | `scripts/lab-03/release-gate.test.ts` |
+
 ## 5. Acceptance-criterion traceability
 
 | AC | Contract outcome | Required evidence |
@@ -120,6 +128,8 @@ real secret is committed.
 | AC-16 | Security review finds no client-trusted identity, secret leakage, or cross-owner disclosure. | T-AUTHZ-02..04, T-COMMENT-03..04, T-MIG-05, T-E2E-02..03 |
 | AC-17 | Regression suite remains green from the Lab 2 released baseline. | T-REG-01 and complete Lab 2 command output |
 | AC-18 | Evidence is reproducible, screenshot provenance is recorded, and every AC maps to a concrete test. | T-E2E-04..05, this matrix, `reviewer.md` |
+| AC-19 | Contract and implementation trace every AC to concrete Test IDs and a reviewer confirmation. | T-CONTRACT-01, `reviewer.md` |
+| AC-20 | Product and course Definition of Done are satisfied without any excluded Lab 4 behaviour. | T-CONTRACT-02, T-REG-01, T-E2E-04..05 |
 
 ## 6. Commands and pass criteria
 

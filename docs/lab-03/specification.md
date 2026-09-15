@@ -54,7 +54,7 @@ Email delivery, email password-reset links, MFA, SSO, self-registration,
 account deletion, account unlocking, multiple roles, profiles beyond the
 fields required here, bulk/import/export/history, Actions Taken, SLA or
 escalation, notifications, dashboards/KPIs, multi-tenancy, production
-deployment, and any Lab 4 behaviour.
+deployment, brute-force/rate-limiting protection, and any Lab 4 behaviour.
 
 ## 4. Functional Requirements
 
@@ -87,7 +87,7 @@ deployment, and any Lab 4 behaviour.
 | BR-02 | Every User has exactly one role and an `isActive` flag. No client role field grants access. |
 | BR-03 | Passwords are salted, one-way hashes; clear-text passwords and hashes never appear in responses, logs, screenshots, or source. |
 | BR-04 | A newly seeded or reset password sets `mustChangePassword=true`; only password change, current-user, and logout are available until it is cleared. |
-| BR-05 | Sessions are opaque, server-side, expiry-bound, HttpOnly, Secure, SameSite=Lax cookies; logout and deactivation invalidate them. |
+| BR-05 | Sessions are opaque, server-side, expire after a fixed 12-hour absolute lifetime (no sliding extension), and use HttpOnly, Secure, SameSite=Lax cookies; logout and deactivation invalidate them. |
 | BR-06 | Unsafe cookie-authenticated requests require a same-origin check and a server-issued CSRF token held only in page memory. |
 | BR-07 | Anonymous, inactive, expired, or invalid sessions receive the same safe 401 envelope and no identity enumeration. |
 | BR-08 | Requester reads/writes are scoped to the authenticated User; query/body requester IDs are never trusted. |

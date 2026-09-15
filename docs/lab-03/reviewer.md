@@ -28,6 +28,9 @@ not happened. Reviewer for this lab: [@justfepwx12](https://github.com/justfepwx
   requester ownership without a destructive reset.
 - [ ] Test-DD exists before implementation and includes negative authorization,
   migration/regression, UI, accessibility, responsive, security, and E2E paths.
+- [ ] Contract pins a 12-hour absolute session expiry, explicitly documents
+  Admin-only `CANCELLED → REOPENED`, records rate limiting as out of scope, and
+  maps AC-19/AC-20 in `tests.md`.
 - [ ] Reviewer left a substantive comment and approved the PR.
 
 ## Implementation/release review log
