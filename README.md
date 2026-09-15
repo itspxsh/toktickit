@@ -105,19 +105,25 @@ Initialize the database schema and populate it with seed data using Prisma:
    ```
 
 2. **Seed the Database**:
-   Populate the database with idempotent categories, related systems, and development requesters:
+   Populate the database with idempotent reference data, Lab 3 users, and
+   representative tickets/comments. Supply the initial password only through
+   the local environment (never commit it):
    ```bash
+   export LAB3_INITIAL_PASSWORD='<local-only-password>'
    npx prisma db seed
    ```
 
 For integration tests, create a separate PostgreSQL database whose name ends in
 `_test`, set `DATABASE_URL_TEST` in the environment, and never point it at the
 development database. The reset command refuses URLs that are not explicitly
-test-scoped, then truncates only the test schema and reruns the reference seed:
+test-scoped, derives the complete application table list (excluding Prisma's
+migration table), then truncates only the test schema and reruns the appropriate
+Lab 2/Lab 3 seed. Set `LAB3_TEST_INITIAL_PASSWORD` locally when the Lab 3 schema
+is present:
 
 ```bash
 cd server
-DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run db:test:reset
+DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" LAB3_TEST_INITIAL_PASSWORD='<local-only-password>' npm run db:test:reset
 DATABASE_URL_TEST="postgresql://<username>:<password>@localhost:5432/<db_name>_test?schema=public" npm run test
 ```
 

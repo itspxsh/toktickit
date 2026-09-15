@@ -18,11 +18,31 @@ enum RequestedPriority {
 
 enum CurrentStatus {
   NEW
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_REQUESTER
+  RESOLVED
+  CLOSED
+  REOPENED
+  CANCELLED
 }
 
 enum AttachmentStatus {
   ACTIVE
   REMOVED
+}
+
+enum UserRole {
+  REQUESTER
+  IT_STAFF
+  ADMIN
+}
+
+enum ItPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 model Category {
@@ -44,9 +64,11 @@ model Requester {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  userId    Int?      @unique
 
   tickets            Ticket[]
   removedAttachments Attachment[] @relation("AttachmentRemovedBy")
+  user                User?       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([isActive, name])
 }
@@ -70,27 +92,37 @@ model Ticket {
   ticketSequence    BigInt            @unique
   ticketDate        DateTime          @default(now())
   requesterId       Int
+  requesterUserId   Int?
+  assignedStaffId   Int?
   categoryId        Int
   relatedSystemId   Int
   summary           String
   requestedPriority RequestedPriority
   description       String
-  itPriority        String?
+  itPriority        ItPriority?
   currentStatus     CurrentStatus     @default(NEW)
+  requesterResolvedAt DateTime?
   clientRequestId   String            @unique
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @default(now()) @updatedAt
 
   requester     Requester     @relation(fields: [requesterId], references: [id], onDelete: Restrict)
+  requesterUser User?         @relation("TicketRequesterUser", fields: [requesterUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assignedStaff User?         @relation("TicketAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   category      Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id], onDelete: Restrict)
   attachments   Attachment[]
+  publicComments PublicComment[]
+  internalNotes  InternalNote[]
 
   @@index([requesterId, updatedAt, id])
   @@index([requesterId, categoryId, updatedAt])
   @@index([requesterId, relatedSystemId, updatedAt])
   @@index([requesterId, requestedPriority, updatedAt])
   @@index([requesterId, currentStatus, updatedAt])
+  @@index([requesterUserId, updatedAt, id])
+  @@index([assignedStaffId, currentStatus, updatedAt])
+  @@index([itPriority, currentStatus, updatedAt])
   @@index([categoryId])
   @@index([relatedSystemId])
 }
@@ -106,12 +138,78 @@ model Attachment {
   removedAt            DateTime?
   removalReason        String?
   removedByRequesterId Int?
+  removedByUserId      Int?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @default(now()) @updatedAt
 
   ticket             Ticket     @relation(fields: [ticketId], references: [id], onDelete: Restrict)
   removedByRequester Requester? @relation("AttachmentRemovedBy", fields: [removedByRequesterId], references: [id], onDelete: Restrict)
+  removedByUser      User?      @relation("AttachmentRemovedByUser", fields: [removedByUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([ticketId, status, createdAt])
   @@index([removedByRequesterId])
+  @@index([removedByUserId])
+}
+
+model User {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  email              String   @unique
+  passwordHash       String
+  role               UserRole
+  isActive           Boolean  @default(true)
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @default(now()) @updatedAt
+
+  requester          Requester?
+  sessions           Session[]
+  requestedTickets   Ticket[] @relation("TicketRequesterUser")
+  assignedTickets    Ticket[] @relation("TicketAssignedStaff")
+  publicComments     PublicComment[]
+  internalNotes      InternalNote[]
+  removedAttachments Attachment[] @relation("AttachmentRemovedByUser")
+
+  @@index([isActive, role, name])
+  @@index([role, isActive])
+}
+
+model Session {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  tokenHash     String    @unique
+  expiresAt     DateTime
+  invalidatedAt DateTime?
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, invalidatedAt])
+}
+
+model PublicComment {
+  id           Int      @id @default(autoincrement())
+  ticketId     Int
+  authorUserId Int
+  body         String
+  createdAt    DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  author User   @relation(fields: [authorUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([ticketId, createdAt, id])
+}
+
+model InternalNote {
+  id           Int      @id @default(autoincrement())
+  ticketId     Int
+  authorUserId Int
+  body         String
+  createdAt    DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  author User   @relation(fields: [authorUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([ticketId, createdAt, id])
 }

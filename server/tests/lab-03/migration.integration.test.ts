@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { REFERENCE_SEED, seedReferenceData } from "../../src/data-foundation.js";
+import { REFERENCE_SEED, seedLab3Data } from "../../src/data-foundation.js";
 import { assertTestDatabaseUrl, createTestPrisma } from "../helpers/test-database.js";
 
 const migrationsRoot = new URL("../../prisma/migrations/", import.meta.url);
@@ -60,6 +60,20 @@ describe("L3-02 migration and seed foundation", () => {
   it("T-MIG-02 preserves Lab 2 rows, storage keys, foreign keys, and ticket sequence", async () => {
     const prisma = await prepareLab2Database();
     try {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "Requester" ("name", "email") VALUES ('Legacy Owner', 'legacy@example.test')`,
+      );
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "RelatedSystem" ("name") VALUES ('Legacy System')`,
+      );
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "Ticket" ("ticketNumber","ticketSequence","requesterId","categoryId","relatedSystemId","summary","requestedPriority","description","clientRequestId")
+         VALUES ('TKT-0007', 7, 1, 1, 1, 'Legacy ticket', 'LOW', 'Must survive migration', 'legacy-client-request')`,
+      );
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "Attachment" ("ticketId","originalName","storageKey","mimeType","sizeBytes")
+         VALUES (1, 'legacy.pdf', 'legacy-storage-key', 'application/pdf', 128)`,
+      );
       await executeMigration(prisma, lab3MigrationSql());
 
       const categories = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
@@ -85,12 +99,17 @@ describe("L3-02 migration and seed foundation", () => {
       const second = await prisma.$queryRawUnsafe<Array<{ value: bigint }>>(
         `SELECT nextval('ticket_number_seq') AS value`,
       );
+      expect(first[0].value).toBeGreaterThan(7n);
       expect(second[0].value).toBe(first[0].value + 1n);
 
       const attachmentKeys = await prisma.$queryRawUnsafe<Array<{ storageKey: string }>>(
         'SELECT "storageKey" FROM "Attachment" ORDER BY "id"',
       );
-      expect(attachmentKeys).toEqual([]);
+      expect(attachmentKeys).toEqual([{ storageKey: "legacy-storage-key" }]);
+      const legacyTicket = await prisma.$queryRawUnsafe<Array<{ ticketNumber: string; summary: string }>>(
+        `SELECT "ticketNumber", "summary" FROM "Ticket" WHERE "ticketNumber" = 'TKT-0007'`,
+      );
+      expect(legacyTicket).toEqual([{ ticketNumber: "TKT-0007", summary: "Legacy ticket" }]);
     } finally {
       await prisma.$disconnect();
     }
@@ -141,14 +160,14 @@ describe("L3-02 migration and seed foundation", () => {
     const prisma = await prepareLab2Database();
     try {
       await executeMigration(prisma, lab3MigrationSql());
-      await seedReferenceData(prisma);
+      await seedLab3Data(prisma);
       await prisma.$executeRawUnsafe(
         `UPDATE "User" SET "isActive" = false WHERE "email" = 'jennifer@example.test'`,
       );
       const before = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
         `SELECT COUNT(*)::bigint AS count FROM "User"`,
       );
-      await seedReferenceData(prisma);
+      await seedLab3Data(prisma);
       const after = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
         `SELECT COUNT(*)::bigint AS count FROM "User"`,
       );
@@ -177,7 +196,7 @@ describe("L3-02 migration and seed foundation", () => {
     const prisma = await prepareLab2Database();
     try {
       await executeMigration(prisma, lab3MigrationSql());
-      await seedReferenceData(prisma);
+      await seedLab3Data(prisma);
       const plaintext = process.env.LAB3_TEST_INITIAL_PASSWORD;
       const users = await prisma.$queryRawUnsafe<Array<{ passwordHash: string }>>(
         `SELECT "passwordHash" FROM "User" WHERE "passwordHash" IS NOT NULL`,
