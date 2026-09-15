@@ -1,5 +1,5 @@
 import { randomBytes, scrypt as scryptCallback } from "node:crypto";
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import { allocateTicketNumber } from "./ticket-number.js";
 
 /** Hash inserted by the migration until the environment-backed seed runs. */
@@ -44,8 +44,6 @@ const LAB3_ADMIN_SEED = {
   role: "ADMIN" as const,
   isActive: true,
 };
-
-type SeedClient = PrismaClient | Prisma.TransactionClient;
 
 async function hashInitialPassword(password: string): Promise<string> {
   const salt = randomBytes(16);

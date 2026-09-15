@@ -3,6 +3,7 @@ import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import {
   hashPassword,
+  createAuthMiddleware,
   registerAuthRoutes,
   requirePasswordChanged,
   type AuthPrisma,
@@ -48,7 +49,7 @@ async function harness(overrides: Partial<typeof user> = {}) {
   const app = express();
   app.use(express.json());
   registerAuthRoutes(app, () => prisma);
-  app.get("/api/protected-probe", requirePasswordChanged, (_req, res) => res.json({ ok: true }));
+  app.get("/api/protected-probe", createAuthMiddleware(() => prisma), requirePasswordChanged, (_req, res) => res.json({ ok: true }));
   return { app, prisma, storedUser };
 }
 
@@ -89,27 +90,30 @@ describe("Lab 3 authentication API", () => {
     const { app, storedUser } = await harness();
     const agent = request.agent(app);
     await agent.post("/api/auth/login").send({ email: user.email, password });
-    await agent.get("/api/auth/csrf");
+    const csrf = await agent.get("/api/auth/csrf");
     const response = await agent
       .post("/api/auth/change-password")
       .set("Origin", "http://localhost:3000")
-      .set("X-CSRF-Token", "test-token")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
       .send({ currentPassword: password, newPassword: "a-new-password-123" });
     expect(response.status).toBe(200);
     expect(response.body.user.mustChangePassword).toBe(false);
     expect(storedUser.passwordHash).not.toContain("a-new-password-123");
     expect(response.headers["set-cookie"][0]).toMatch(/tt_session=/);
+    expect((await agent.post("/api/auth/login").send({ email: user.email, password })).status).toBe(401);
+    expect((await agent.post("/api/auth/login").send({ email: user.email, password: "a-new-password-123" })).status).toBe(200);
   });
 
   it("T-AUTH-05 invalidates logout sessions and never returns a token", async () => {
     const { app } = await harness({ mustChangePassword: false });
     const agent = request.agent(app);
     await agent.post("/api/auth/login").send({ email: user.email, password });
-    await agent.get("/api/auth/csrf");
-    const logout = await agent.post("/api/auth/logout").set("Origin", "http://localhost:3000").set("X-CSRF-Token", "test-token");
+    const csrf = await agent.get("/api/auth/csrf");
+    const logout = await agent.post("/api/auth/logout").set("Origin", "http://localhost:3000").set("X-CSRF-Token", csrf.body.csrfToken);
     expect(logout.status).toBe(204);
     expect(JSON.stringify(logout.body)).not.toMatch(/tt_session|token/i);
     expect((await agent.get("/api/auth/me")).status).toBe(401);
+    expect((await agent.post("/api/auth/logout")).status).toBe(204);
   });
 
   it("T-AUTH-06 rejects unsafe cookie-authenticated requests without same-origin CSRF proof", async () => {
