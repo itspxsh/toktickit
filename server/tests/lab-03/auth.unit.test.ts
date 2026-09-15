@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   hashPassword,
+  hashSessionToken,
   isSessionUsable,
   validatePasswordChange,
   verifyPassword,
@@ -20,6 +21,8 @@ describe("Lab 3 authentication primitives", () => {
     expect(isSessionUsable({ expiresAt: new Date("2026-09-15T09:59:59.000Z"), invalidatedAt: null, userActive: true }, now)).toBe(false);
     expect(isSessionUsable({ expiresAt: new Date("2026-09-15T22:00:00.000Z"), invalidatedAt: new Date(), userActive: true }, now)).toBe(false);
     expect(isSessionUsable({ expiresAt: new Date("2026-09-15T22:00:00.000Z"), invalidatedAt: null, userActive: false }, now)).toBe(false);
+    expect(hashSessionToken("opaque-token")).toBe("84d3f23da9b5f51b3269566eff05d3fb23607eeef89567f9cd280b90ca0dbc5c");
+    expect(hashSessionToken("opaque-token")).not.toBe("opaque-token");
   });
 
   it("T-UNIT-03 rejects blank/short/reused passwords without exposing secrets", () => {
