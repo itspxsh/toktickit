@@ -39,12 +39,27 @@ export async function resetTestDatabase(): Promise<void> {
   const prisma = createTestPrisma();
 
   try {
-    await prisma.$executeRawUnsafe(
-      'TRUNCATE TABLE "Attachment", "Ticket", "Requester", "RelatedSystem", "Category" RESTART IDENTITY CASCADE'
-    );
+    const tables = await prisma.$queryRaw<Array<{ table_name: string }>>`
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_type = 'BASE TABLE'
+        AND table_name <> '_prisma_migrations'
+      ORDER BY table_name
+    `;
+    if (tables.length > 0) {
+      const quotedTables = tables
+        .map(({ table_name }) => `"${table_name.replaceAll('"', '""')}"`)
+        .join(", ");
+      await prisma.$executeRawUnsafe(
+        `TRUNCATE TABLE ${quotedTables} RESTART IDENTITY CASCADE`
+      );
+    }
 
-    const { seedReferenceData } = await import("../../src/data-foundation.js");
-    await seedReferenceData(prisma);
+    const { seedLab3Data, seedReferenceData } = await import("../../src/data-foundation.js");
+    const hasLab3UserTable = tables.some(({ table_name }) => table_name === "User");
+    if (hasLab3UserTable) await seedLab3Data(prisma);
+    else await seedReferenceData(prisma);
   } finally {
     await prisma.$disconnect();
   }

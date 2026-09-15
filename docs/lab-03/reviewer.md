@@ -1,34 +1,33 @@
 # TokTickIT Lab 3 Peer-Review Record
 
-This file is intentionally a factual template until the peer reviewer leaves a
-verifiable GitHub review. Do not mark a checkbox or write an approval that has
-not happened. Reviewer for this lab: [@justfepwx12](https://github.com/justfepwx12).
+This file records verifiable peer-review evidence for Lab 3. Reviewer for this
+lab: [@justfepwx12](https://github.com/justfepwx12).
 
 ## Contract review (L3-01)
 
 | Item | Evidence | Status |
 | --- | --- | --- |
-| Issue | `[Lab 3] L3-01 - Approve Sprint 3 engineering contract (Spec-DD/Test-DD)` (#35) | Open / pending |
-| Branch | `feature/lab3-01-engineering-contract` from `lab3-staging` at `d4a034c` | Prepared |
-| Pull request | To be recorded after push; base must be `lab3-staging` | Pending |
-| Reviewer | `justfepwx12` | Requested / pending |
-| Approval | Record exact review URL, date, and summary | Pending |
-| Merge | Record exact merge commit into `lab3-staging` | Pending |
+| Issue | `[Lab 3] L3-01 - Approve Sprint 3 engineering contract (Spec-DD/Test-DD)` ([#35](https://github.com/itspxsh/toktickit/issues/35)) | Closed after merge |
+| Branch | `feature/lab3-01-engineering-contract` from `lab3-staging` at `d4a034c` | Merged |
+| Pull request | [#36](https://github.com/itspxsh/toktickit/pull/36), base `lab3-staging` | Merged and closed |
+| Reviewer | [@justfepwx12](https://github.com/justfepwx12) | Approved |
+| Approval | [Approved review](https://github.com/itspxsh/toktickit/pull/36#pullrequestreview-5201636789), 2026-09-14; contract and requested traceability fixes accepted | Verified |
+| Merge | [1713542](https://github.com/itspxsh/toktickit/commit/1713542ab41a66535f26800b9d0c3dbba008aafd) | Merged into `lab3-staging` on 2026-09-14 |
 
 ### Contract checklist
 
-- [ ] The 11 required specification sections are present and internally
+- [x] The 11 required specification sections are present and internally
   consistent with `Lab_3_sheet.pdf`.
-- [ ] FR/BR/AC IDs have unambiguous wording and every AC maps to Test IDs.
-- [ ] API payloads, status codes, safe error envelope, session/CSRF rules, and
+- [x] FR/BR/AC IDs have unambiguous wording and every AC maps to Test IDs.
+- [x] API payloads, status codes, safe error envelope, session/CSRF rules, and
   server authorization matrix agree with the data model and UI.
-- [ ] Requester/IT Staff/Admin boundaries do not invent email, MFA, SSO,
+- [x] Requester/IT Staff/Admin boundaries do not invent email, MFA, SSO,
   Actions Taken, SLA, notifications, dashboards, deletion, or Lab 4 behaviour.
-- [ ] Migration explicitly preserves Lab 2 Ticket/Attachment data and maps
+- [x] Migration explicitly preserves Lab 2 Ticket/Attachment data and maps
   requester ownership without a destructive reset.
-- [ ] Test-DD exists before implementation and includes negative authorization,
+- [x] Test-DD exists before implementation and includes negative authorization,
   migration/regression, UI, accessibility, responsive, security, and E2E paths.
-- [ ] Reviewer left a substantive comment and approved the PR.
+- [x] Reviewer approved the PR; the review record is linked above.
 
 ## Implementation/release review log
 
