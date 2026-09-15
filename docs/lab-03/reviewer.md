@@ -33,7 +33,7 @@ lab: [@justfepwx12](https://github.com/justfepwx12).
 
 | Issue/PR | Scope | Reviewer evidence | Approval | Merge commit |
 | --- | --- | --- | --- | --- |
-| L3-02 | Data model, migration, seed, guarded test DB | _pending_ | _pending_ | _pending_ |
+| [L3-02 (#37)](https://github.com/itspxsh/toktickit/issues/37) / [PR #46](https://github.com/itspxsh/toktickit/pull/46) | Data model, migration, seed, guarded test DB | [Approved review](https://github.com/itspxsh/toktickit/pull/46#pullrequestreview-5207381544) by `justfepwx12` on 2026-09-15 | [8099912](https://github.com/itspxsh/toktickit/commit/80999129c74ca8fd782b70751528462dab03fd61) into `lab3-staging` |
 | L3-03 | Authentication, session, password change | _pending_ | _pending_ | _pending_ |
 | L3-04 | Server authorization and Lab 2 requester regression | _pending_ | _pending_ | _pending_ |
 | L3-05 | IT Staff queue | _pending_ | _pending_ | _pending_ |
