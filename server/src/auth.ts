@@ -8,6 +8,9 @@ const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 const PASSWORD_MIN = 12;
 const PASSWORD_MAX = 128;
 const AUTH_ORIGIN = process.env.AUTH_ORIGIN ?? "http://localhost:3000";
+// Fixed work-factor probe keeps unknown/inactive login timing comparable without
+// persisting or exposing a usable credential.
+const DUMMY_PASSWORD_HASH = "$scrypt$N=16384,r=8,p=1$3lEAAE84MtKq36w8VGKvaA$vwum5eXwdKdoJd7CCRvF/t5FFstx6da3QHcfhK02+HQ";
 
 export type AuthRole = "REQUESTER" | "IT_STAFF" | "ADMIN";
 
@@ -57,6 +60,12 @@ declare global {
 }
 
 const csrfHashes = new Map<string, { hash: string; expiresAt: number }>();
+
+function pruneExpiredCsrfHashes(now = Date.now()): void {
+  for (const [sessionKey, value] of csrfHashes) {
+    if (value.expiresAt <= now) csrfHashes.delete(sessionKey);
+  }
+}
 
 function scrypt(password: string, salt: Buffer, keyLength: number, options: { N: number; r: number; p: number }): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -173,6 +182,7 @@ function originIsSame(req: Request): boolean {
 }
 
 function csrfIsValid(req: Request, auth: AuthContext): boolean {
+  pruneExpiredCsrfHashes();
   const supplied = req.get("X-CSRF-Token");
   const expected = csrfHashes.get(auth.tokenHash);
   if (!supplied || !expected || expected.expiresAt <= Date.now()) return false;
@@ -222,7 +232,11 @@ export function registerAuthRoutes(app: Express, prismaProvider: () => AuthPrism
     try {
       const prisma = prismaProvider();
       const candidate = await prisma.user.findUnique({ where: { email } });
-      if (!candidate || !candidate.isActive || !(await verifyPassword(password, candidate.passwordHash))) {
+      const passwordMatches = await verifyPassword(
+        password,
+        candidate?.isActive ? candidate.passwordHash : DUMMY_PASSWORD_HASH,
+      );
+      if (!candidate || !candidate.isActive || !passwordMatches) {
         invalidCredentials(res);
         return;
       }
@@ -243,6 +257,7 @@ export function registerAuthRoutes(app: Express, prismaProvider: () => AuthPrism
         res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Authentication is required." } });
         return;
       }
+      pruneExpiredCsrfHashes();
       const token = randomBytes(32).toString("base64url");
       csrfHashes.set(auth.tokenHash, { hash: createHash("sha256").update(token, "utf8").digest("hex"), expiresAt: auth.session.expiresAt.getTime() });
       res.status(200).json({ csrfToken: token });
