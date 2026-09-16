@@ -5,7 +5,9 @@ import { registerRequesterRoutes } from "./routes/requesters.js";
 import { registerTicketRoutes } from "./routes/tickets.js";
 import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerReferenceDataRoutes } from "./routes/reference-data.js";
-import { registerAuthRoutes } from "./auth.js";
+import { registerRequesterWorkflowRoutes } from "./routes/requester-workflow.js";
+import { createAuthMiddleware, registerAuthRoutes } from "./auth.js";
+import { createRequesterAuthMiddleware } from "./authorization.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -36,10 +38,13 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
-registerReferenceDataRoutes(app);
-registerRequesterRoutes(app);
-registerTicketRoutes(app);
-registerAttachmentRoutes(app);
 registerAuthRoutes(app);
+const authenticated = createAuthMiddleware();
+const requesterAuthenticated = createRequesterAuthMiddleware();
+registerReferenceDataRoutes(app, undefined, authenticated);
+registerRequesterRoutes(app, undefined, authenticated);
+registerRequesterWorkflowRoutes(app, undefined, authenticated);
+registerTicketRoutes(app, undefined, requesterAuthenticated);
+registerAttachmentRoutes(app, undefined, requesterAuthenticated);
 
 export default app;

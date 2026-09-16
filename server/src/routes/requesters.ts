@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, RequestHandler } from "express";
 import type { PrismaClient } from "@prisma/client";
 import { getPrisma } from "../prisma.js";
 
@@ -13,7 +13,9 @@ type PrismaProvider = () => RequesterReader;
 export function registerRequesterRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma,
+  authorizationMiddleware?: RequestHandler,
 ): void {
+  if (authorizationMiddleware) app.use("/api/requesters", authorizationMiddleware);
   app.get("/api/requesters", async (_req: Request, res: Response) => {
     try {
       const requesters = await prismaProvider().requester.findMany({

@@ -192,6 +192,19 @@ function csrfIsValid(req: Request, auth: AuthContext): boolean {
   return suppliedBytes.length === expectedBytes.length && timingSafeEqual(suppliedBytes, expectedBytes);
 }
 
+/** Protect an unsafe authenticated route with same-origin and per-session CSRF. */
+export const requireCsrf: RequestHandler = (req, res, next) => {
+  if (!req.auth) {
+    res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Authentication is required." } });
+    return;
+  }
+  if (!originIsSame(req) || !csrfIsValid(req, req.auth)) {
+    forbidden(res);
+    return;
+  }
+  next();
+};
+
 export function createAuthMiddleware(prismaProvider: () => AuthPrisma = getPrisma): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {

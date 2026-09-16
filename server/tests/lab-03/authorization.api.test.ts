@@ -56,7 +56,7 @@ describe("Lab 3 server authorization over Lab 2 requester routes", () => {
     expect(calls.ticketFindMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({ requesterId: requester.id }),
     }));
-    expect(calls.ticketFindMany.mock.calls[0][0].where.requesterId).not.toBe(999);
+    expect(((calls.ticketFindMany.mock.calls as any)[0][0] as any).where.requesterId).not.toBe(999);
   });
 
   it("T-AUTHZ-02 rejects a foreign ticket without disclosing ownership", async () => {
@@ -67,6 +67,6 @@ describe("Lab 3 server authorization over Lab 2 requester routes", () => {
       .set("X-Development-Requester-Id", "999");
     expect(response.status).toBe(404);
     expect(response.body).toEqual({ error: { code: "TICKET_NOT_FOUND", message: "Ticket was not found." } });
-    expect(calls.ticketFindFirst.mock.calls[0][0].where.requesterId).toBe(requester.id);
+    expect(((calls.ticketFindFirst.mock.calls as any)[0][0] as any).where.requesterId).toBe(requester.id);
   });
 });

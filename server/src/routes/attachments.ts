@@ -1,4 +1,4 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express, Request, Response, NextFunction, RequestHandler } from "express";
 import multer from "multer";
 import { createReadStream } from "node:fs";
 import { mkdir, rename, unlink, writeFile } from "node:fs/promises";
@@ -51,6 +51,13 @@ function parseRequesterId(value: string | undefined): number | null {
   if (!value || !/^\d+$/.test(value.trim())) return null;
   const id = Number(value.trim());
   return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+function requesterContext(req: Request): number | null {
+  if (req.requesterId !== undefined) return req.requesterId;
+  // Header compatibility exists only for standalone Lab 2 tests. It is never
+  // consulted after an authenticated context has been established.
+  return req.auth ? null : parseRequesterId(req.header("X-Development-Requester-Id"));
 }
 
 function parseAttachmentId(value: string | undefined): number | null {
@@ -176,9 +183,11 @@ function readRemovalReason(body: unknown): string | null {
 export function registerAttachmentRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
+  authorizationMiddleware?: RequestHandler,
 ): void {
+  if (authorizationMiddleware) app.use("/api/tickets", authorizationMiddleware);
   app.get("/api/tickets/:ticketNumber/attachments", async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -207,7 +216,7 @@ export function registerAttachmentRoutes(
   });
 
   app.post("/api/tickets/:ticketNumber/attachments", uploadMiddleware, async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -271,7 +280,7 @@ export function registerAttachmentRoutes(
   });
 
   app.get("/api/tickets/:ticketNumber/attachments/:attachmentId", async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -308,7 +317,7 @@ export function registerAttachmentRoutes(
   });
 
   app.get("/api/tickets/:ticketNumber/attachments/:attachmentId/download", async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -363,7 +372,7 @@ export function registerAttachmentRoutes(
   });
 
   app.delete("/api/tickets/:ticketNumber/attachments/:attachmentId", async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -406,7 +415,13 @@ export function registerAttachmentRoutes(
       const removedAt = new Date();
       const updated = await prisma.attachment.update({
         where: { id: attachmentId },
-        data: { status: "REMOVED", removedAt, removalReason: reason, removedByRequesterId: requesterId },
+        data: {
+          status: "REMOVED",
+          removedAt,
+          removalReason: reason,
+          removedByRequesterId: requesterId,
+          ...(req.auth?.user.id ? { removedByUserId: req.auth.user.id } : {}),
+        },
         select: ATTACHMENT_METADATA_SELECT,
       }) as Record<string, unknown>;
       if (typeof attachment.storageKey === "string") {
