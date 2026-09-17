@@ -3,6 +3,7 @@ import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import { registerTicketRoutes } from "../../src/routes/tickets.js";
 import { registerAttachmentRoutes } from "../../src/routes/attachments.js";
+import { createRequesterAuthMiddleware } from "../../src/authorization.js";
 
 const requester = { id: 1, name: "Jennifer Anderson", email: "jennifer@example.test", isActive: true };
 const ticketDate = new Date("2026-09-15T07:00:00.000Z");
@@ -42,7 +43,69 @@ function createTestApp() {
   return { app, calls };
 }
 
+function createGuardedApp(options: { session: unknown; requester?: { id: number; isActive: boolean } }) {
+  const app = express();
+  app.use(express.json());
+  const prisma = {
+    user: { findUnique: vi.fn() },
+    session: { findUnique: vi.fn(async () => options.session) },
+    requester: { findUnique: vi.fn(async () => options.requester ?? { id: 1, isActive: true }) },
+    category: { findUnique: vi.fn() },
+    relatedSystem: { findUnique: vi.fn() },
+    ticket: { findUnique: vi.fn(), findFirst: vi.fn(async () => null), findMany: vi.fn(async () => []), count: vi.fn(async () => 0), create: vi.fn() },
+    attachment: { findFirst: vi.fn(), findMany: vi.fn(async () => []), count: vi.fn(async () => 0), create: vi.fn(), update: vi.fn() },
+    $queryRaw: vi.fn(),
+  };
+  const guarded = createRequesterAuthMiddleware(() => prisma as any);
+  registerTicketRoutes(app, () => prisma as any, guarded);
+  registerAttachmentRoutes(app, () => prisma as any, guarded);
+  return { app, prisma };
+}
+
 describe("Lab 3 server authorization over Lab 2 requester routes", () => {
+  it("T-AUTHZ-01 returns the standard 401 envelope for anonymous protected reads", async () => {
+    const { app } = createGuardedApp({ session: null });
+    for (const path of [
+      "/api/tickets",
+      "/api/tickets/TKT-2026-000001",
+      "/api/tickets/TKT-2026-000001/attachments",
+    ]) {
+      const response = await request(app).get(path);
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual({ error: { code: "UNAUTHENTICATED", message: "Authentication is required." } });
+    }
+  });
+
+  it("T-AUTHZ-04 rejects stale sessions and inactive requester identities", async () => {
+    const expired = createGuardedApp({
+      session: {
+        id: 1,
+        userId: 12,
+        tokenHash: "hash",
+        expiresAt: new Date(Date.now() - 1),
+        invalidatedAt: null,
+        user: { id: 12, role: "REQUESTER", isActive: true, mustChangePassword: false },
+      },
+    });
+    const stale = await request(expired.app).get("/api/tickets").set("Cookie", "tt_session=opaque-session-token-123456789");
+    expect(stale.status).toBe(401);
+
+    const inactive = createGuardedApp({
+      session: {
+        id: 1,
+        userId: 12,
+        tokenHash: "hash",
+        expiresAt: new Date(Date.now() + 60_000),
+        invalidatedAt: null,
+        user: { id: 12, role: "REQUESTER", isActive: true, mustChangePassword: false },
+      },
+      requester: { id: 1, isActive: false },
+    });
+    const blocked = await request(inactive.app).get("/api/tickets").set("Cookie", "tt_session=opaque-session-token-123456789");
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.error.code).toBe("FORBIDDEN");
+  });
+
   it("requires CSRF on authenticated Lab 2 ticket creation", async () => {
     const { app } = createTestApp();
     const response = await request(app)
