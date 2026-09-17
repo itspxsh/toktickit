@@ -40,6 +40,10 @@ function validation(res: Response, message: string): void {
   res.status(400).json({ error: { code: "VALIDATION_ERROR", message } });
 }
 
+function plainText(value: unknown): value is string {
+  return typeof value === "string" && !/[<>\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value);
+}
+
 function forbidden(res: Response): void {
   res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
 }
@@ -59,10 +63,11 @@ export function registerRequesterWorkflowRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
   authenticatedMiddleware?: RequestHandler,
+  csrfMiddleware: RequestHandler = requireCsrf,
 ): void {
   const authenticated = authenticatedMiddleware ? [authenticatedMiddleware] : [];
 
-  app.post("/api/tickets/:ticketNumber/resolution-indication", ...authenticated, requireCsrf, async (req, res) => {
+  app.post("/api/tickets/:ticketNumber/resolution-indication", ...authenticated, csrfMiddleware, async (req, res) => {
     if (!req.auth || !roleAllowed(req.auth.user.role, ["REQUESTER"])) {
       forbidden(res);
       return;
@@ -96,7 +101,7 @@ export function registerRequesterWorkflowRoutes(
     }
   });
 
-  app.post("/api/tickets/:ticketNumber/comments", ...authenticated, requireCsrf, async (req, res) => {
+  app.post("/api/tickets/:ticketNumber/comments", ...authenticated, csrfMiddleware, async (req, res) => {
     if (!req.auth || !roleAllowed(req.auth.user.role, ["REQUESTER", "IT_STAFF", "ADMIN"])) {
       forbidden(res);
       return;
@@ -107,7 +112,7 @@ export function registerRequesterWorkflowRoutes(
       ? req.body as Record<string, unknown>
       : {};
     const keys = Object.keys(body);
-    if (keys.some((key) => key !== "body") || typeof body.body !== "string") {
+    if (keys.some((key) => key !== "body") || !plainText(body.body)) {
       validation(res, "Only a body field is accepted.");
       return;
     }

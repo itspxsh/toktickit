@@ -53,6 +53,26 @@ export interface TicketDetailView extends TicketView {
   attachments: TicketAttachmentView[];
 }
 
+export type StaffTicketStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
+export type StaffTicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export interface StaffPerson { id: number; name: string; role?: string }
+export interface StaffComment { id: number; author: StaffPerson; body: string; createdAt: string }
+export interface StaffTicketDetailView {
+  ticketNumber: string;
+  summary: string;
+  description: string;
+  ticketDate: string;
+  requestedPriority: RequestedPriority;
+  itPriority: StaffTicketPriority | null;
+  currentStatus: StaffTicketStatus;
+  appearsResolved: boolean;
+  requester: { id: number; name: string; email: string };
+  assignedStaff: { id: number; name: string } | null;
+  attachments: TicketAttachmentView[];
+  publicComments: StaffComment[];
+  internalNotes: StaffComment[];
+}
+
 export interface CreateTicketResponse {
   data: TicketView;
   replayed: boolean;
@@ -325,6 +345,61 @@ function readApiError(body: unknown, fallback: string): { message: string; field
     message: typeof error?.message === "string" ? error.message : fallback,
     fieldErrors,
   };
+}
+
+async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+  const csrfResponse = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
+  const csrfBody: unknown = await csrfResponse.json().catch(() => null);
+  if (!csrfResponse.ok || !csrfBody || typeof csrfBody !== "object" || typeof (csrfBody as { csrfToken?: unknown }).csrfToken !== "string") {
+    throw new ApiError("Unable to authorise this action.", csrfResponse.status || 401);
+  }
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": (csrfBody as { csrfToken: string }).csrfToken },
+    body: JSON.stringify(body),
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(payload, "Unable to update Ticket.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  return payload as T;
+}
+
+export async function fetchStaffTicketDetail(ticketNumber: string, signal?: AbortSignal): Promise<StaffTicketDetailView> {
+  const response = await fetch(`${API_URL}/api/staff/tickets/${encodeURIComponent(ticketNumber)}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load Ticket.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("ticket" in body)) throw new Error("Unable to load Ticket.");
+  return (body as { ticket: StaffTicketDetailView }).ticket;
+}
+
+export function claimStaffTicket(ticketNumber: string) {
+  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/claim`, "POST", {});
+}
+
+export function assignStaffTicket(ticketNumber: string, assignedStaffId: number) {
+  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/assignment`, "PATCH", { assignedStaffId });
+}
+
+export function updateStaffPriority(ticketNumber: string, itPriority: StaffTicketPriority) {
+  return staffMutation<{ itPriority: StaffTicketPriority }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/priority`, "PATCH", { itPriority });
+}
+
+export function updateStaffStatus(ticketNumber: string, currentStatus: StaffTicketStatus, confirm = false) {
+  return staffMutation<{ currentStatus: StaffTicketStatus }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/status`, "PATCH", { currentStatus, confirm });
+}
+
+export function addStaffPublicComment(ticketNumber: string, body: string) {
+  return staffMutation<{ comment: StaffComment }>(`/api/tickets/${encodeURIComponent(ticketNumber)}/comments`, "POST", { body });
+}
+
+export function addInternalNote(ticketNumber: string, body: string) {
+  return staffMutation<{ note: StaffComment }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/internal-notes`, "POST", { body });
 }
 
 async function parseAttachmentResponse(response: Response, fallback: string): Promise<TicketAttachmentView> {
