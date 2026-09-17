@@ -40,6 +40,10 @@ function validation(res: Response, message: string): void {
   res.status(400).json({ error: { code: "VALIDATION_ERROR", message } });
 }
 
+function plainText(value: unknown): value is string {
+  return typeof value === "string" && !/[<>\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value);
+}
+
 function forbidden(res: Response): void {
   res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
 }
@@ -107,7 +111,7 @@ export function registerRequesterWorkflowRoutes(
       ? req.body as Record<string, unknown>
       : {};
     const keys = Object.keys(body);
-    if (keys.some((key) => key !== "body") || typeof body.body !== "string") {
+    if (keys.some((key) => key !== "body") || !plainText(body.body)) {
       validation(res, "Only a body field is accepted.");
       return;
     }

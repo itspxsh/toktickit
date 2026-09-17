@@ -24,6 +24,7 @@ import { CreateTicket } from "./create-ticket.tsx";
 import { MyTickets } from "./my-tickets.tsx";
 import { TicketDetailPlaceholder } from "./ticket-detail-placeholder.tsx";
 import { RequesterTicketDetail } from "./requester-ticket-detail.tsx";
+import { StaffTicketDetail } from "./staff-ticket-detail.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
 import { StaffTicketQueue } from "./staff-ticket-queue.tsx";
 import "./styles.css";
@@ -47,6 +48,7 @@ export {
   CreateTicket,
   MyTickets,
   RequesterTicketDetail,
+  StaffTicketDetail,
   AttachmentSection,
   StaffTicketQueue,
   TicketDetailPlaceholder,
@@ -148,6 +150,7 @@ function RequesterAwareApp() {
     activePath.startsWith("/create-ticket/");
   const selectionRoute = activePath === "/select-requester";
   const ticketDetailMatch = activePath.match(/^\/tickets\/([^/]+)$/);
+  const staffTicketDetailMatch = activePath.match(/^\/staff\/tickets\/([^/]+)$/);
   const mustSelect =
     selectionRoute ||
     (requesterRequired && (context.status !== "success" || !context.selectedRequester));
@@ -185,6 +188,10 @@ function RequesterAwareApp() {
           ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
           onNavigate={handleNavigate}
         />
+      ) : staffTicketDetailMatch ? (
+        <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} />
+      ) : activePath === "/staff/tickets" ? (
+        <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} />
       ) : activePath === "/tickets" ? (
         <MyTickets onNavigate={handleNavigate} />
       ) : activePath === "/create-ticket" ? (
