@@ -77,4 +77,21 @@ export function createStaffAuthMiddleware(
   };
 }
 
-export default { roleAllowed, createRequesterAuthMiddleware, createStaffAuthMiddleware };
+/** Protect administrator-only user-management operations. */
+export function createAdminAuthMiddleware(
+  prismaProvider: () => AuthPrisma = getPrisma as unknown as () => AuthPrisma,
+): RequestHandler {
+  const sessionAuth = createPasswordChangedMiddleware(createAuthMiddleware(prismaProvider));
+  return async (req: Request, res: Response, next: NextFunction) => {
+    await sessionAuth(req, res, () => {
+      if (!req.auth) return;
+      if (!roleAllowed(req.auth.user.role, ["ADMIN"])) {
+        forbidden(res);
+        return;
+      }
+      next();
+    });
+  };
+}
+
+export default { roleAllowed, createRequesterAuthMiddleware, createStaffAuthMiddleware, createAdminAuthMiddleware };

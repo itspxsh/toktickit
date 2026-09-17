@@ -73,6 +73,32 @@ export interface StaffTicketDetailView {
   internalNotes: StaffComment[];
 }
 
+export type AdminUserRole = "REQUESTER" | "IT_STAFF" | "ADMIN";
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: AdminUserRole;
+  isActive: boolean;
+  mustChangePassword: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface AdminUserListQuery {
+  q?: string;
+  role?: AdminUserRole;
+  isActive?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+export interface AdminUserListResponse {
+  items: AdminUser[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface CreateTicketResponse {
   data: TicketView;
   replayed: boolean;
@@ -365,6 +391,56 @@ async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: un
     throw new ApiError(error.message, response.status, error.fieldErrors);
   }
   return payload as T;
+}
+
+async function adminMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+  const csrfResponse = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
+  const csrfBody: unknown = await csrfResponse.json().catch(() => null);
+  if (!csrfResponse.ok || !csrfBody || typeof csrfBody !== "object" || typeof (csrfBody as { csrfToken?: unknown }).csrfToken !== "string") {
+    throw new ApiError("Unable to authorise this action.", csrfResponse.status || 401);
+  }
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": (csrfBody as { csrfToken: string }).csrfToken },
+    body: JSON.stringify(body),
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const parsed = readApiError(payload, "Unable to update users.");
+    throw new ApiError(parsed.message, response.status, parsed.fieldErrors);
+  }
+  return payload as T;
+}
+
+export async function fetchAdminUsers(query: AdminUserListQuery = {}, signal?: AbortSignal): Promise<AdminUserListResponse> {
+  const params = new URLSearchParams();
+  if (query.q?.trim()) params.set("q", query.q.trim());
+  if (query.role) params.set("role", query.role);
+  if (query.isActive !== undefined) params.set("isActive", String(query.isActive));
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.pageSize !== undefined) params.set("pageSize", String(query.pageSize));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_URL}/api/admin/users${suffix}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const parsed = readApiError(body, "Unable to load users.");
+    throw new ApiError(parsed.message, response.status, parsed.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("items" in body)) throw new Error("Unable to load users.");
+  return body as AdminUserListResponse;
+}
+
+export function createAdminUser(payload: { name: string; email: string; role: AdminUserRole; initialPassword: string }) {
+  return adminMutation<{ user: AdminUser }>("/api/admin/users", "POST", payload);
+}
+
+export function updateAdminUser(userId: number, payload: Partial<Pick<AdminUser, "name" | "email" | "role" | "isActive">>) {
+  return adminMutation<{ user: AdminUser }>(`/api/admin/users/${userId}`, "PATCH", payload);
+}
+
+export function resetAdminUserPassword(userId: number, initialPassword: string) {
+  return adminMutation<{ user: AdminUser }>(`/api/admin/users/${userId}/reset-initial-password`, "POST", { initialPassword });
 }
 
 export async function fetchStaffTicketDetail(ticketNumber: string, signal?: AbortSignal): Promise<StaffTicketDetailView> {

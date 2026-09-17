@@ -27,6 +27,7 @@ import { RequesterTicketDetail } from "./requester-ticket-detail.tsx";
 import { StaffTicketDetail } from "./staff-ticket-detail.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
 import { StaffTicketQueue } from "./staff-ticket-queue.tsx";
+import { UserManagement } from "./user-management.tsx";
 import "./styles.css";
 
 export {
@@ -51,6 +52,7 @@ export {
   StaffTicketDetail,
   AttachmentSection,
   StaffTicketQueue,
+  UserManagement,
   TicketDetailPlaceholder,
   useRequesterContext,
 };
@@ -192,6 +194,8 @@ function RequesterAwareApp() {
         <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} />
       ) : activePath === "/staff/tickets" ? (
         <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} />
+      ) : activePath === "/admin/users" ? (
+        <UserManagement />
       ) : activePath === "/tickets" ? (
         <MyTickets onNavigate={handleNavigate} />
       ) : activePath === "/create-ticket" ? (
