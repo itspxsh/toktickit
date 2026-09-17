@@ -63,10 +63,11 @@ export function registerRequesterWorkflowRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
   authenticatedMiddleware?: RequestHandler,
+  csrfMiddleware: RequestHandler = requireCsrf,
 ): void {
   const authenticated = authenticatedMiddleware ? [authenticatedMiddleware] : [];
 
-  app.post("/api/tickets/:ticketNumber/resolution-indication", ...authenticated, requireCsrf, async (req, res) => {
+  app.post("/api/tickets/:ticketNumber/resolution-indication", ...authenticated, csrfMiddleware, async (req, res) => {
     if (!req.auth || !roleAllowed(req.auth.user.role, ["REQUESTER"])) {
       forbidden(res);
       return;
@@ -100,7 +101,7 @@ export function registerRequesterWorkflowRoutes(
     }
   });
 
-  app.post("/api/tickets/:ticketNumber/comments", ...authenticated, requireCsrf, async (req, res) => {
+  app.post("/api/tickets/:ticketNumber/comments", ...authenticated, csrfMiddleware, async (req, res) => {
     if (!req.auth || !roleAllowed(req.auth.user.role, ["REQUESTER", "IT_STAFF", "ADMIN"])) {
       forbidden(res);
       return;

@@ -219,27 +219,13 @@ export function registerStaffTicketDetailRoutes(
       const row = await loadTicket(prisma, number);
       if (!row) return notFound(res);
       if (!TRANSITIONS[row.currentStatus]?.has(body.currentStatus)) return validation(res, "INVALID_STATUS_TRANSITION", "The requested status transition is not allowed.");
+      const current = actor(req);
+      if (row.currentStatus === "CANCELLED" && body.currentStatus === "REOPENED" && current?.role !== "ADMIN") {
+        return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
+      }
       const result = await prisma.ticket.updateMany({ where: { id: row.id, currentStatus: row.currentStatus }, data: { currentStatus: body.currentStatus } });
       if (result.count !== 1) return conflict(res, "CONFLICT", "Ticket status changed; refresh and retry.");
       res.status(200).json({ currentStatus: body.currentStatus });
-    } catch {
-      res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Something went wrong." } });
-    }
-  });
-
-  app.post("/api/tickets/:ticketNumber/comments", authorizationMiddleware, csrfMiddleware, async (req, res) => {
-    const number = ticketNumber(req, res);
-    if (!number) return;
-    const body = bodyObject(req.body);
-    if (!body || Object.keys(body).length !== 1 || !plainText(body.body)) return validation(res, "VALIDATION_ERROR", "Only a plain-text body field is accepted.");
-    const text = body.body.trim();
-    if (!text || text.length > 2_000) return validation(res, "VALIDATION_ERROR", "Comment body must contain 1-2,000 characters.");
-    try {
-      const prisma = prismaProvider();
-      const row = await loadTicket(prisma, number);
-      if (!row) return notFound(res);
-      const created = await prisma.publicComment.create({ data: { ticketId: row.id, authorUserId: req.auth?.user.id, body: text }, include: { author: { select: { id: true, name: true, role: true } } } });
-      res.status(201).json({ comment: safeEntry(created) });
     } catch {
       res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Something went wrong." } });
     }

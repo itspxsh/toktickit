@@ -70,6 +70,7 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
     <section className="card stack" aria-labelledby="staff-ticket-detail-title">
       <div className="ticket-detail__header"><div><p className="eyebrow">IT Staff workspace</p><h1 id="staff-ticket-detail-title">Staff Ticket Detail</h1><p>{ticket.ticketNumber} · {ticket.summary}</p></div><a className="button button--secondary" href="/staff/tickets" onClick={(event) => { if (onNavigate) { event.preventDefault(); onNavigate("/staff/tickets"); } }}>Back to Staff Queue</a></div>
       {notice && <p role="status">{notice}</p>}
+      {error && <p role="alert">{error}</p>}
       <fieldset className="ticket-detail__group"><legend>Read-only ticket information</legend><div className="ticket-detail__grid">
         <FormField id="staff-ticket-number" label="Ticket Number"><input id="staff-ticket-number" value={ticket.ticketNumber} readOnly aria-readonly="true" /></FormField>
         <FormField id="staff-ticket-requester-name" label="Requester"><input id="staff-ticket-requester-name" value={ticket.requester.name} readOnly aria-readonly="true" /></FormField>
