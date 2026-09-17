@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createRequesterAuthMiddleware, requireRoles, roleAllowed } from "../../src/authorization.js";
+import { createRequesterAuthMiddleware, roleAllowed } from "../../src/authorization.js";
+import { createPasswordChangedMiddleware } from "../../src/auth.js";
 
 describe("Lab 3 authorization predicates", () => {
   it("T-UNIT-04 allows only the explicitly granted roles", () => {
@@ -9,20 +10,27 @@ describe("Lab 3 authorization predicates", () => {
     expect(roleAllowed("ADMIN", ["IT_STAFF", "ADMIN"])).toBe(true);
   });
 
-  it("returns uniform 401/403 responses before a protected handler runs", () => {
+  it("blocks first-login sessions before protected handlers and passes changed sessions", () => {
+    const next = vi.fn();
+    const middleware = createPasswordChangedMiddleware((req, _res, afterAuth) => {
+      (req as any).auth = { user: { mustChangePassword: true } };
+      afterAuth();
+    });
     const status = vi.fn().mockReturnThis();
     const json = vi.fn();
-    const next = vi.fn();
-    requireRoles(["ADMIN"])({} as any, { status, json } as any, next);
-    expect(status).toHaveBeenCalledWith(401);
+    middleware({} as any, { status, json } as any, next);
+    expect(status).toHaveBeenCalledWith(403);
+    expect(json).toHaveBeenCalledWith({ error: { code: "PASSWORD_CHANGE_REQUIRED", message: "Password change is required before continuing." } });
     expect(next).not.toHaveBeenCalled();
 
     status.mockClear();
     json.mockClear();
-    const req = { auth: { user: { role: "REQUESTER" } } } as any;
-    requireRoles(["ADMIN"])(req, { status, json } as any, next);
-    expect(status).toHaveBeenCalledWith(403);
-    expect(next).not.toHaveBeenCalled();
+    const changed = createPasswordChangedMiddleware((req, _res, afterAuth) => {
+      (req as any).auth = { user: { mustChangePassword: false } };
+      afterAuth();
+    });
+    changed({} as any, { status, json } as any, next);
+    expect(next).toHaveBeenCalledOnce();
   });
 
   it("resolves requester scope from the authenticated user, never from a header", async () => {

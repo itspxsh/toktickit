@@ -2,6 +2,7 @@ import express, { type RequestHandler } from "express";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import { registerTicketRoutes } from "../../src/routes/tickets.js";
+import { registerAttachmentRoutes } from "../../src/routes/attachments.js";
 
 const requester = { id: 1, name: "Jennifer Anderson", email: "jennifer@example.test", isActive: true };
 const ticketDate = new Date("2026-09-15T07:00:00.000Z");
@@ -42,6 +43,40 @@ function createTestApp() {
 }
 
 describe("Lab 3 server authorization over Lab 2 requester routes", () => {
+  it("requires CSRF on authenticated Lab 2 ticket creation", async () => {
+    const { app } = createTestApp();
+    const response = await request(app)
+      .post("/api/tickets")
+      .set("Origin", "http://localhost:3000")
+      .send({ categoryId: 1, relatedSystemId: 1, summary: "A valid summary", requestedPriority: "LOW", description: "A valid description here" });
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+  });
+
+  it("requires CSRF before authenticated Lab 2 attachment writes", async () => {
+    const app = express();
+    app.use(express.json());
+    const auth = requesterAuth;
+    (registerAttachmentRoutes as any)(app, () => ({
+      ticket: { findFirst: vi.fn() },
+      attachment: { findFirst: vi.fn(), findMany: vi.fn(), count: vi.fn(), create: vi.fn(), update: vi.fn() },
+    }), auth);
+
+    const upload = await request(app)
+      .post("/api/tickets/TKT-2026-000001/attachments")
+      .set("Origin", "http://localhost:3000")
+      .attach("file", Buffer.from("not a valid image"), "evidence.png");
+    expect(upload.status).toBe(403);
+    expect(upload.body.error.code).toBe("FORBIDDEN");
+
+    const remove = await request(app)
+      .delete("/api/tickets/TKT-2026-000001/attachments/1")
+      .set("Origin", "http://localhost:3000")
+      .send({ reason: "No longer needed" });
+    expect(remove.status).toBe(403);
+    expect(remove.body.error.code).toBe("FORBIDDEN");
+  });
+
   it("T-AUTHZ-02 ignores forged Development Requester headers and scopes by session", async () => {
     const { app, calls } = createTestApp();
     const response = await request(app)
