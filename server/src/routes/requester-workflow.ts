@@ -33,7 +33,7 @@ function validTicketNumber(req: Request, res: Response): string | null {
 }
 
 function notFound(res: Response): void {
-  res.status(404).json({ error: { code: "NOT_FOUND", message: "Ticket was not found." } });
+  res.status(404).json({ error: { code: "TICKET_NOT_FOUND", message: "Ticket was not found." } });
 }
 
 function validation(res: Response, message: string): void {
@@ -60,9 +60,9 @@ export function registerRequesterWorkflowRoutes(
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
   authenticatedMiddleware?: RequestHandler,
 ): void {
-  if (authenticatedMiddleware) app.use("/api/tickets", authenticatedMiddleware);
+  const authenticated = authenticatedMiddleware ? [authenticatedMiddleware] : [];
 
-  app.post("/api/tickets/:ticketNumber/resolution-indication", requireCsrf, async (req, res) => {
+  app.post("/api/tickets/:ticketNumber/resolution-indication", ...authenticated, requireCsrf, async (req, res) => {
     if (!req.auth || !roleAllowed(req.auth.user.role, ["REQUESTER"])) {
       forbidden(res);
       return;
@@ -78,16 +78,8 @@ export function registerRequesterWorkflowRoutes(
     }
     try {
       const prisma = prismaProvider();
-      const requester = await prisma.requester.findUnique({
-        where: { userId: req.auth.user.id },
-        select: { id: true, isActive: true },
-      }) as { id: number; isActive: boolean } | null;
-      if (!requester || requester.isActive !== true) {
-        forbidden(res);
-        return;
-      }
       const ticket = await prisma.ticket.findFirst({
-        where: { ticketNumber, requesterId: requester.id, requester: { isActive: true } },
+        where: { ticketNumber, requesterUserId: req.auth.user.id, requester: { isActive: true } },
         select: { id: true, ticketNumber: true },
       }) as { id: number; ticketNumber: string } | null;
       if (!ticket) {
@@ -104,7 +96,7 @@ export function registerRequesterWorkflowRoutes(
     }
   });
 
-  app.post("/api/tickets/:ticketNumber/comments", requireCsrf, async (req, res) => {
+  app.post("/api/tickets/:ticketNumber/comments", ...authenticated, requireCsrf, async (req, res) => {
     if (!req.auth || !roleAllowed(req.auth.user.role, ["REQUESTER", "IT_STAFF", "ADMIN"])) {
       forbidden(res);
       return;

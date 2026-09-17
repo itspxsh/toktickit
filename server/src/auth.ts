@@ -233,6 +233,15 @@ export const requirePasswordChanged: RequestHandler = (req, res, next) => {
   next();
 };
 
+/** Compose session authentication with the mandatory first-login gate. */
+export function createPasswordChangedMiddleware(
+  authenticatedMiddleware: RequestHandler = createAuthMiddleware(),
+): RequestHandler {
+  return async (req, res, next) => {
+    await authenticatedMiddleware(req, res, () => requirePasswordChanged(req, res, next));
+  };
+}
+
 export function registerAuthRoutes(app: Express, prismaProvider: () => AuthPrisma = getPrisma): void {
   app.post("/api/auth/login", async (req, res) => {
     const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body as Record<string, unknown> : {};

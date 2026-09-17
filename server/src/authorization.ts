@@ -1,6 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import type { PrismaClient } from "@prisma/client";
-import { createAuthMiddleware, type AuthRole } from "./auth.js";
+import { createAuthMiddleware, createPasswordChangedMiddleware, type AuthRole } from "./auth.js";
 import { getPrisma } from "./prisma.js";
 
 export type RequesterLookupClient = Pick<PrismaClient, "requester">;
@@ -26,20 +26,6 @@ function forbidden(res: Response): void {
   res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
 }
 
-export function requireRoles(allowed: readonly AuthRole[]): RequestHandler {
-  return (req, res, next) => {
-    if (!req.auth) {
-      unauthenticated(res);
-      return;
-    }
-    if (!roleAllowed(req.auth.user.role, allowed)) {
-      forbidden(res);
-      return;
-    }
-    next();
-  };
-}
-
 /**
  * Resolve the Requester row from the authenticated User. A header or body
  * requester id is deliberately never consulted by this middleware.
@@ -47,7 +33,7 @@ export function requireRoles(allowed: readonly AuthRole[]): RequestHandler {
 export function createRequesterAuthMiddleware(
   prismaProvider: () => RequesterLookupClient = getPrisma as unknown as () => RequesterLookupClient,
 ): RequestHandler {
-  const sessionAuth = createAuthMiddleware(prismaProvider as never);
+  const sessionAuth = createPasswordChangedMiddleware(createAuthMiddleware(prismaProvider as never));
   return async (req: Request, res: Response, next: NextFunction) => {
     await sessionAuth(req, res, () => undefined);
     if (!req.auth) return;
@@ -74,4 +60,4 @@ export function createRequesterAuthMiddleware(
   };
 }
 
-export default { roleAllowed, requireRoles, createRequesterAuthMiddleware };
+export default { roleAllowed, createRequesterAuthMiddleware };

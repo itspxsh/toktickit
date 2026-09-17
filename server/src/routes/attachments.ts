@@ -13,6 +13,7 @@ import {
   type AttachmentFileLike,
 } from "../attachments.js";
 import { getPrisma } from "../prisma.js";
+import { requireCsrf } from "../auth.js";
 
 type Model = {
   findFirst(args: unknown): Promise<unknown>;
@@ -184,8 +185,10 @@ export function registerAttachmentRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
   authorizationMiddleware?: RequestHandler,
+  writeMiddleware?: RequestHandler,
 ): void {
   if (authorizationMiddleware) app.use("/api/tickets", authorizationMiddleware);
+  const writeGuard = writeMiddleware ?? (authorizationMiddleware ? requireCsrf : undefined);
   app.get("/api/tickets/:ticketNumber/attachments", async (req: Request, res: Response) => {
     const requesterId = requesterContext(req);
     if (requesterId === null) {
@@ -215,7 +218,7 @@ export function registerAttachmentRoutes(
     }
   });
 
-  app.post("/api/tickets/:ticketNumber/attachments", uploadMiddleware, async (req: Request, res: Response) => {
+  const uploadAttachment = async (req: Request, res: Response) => {
     const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
@@ -277,7 +280,9 @@ export function registerAttachmentRoutes(
     } catch {
       res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Unable to upload Attachment." } });
     }
-  });
+  };
+  if (writeGuard) app.post("/api/tickets/:ticketNumber/attachments", writeGuard, uploadMiddleware, uploadAttachment);
+  else app.post("/api/tickets/:ticketNumber/attachments", uploadMiddleware, uploadAttachment);
 
   app.get("/api/tickets/:ticketNumber/attachments/:attachmentId", async (req: Request, res: Response) => {
     const requesterId = requesterContext(req);
@@ -371,7 +376,7 @@ export function registerAttachmentRoutes(
     }
   });
 
-  app.delete("/api/tickets/:ticketNumber/attachments/:attachmentId", async (req: Request, res: Response) => {
+  const removeAttachment = async (req: Request, res: Response) => {
     const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
@@ -434,7 +439,9 @@ export function registerAttachmentRoutes(
     } catch {
       res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Unable to remove Attachment." } });
     }
-  });
+  };
+  if (writeGuard) app.delete("/api/tickets/:ticketNumber/attachments/:attachmentId", writeGuard, removeAttachment);
+  else app.delete("/api/tickets/:ticketNumber/attachments/:attachmentId", removeAttachment);
 }
 
 export default registerAttachmentRoutes;

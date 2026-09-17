@@ -1,5 +1,6 @@
 import type { Express, Request, Response, RequestHandler } from "express";
 import { getPrisma } from "../prisma.js";
+import { requireCsrf } from "../auth.js";
 import { allocateTicketNumber, type TicketSequenceClient } from "../ticket-number.js";
 
 type Model = {
@@ -399,6 +400,7 @@ export function registerTicketRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
   authorizationMiddleware?: RequestHandler,
+  writeMiddleware?: RequestHandler,
 ): void {
   if (authorizationMiddleware) app.use("/api/tickets", authorizationMiddleware);
   app.get("/api/tickets/:ticketNumber", async (req: Request, res: Response) => {
@@ -515,7 +517,7 @@ export function registerTicketRoutes(
     }
   });
 
-  app.post("/api/tickets", async (req: Request, res: Response) => {
+  const createTicket = async (req: Request, res: Response) => {
     const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
@@ -628,5 +630,8 @@ export function registerTicketRoutes(
         error: { code: "INTERNAL_ERROR", message: "Unable to create Ticket." },
       });
     }
-  });
+  };
+  const writeGuard = writeMiddleware ?? (authorizationMiddleware ? requireCsrf : undefined);
+  if (writeGuard) app.post("/api/tickets", writeGuard, createTicket);
+  else app.post("/api/tickets", createTicket);
 }
