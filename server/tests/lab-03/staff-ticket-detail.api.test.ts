@@ -2,6 +2,7 @@ import express, { type RequestHandler } from "express";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
 import { registerStaffTicketDetailRoutes } from "../../src/routes/staff-ticket-detail.js";
+import { registerRequesterWorkflowRoutes } from "../../src/routes/requester-workflow.js";
 
 const staffAuth: RequestHandler = (req, _res, next) => {
   (req as any).auth = {
@@ -29,6 +30,13 @@ const ticket = {
   internalNotes: [{ id: 9, body: "Checked gateway logs.", createdAt: new Date("2026-09-15T07:11:00.000Z"), author: { id: 21, name: "Support One", role: "IT_STAFF" } }],
 };
 
+const adminAuth: RequestHandler = (req, _res, next) => {
+  staffAuth(req, _res, () => {
+    (req as any).auth.user.role = "ADMIN";
+    next();
+  });
+};
+
 function createTestApp(overrides: Record<string, any> = {}) {
   const calls = {
     ticketFindFirst: vi.fn(async () => overrides.ticket !== undefined ? overrides.ticket : ticket),
@@ -40,12 +48,17 @@ function createTestApp(overrides: Record<string, any> = {}) {
   };
   const app = express();
   app.use(express.json());
+  registerRequesterWorkflowRoutes(app, () => ({
+    ticket: { findFirst: calls.ticketFindFirst, update: calls.ticketUpdate, create: vi.fn() },
+    requester: { findUnique: vi.fn() },
+    publicComment: { create: calls.commentCreate },
+  }) as never, staffAuth, ((_req, _res, next) => next()) as RequestHandler);
   registerStaffTicketDetailRoutes(app, () => ({
     ticket: { findFirst: calls.ticketFindFirst, update: calls.ticketUpdate, updateMany: calls.ticketUpdateMany },
     user: { findFirst: calls.userFindFirst },
     publicComment: { create: calls.commentCreate },
     internalNote: { create: calls.noteCreate },
-  }) as never, staffAuth, ((_req, _res, next) => next()) as RequestHandler);
+  }) as never, overrides.auth ?? staffAuth, ((_req, _res, next) => next()) as RequestHandler);
   return { app, calls };
 }
 
@@ -71,11 +84,20 @@ describe("staff ticket detail and workflow", () => {
     expect(foreign.body.error.code).toBe("TICKET_NOT_FOUND");
   });
 
+  it("T-DETAIL-03 / AC-14 updates priority using only the validated server ticket", async () => {
+    const { app, calls } = createTestApp();
+    const response = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "URGENT" });
+    expect(response.status).toBe(200);
+    expect(calls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { isActive: true } } }));
+    expect(calls.ticketUpdate).toHaveBeenCalledWith(expect.objectContaining({ where: { id: ticket.id }, data: { itPriority: "URGENT" } }));
+  });
+
   it("T-STAFF-03 / AC-06 claims atomically and does not overwrite an existing owner", async () => {
     const { app: available, calls: availableCalls } = createTestApp({ claimCount: 1 });
     const claimed = await request(available).post("/api/staff/tickets/TKT-2026-000004/claim").send({});
     expect(claimed.status).toBe(200);
-    expect(availableCalls.ticketUpdateMany).toHaveBeenCalled();
+    expect(availableCalls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { isActive: true } } }));
+    expect(availableCalls.ticketUpdateMany).toHaveBeenCalledWith({ where: { id: ticket.id, assignedStaffId: null }, data: { assignedStaffId: 21 } });
 
     const { app: occupied } = createTestApp({ claimCount: 0 });
     const conflict = await request(occupied).post("/api/staff/tickets/TKT-2026-000004/claim").send({});
@@ -84,14 +106,28 @@ describe("staff ticket detail and workflow", () => {
   });
 
   it("T-STAFF-04 / AC-06 accepts active IT Staff only and protects workflow transitions", async () => {
-    const { app } = createTestApp({ staff: null });
+    const { app, calls } = createTestApp({ staff: null });
     const invalidAssignment = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ assignedStaffId: 99 });
     expect(invalidAssignment.status).toBe(400);
     expect(invalidAssignment.body.error.code).toBe("INVALID_ASSIGNMENT");
+    expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: "IT_STAFF", isActive: true } }));
 
     const transition = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "CLOSED", confirm: false });
     expect(transition.status).toBe(409);
     expect(transition.body.error.code).toBe("CONFIRMATION_REQUIRED");
+    expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: "IT_STAFF", isActive: true } }));
+
+    const priority = await request(createTestApp().app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "URGENT", authorUserId: 999, updatedAt: "forged" });
+    expect(priority.status).toBe(400);
+
+    const reopened = createTestApp({ ticket: { ...ticket, currentStatus: "CANCELLED" } });
+    const forbiddenReopen = await request(reopened.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "REOPENED" });
+    expect(forbiddenReopen.status).toBe(403);
+    expect(forbiddenReopen.body.error.code).toBe("FORBIDDEN");
+
+    const adminReopen = createTestApp({ ticket: { ...ticket, currentStatus: "CANCELLED" }, auth: adminAuth });
+    const allowedReopen = await request(adminReopen.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "REOPENED" });
+    expect(allowedReopen.status).toBe(200);
   });
 
   it("T-COMMENT-02..05 / AC-08..09 attributes append-only comments and notes on the server", async () => {

@@ -61,7 +61,7 @@ real secret is committed.
 | T-COMMENT-01 | Requester can append a public comment only to an owned active ticket. | `server/tests/lab-03/comments-notes.api.test.ts` | API |
 | T-COMMENT-02 | IT Staff/Admin can append public comments; author and createdAt come from the session/server. | `server/tests/lab-03/comments-notes.api.test.ts` | API |
 | T-COMMENT-03 | IT Staff/Admin can append internal notes; Requester receives indistinguishable 404/403 and no note body. | `server/tests/lab-03/comments-notes.api.test.ts` | API/security |
-| T-COMMENT-04 | Blank, over-limit, HTML/script, and forged author/time inputs are rejected or safely rendered. | `server/tests/lab-03/comments-notes.api.test.ts` | API/security |
+| T-COMMENT-04 | Blank, over-limit, HTML/script, and forged author/time inputs are rejected or safely rendered. | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | API/security |
 | T-COMMENT-05 | Comment and note records are append-only; update/delete endpoints do not exist. | `server/tests/lab-03/comments-notes.api.test.ts` | API |
 | T-ADMIN-01 | Admin user list supports name/email search, optional role filter, deterministic pagination, and safe fields only. | `server/tests/lab-03/users-admin.api.test.ts` | API |
 | T-ADMIN-02 | Create/edit accepts one valid role, normalizes email, and rejects duplicate email/invalid role. | `server/tests/lab-03/users-admin.api.test.ts` | API |

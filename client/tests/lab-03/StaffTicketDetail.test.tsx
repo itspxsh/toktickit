@@ -54,4 +54,18 @@ describe("StaffTicketDetail", () => {
     fireEvent.click(screen.getByRole("button", { name: /add public comment/i }));
     await waitFor(() => expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/comments"), expect.objectContaining({ method: "POST" })));
   });
+
+  it("T-UI-05 renders a safe mutation error", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = String(input);
+      if (path.includes("/api/auth/csrf")) return new Response(JSON.stringify({ csrfToken: "test-csrf" }), { status: 200 });
+      if (init?.method === "PATCH") return new Response(JSON.stringify({ error: { code: "CONFLICT", message: "Ticket status changed; refresh and retry." } }), { status: 409 });
+      return new Response(JSON.stringify({ ticket }), { status: 200 });
+    }));
+    render(<StaffTicketDetail ticketNumber={ticket.ticketNumber} />);
+    await waitFor(() => expect(document.body.textContent).toContain("Checked gateway logs."));
+    fireEvent.change(screen.getByRole("combobox", { name: "IT Priority" }), { target: { value: "URGENT" } });
+    fireEvent.click(screen.getByRole("button", { name: /save priority/i }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Ticket status changed; refresh and retry/i);
+  });
 });
