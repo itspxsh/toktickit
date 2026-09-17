@@ -7,7 +7,8 @@ import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerReferenceDataRoutes } from "./routes/reference-data.js";
 import { registerRequesterWorkflowRoutes } from "./routes/requester-workflow.js";
 import { createAuthMiddleware, createPasswordChangedMiddleware, registerAuthRoutes, requireCsrf } from "./auth.js";
-import { createRequesterAuthMiddleware } from "./authorization.js";
+import { createRequesterAuthMiddleware, createStaffAuthMiddleware } from "./authorization.js";
+import { registerStaffQueueRoutes } from "./routes/staff-queue.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -42,6 +43,7 @@ registerAuthRoutes(app);
 const authenticated = createAuthMiddleware();
 const authenticatedAndChanged = createPasswordChangedMiddleware(authenticated);
 const requesterAuthenticated = createRequesterAuthMiddleware();
+const staffAuthenticated = createStaffAuthMiddleware();
 registerReferenceDataRoutes(app, undefined, authenticatedAndChanged);
 registerRequesterRoutes(app, undefined, authenticatedAndChanged);
 registerRequesterWorkflowRoutes(app, undefined, authenticatedAndChanged);
@@ -50,5 +52,6 @@ registerRequesterWorkflowRoutes(app, undefined, authenticatedAndChanged);
 app.use("/api/tickets", requesterAuthenticated);
 registerTicketRoutes(app, undefined, undefined, requireCsrf);
 registerAttachmentRoutes(app, undefined, undefined, requireCsrf);
+registerStaffQueueRoutes(app, undefined, staffAuthenticated);
 
 export default app;

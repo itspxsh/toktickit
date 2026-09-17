@@ -1,6 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import type { PrismaClient } from "@prisma/client";
-import { createAuthMiddleware, createPasswordChangedMiddleware, type AuthRole } from "./auth.js";
+import { createAuthMiddleware, createPasswordChangedMiddleware, type AuthPrisma, type AuthRole } from "./auth.js";
 import { getPrisma } from "./prisma.js";
 
 export type RequesterLookupClient = Pick<PrismaClient, "requester">;
@@ -60,4 +60,21 @@ export function createRequesterAuthMiddleware(
   };
 }
 
-export default { roleAllowed, createRequesterAuthMiddleware };
+/** Protect staff queue/detail operations with the server-derived role. */
+export function createStaffAuthMiddleware(
+  prismaProvider: () => AuthPrisma = getPrisma as unknown as () => AuthPrisma,
+): RequestHandler {
+  const sessionAuth = createPasswordChangedMiddleware(createAuthMiddleware(prismaProvider));
+  return async (req: Request, res: Response, next: NextFunction) => {
+    await sessionAuth(req, res, () => {
+      if (!req.auth) return;
+      if (!roleAllowed(req.auth.user.role, ["IT_STAFF", "ADMIN"])) {
+        forbidden(res);
+        return;
+      }
+      next();
+    });
+  };
+}
+
+export default { roleAllowed, createRequesterAuthMiddleware, createStaffAuthMiddleware };
