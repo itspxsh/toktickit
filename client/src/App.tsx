@@ -25,6 +25,7 @@ import { MyTickets } from "./my-tickets.tsx";
 import { TicketDetailPlaceholder } from "./ticket-detail-placeholder.tsx";
 import { RequesterTicketDetail } from "./requester-ticket-detail.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
+import { StaffTicketQueue } from "./staff-ticket-queue.tsx";
 import "./styles.css";
 
 export {
@@ -47,6 +48,7 @@ export {
   MyTickets,
   RequesterTicketDetail,
   AttachmentSection,
+  StaffTicketQueue,
   TicketDetailPlaceholder,
   useRequesterContext,
 };

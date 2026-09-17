@@ -35,7 +35,7 @@ lab: [@justfepwx12](https://github.com/justfepwx12).
 | --- | --- | --- | --- | --- |
 | [L3-02 (#37)](https://github.com/itspxsh/toktickit/issues/37) / [PR #46](https://github.com/itspxsh/toktickit/pull/46) | Data model, migration, seed, guarded test DB | [Approved review](https://github.com/itspxsh/toktickit/pull/46#pullrequestreview-5207381544) by `justfepwx12` on 2026-09-15 | [8099912](https://github.com/itspxsh/toktickit/commit/80999129c74ca8fd782b70751528462dab03fd61) into `lab3-staging` |
 | [L3-03 (#38)](https://github.com/itspxsh/toktickit/issues/38) / [PR #47](https://github.com/itspxsh/toktickit/pull/47) | Authentication, session, first-login password change, CSRF and session security | PR #47 review by `justfepwx12` on 2026-09-16 | Approved after all requested security/test fixes; validation recorded in PR | [8721df6](https://github.com/itspxsh/toktickit/commit/8721df6) into `lab3-staging` |
-| L3-04 | Server authorization and Lab 2 requester regression | _pending_ | _pending_ | _pending_ |
+| [L3-04 (#39)](https://github.com/itspxsh/toktickit/issues/39) / [PR #48](https://github.com/itspxsh/toktickit/pull/48) | Server authorization and Lab 2 requester regression | [Approved review](https://github.com/itspxsh/toktickit/pull/48#pullrequestreview-5238556111) by `justfepwx12` on 2026-09-17 | Approved after requested authorization/CSRF fixes; follow-ups noted for later | [030b35d](https://github.com/itspxsh/toktickit/commit/030b35dd46e9cb3a822433a01101c96bdf01265d) into `lab3-staging` |
 | L3-05 | IT Staff queue | _pending_ | _pending_ | _pending_ |
 | L3-06 | IT Staff ticket detail/workflow/comments/notes | _pending_ | _pending_ | _pending_ |
 | L3-07 | Administrator user management | _pending_ | _pending_ | _pending_ |

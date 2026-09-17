@@ -96,6 +96,39 @@ export interface TicketListResponse {
   };
 }
 
+export type StaffQueueStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
+export type StaffQueuePriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type StaffQueueAssignment = "unassigned" | "mine" | "assigned";
+export type StaffQueueSort = "updatedAtDesc" | "priorityDesc" | "statusAsc";
+
+export interface StaffQueueItem {
+  ticketNumber: string;
+  summary: string;
+  requester: { id: number; name: string };
+  itPriority: StaffQueuePriority | null;
+  currentStatus: StaffQueueStatus;
+  assignedStaff: { id: number; name: string } | null;
+  updatedAt: string;
+}
+
+export interface StaffQueueQuery {
+  q?: string;
+  status?: StaffQueueStatus;
+  itPriority?: StaffQueuePriority;
+  assignment?: StaffQueueAssignment;
+  sort?: StaffQueueSort;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface StaffQueueResponse {
+  items: StaffQueueItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 export class ApiError extends Error {
   readonly fieldErrors?: Record<string, string>;
   readonly status: number;
@@ -106,6 +139,32 @@ export class ApiError extends Error {
     this.status = status;
     this.fieldErrors = fieldErrors;
   }
+}
+
+/** Load the authenticated IT Staff/Admin queue; actor identity comes from the server session. */
+export async function fetchStaffTickets(
+  query: StaffQueueQuery = {},
+  signal?: AbortSignal,
+): Promise<StaffQueueResponse> {
+  const params = new URLSearchParams();
+  if (query.q?.trim()) params.set("q", query.q.trim());
+  if (query.status) params.set("status", query.status);
+  if (query.itPriority) params.set("itPriority", query.itPriority);
+  if (query.assignment) params.set("assignment", query.assignment);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.pageSize !== undefined) params.set("pageSize", String(query.pageSize));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_URL}/api/staff/tickets${suffix}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load staff Tickets.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("items" in body) || !("page" in body) || !("pageSize" in body) || !("total" in body) || !("totalPages" in body)) {
+    throw new Error("Unable to load staff Tickets.");
+  }
+  return body as StaffQueueResponse;
 }
 
 export interface SystemStatus {
