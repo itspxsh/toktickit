@@ -5,7 +5,9 @@ import { registerRequesterRoutes } from "./routes/requesters.js";
 import { registerTicketRoutes } from "./routes/tickets.js";
 import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerReferenceDataRoutes } from "./routes/reference-data.js";
-import { registerAuthRoutes } from "./auth.js";
+import { registerRequesterWorkflowRoutes } from "./routes/requester-workflow.js";
+import { createAuthMiddleware, createPasswordChangedMiddleware, registerAuthRoutes, requireCsrf } from "./auth.js";
+import { createRequesterAuthMiddleware } from "./authorization.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -36,10 +38,17 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
-registerReferenceDataRoutes(app);
-registerRequesterRoutes(app);
-registerTicketRoutes(app);
-registerAttachmentRoutes(app);
 registerAuthRoutes(app);
+const authenticated = createAuthMiddleware();
+const authenticatedAndChanged = createPasswordChangedMiddleware(authenticated);
+const requesterAuthenticated = createRequesterAuthMiddleware();
+registerReferenceDataRoutes(app, undefined, authenticatedAndChanged);
+registerRequesterRoutes(app, undefined, authenticatedAndChanged);
+registerRequesterWorkflowRoutes(app, undefined, authenticatedAndChanged);
+// One shared requester guard covers both Lab 2 ticket and attachment routes;
+// write handlers add CSRF independently so reads remain safe and usable.
+app.use("/api/tickets", requesterAuthenticated);
+registerTicketRoutes(app, undefined, undefined, requireCsrf);
+registerAttachmentRoutes(app, undefined, undefined, requireCsrf);
 
 export default app;

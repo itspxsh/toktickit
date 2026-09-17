@@ -192,6 +192,19 @@ function csrfIsValid(req: Request, auth: AuthContext): boolean {
   return suppliedBytes.length === expectedBytes.length && timingSafeEqual(suppliedBytes, expectedBytes);
 }
 
+/** Protect an unsafe authenticated route with same-origin and per-session CSRF. */
+export const requireCsrf: RequestHandler = (req, res, next) => {
+  if (!req.auth) {
+    res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Authentication is required." } });
+    return;
+  }
+  if (!originIsSame(req) || !csrfIsValid(req, req.auth)) {
+    forbidden(res);
+    return;
+  }
+  next();
+};
+
 export function createAuthMiddleware(prismaProvider: () => AuthPrisma = getPrisma): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -219,6 +232,15 @@ export const requirePasswordChanged: RequestHandler = (req, res, next) => {
   }
   next();
 };
+
+/** Compose session authentication with the mandatory first-login gate. */
+export function createPasswordChangedMiddleware(
+  authenticatedMiddleware: RequestHandler = createAuthMiddleware(),
+): RequestHandler {
+  return async (req, res, next) => {
+    await authenticatedMiddleware(req, res, () => requirePasswordChanged(req, res, next));
+  };
+}
 
 export function registerAuthRoutes(app: Express, prismaProvider: () => AuthPrisma = getPrisma): void {
   app.post("/api/auth/login", async (req, res) => {
