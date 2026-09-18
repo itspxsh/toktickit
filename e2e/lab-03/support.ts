@@ -58,19 +58,29 @@ export async function signIn(page: Page, role: E2ERole, testInfo?: TestInfo): Pr
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
 
+  const destination = role === "requester" ? "My Tickets" : role === "staff" ? "Staff Tickets" : "User Management";
   const changePassword = page.getByRole("heading", { name: "Change Password" });
-  if (await changePassword.isVisible({ timeout: 2_000 }).catch(() => false)) {
+  const destinationLink = page.getByRole("link", { name: destination });
+  const requiresPasswordChange = await Promise.race([
+    changePassword.waitFor({ state: "visible", timeout: 15_000 }).then(() => true).catch(() => false),
+    destinationLink.waitFor({ state: "visible", timeout: 15_000 }).then(() => false).catch(() => false),
+  ]);
+  if (requiresPasswordChange) {
     if (testInfo) await saveScreenshot(page, testInfo, "authentication", `${role}-change-password`);
     const nextPassword = requiredEnv(credentials.newPassword);
     await page.getByLabel("Current password").fill(password);
-    await page.getByLabel("New password").fill(nextPassword);
-    await page.getByLabel("Confirm new password").fill(nextPassword);
+    await page.getByRole("textbox", { name: "New password", exact: true }).fill(nextPassword);
+    await page.getByRole("textbox", { name: "Confirm new password", exact: true }).fill(nextPassword);
     await page.getByRole("button", { name: "Change password" }).click();
     await expect(changePassword).toHaveCount(0);
   }
 
-  const destination = role === "requester" ? "My Tickets" : role === "staff" ? "Staff Tickets" : "User Management";
-  await expect(page.getByRole("link", { name: destination })).toBeVisible();
+  if (!(await destinationLink.isVisible({ timeout: 1_000 }).catch(() => false))) {
+    const menu = page.getByRole("button", { name: "Open navigation menu" });
+    if (await menu.isVisible({ timeout: 15_000 }).catch(() => false)) await menu.click();
+  }
+  await expect(destinationLink).toBeVisible();
+  await destinationLink.click();
 }
 
 export async function saveScreenshot(page: Page, testInfo: TestInfo, area: string, state: string): Promise<void> {

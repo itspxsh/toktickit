@@ -22,11 +22,14 @@ them.
 
 Use a test-scoped `DATABASE_URL_TEST` for migration evidence and a separately
 configured local development `DATABASE_URL` for the live web-server run. Do
-not paste either URL or any password into logs, screenshots, or source.
+not paste either URL or any password into logs, screenshots, or source. The
+release-gate run used a local HTTP transport with `SESSION_COOKIE_SECURE=false`
+only for the test server; production/default configuration remains Secure.
 
 ```text
 cd server
-# Substitute the same guarded PostgreSQL URL in both assignments; do not echo it.
+# Substitute a fresh guarded PostgreSQL URL whose database name ends in _test;
+# do not echo it.
 DATABASE_URL='<guarded-test-url-ending-in-test>' npx prisma migrate deploy
 DATABASE_URL_TEST='<guarded-test-url-ending-in-test>' npm run db:test:reset
 DATABASE_URL_TEST='<guarded-test-url-ending-in-test>' npm run test:integration -- tests/lab-03/migration.integration.test.ts
@@ -46,13 +49,15 @@ matrix.
 
 ## Evidence status for this PR
 
-This PR contains the reviewable, fail-closed evidence skeleton and discovery
-checks. It is explicitly **skeleton-only** until a live PostgreSQL/API run is
-available: the author environment has no `E2E_*` fixture credentials and the
-sandbox cannot bind the web-server ports. No screenshot or migration output is
-fabricated. The green live run, pinned commit, viewport matrix, screenshots,
-and migration output remain a release-gate follow-up before L3-10 can close the
-Lab 3 release.
+The release-gate run is now live and reproducible on a guarded local
+PostgreSQL instance. The migration deployment applied all three migrations;
+the migration integration suite passed 5/5; and the seeded browser matrix
+passed 3/3 journeys on each desktop, tablet, and mobile project (9/9 total).
+The run used only fake environment-provided credentials and retained redacted
+screenshots under `artifacts/lab-03/screenshots/` plus migration output under
+`artifacts/lab-03/migration/`. The exact source commit is recorded in
+`artifacts/lab-03/screenshots/README.md` and `docs/lab-03/reviewer.md` after
+the evidence commit is created.
 
 Run from `client/` after applying migrations and seeding the local development
 database:
@@ -66,7 +71,5 @@ with no retry or skip path. It writes screenshot provenance under
 `artifacts/lab-03/screenshots/` and the HTML report under
 `artifacts/lab-03/playwright-report/`.
 
-Release-gate evidence is incomplete until one green live run is retained with
-the pinned commit, the 1440px/768px/320px viewport matrix, redacted Playwright
-screenshots, and guarded migration/seed output. Discovery output alone is not
-execution evidence.
+Discovery output remains useful for contract coverage, but the retained green
+run and its provenance are the release evidence for T-E2E-04 and T-E2E-05.

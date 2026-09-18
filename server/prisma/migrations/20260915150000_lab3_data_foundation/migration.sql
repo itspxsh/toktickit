@@ -104,8 +104,8 @@ WHERE a."removedByRequesterId" = r."id";
 -- Keep future allocation ahead of every preserved Lab 2 ticket sequence.
 SELECT setval(
   'ticket_number_seq',
-  COALESCE((SELECT MAX("ticketSequence") FROM "Ticket"), 0),
-  true
+  COALESCE((SELECT MAX("ticketSequence") FROM "Ticket"), 1),
+  (SELECT COUNT(*) > 0 FROM "Ticket")
 );
 
 -- Invalid or unmapped rows make the migration fail closed at these constraints.

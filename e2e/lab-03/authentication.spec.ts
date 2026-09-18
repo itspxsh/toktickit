@@ -18,7 +18,7 @@ test.describe("Lab 3 requester authenticated journey", () => {
     const token = await csrfToken(page);
     const comment = `Lab 3 requester evidence ${Date.now()}`;
     const commentResponse = await page.request.post(`${API_BASE_URL}/api/tickets/${encodeURIComponent(ticketNumber!)}/comments`, {
-      headers: { "Content-Type": "application/json", "X-CSRF-Token": token },
+      headers: { "Content-Type": "application/json", Origin: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173", "X-CSRF-Token": token },
       data: { body: comment },
     });
     expect(commentResponse.status()).toBe(201);

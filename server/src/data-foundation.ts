@@ -103,10 +103,6 @@ export async function seedLab3Data(prisma: PrismaClient): Promise<void> {
     for (const name of REFERENCE_SEED.relatedSystems) {
       await tx.relatedSystem.upsert({ where: { name }, update: {}, create: { name, isActive: true } });
     }
-    for (const requester of REFERENCE_SEED.requesters) {
-      await tx.requester.upsert({ where: { email: requester.email }, update: {}, create: requester });
-    }
-
     const ensureUser = async (seed: { name: string; email: string; role: "REQUESTER" | "IT_STAFF" | "ADMIN"; isActive: boolean }) => {
       const email = seed.email.trim().toLowerCase();
       let user = await tx.user.findUnique({ where: { email } });
@@ -134,7 +130,15 @@ export async function seedLab3Data(prisma: PrismaClient): Promise<void> {
     for (const requester of REFERENCE_SEED.requesters) {
       const user = await ensureUser({ ...requester, role: "REQUESTER" });
       requesterUsers.push({ id: user.id, email: user.email });
-      await tx.requester.update({ where: { email: requester.email }, data: { userId: user.id } });
+    }
+    for (const requester of REFERENCE_SEED.requesters) {
+      const user = requesterUsers.find(({ email }) => email === requester.email);
+      if (!user) throw new Error("Lab 3 requester user is incomplete");
+      await tx.requester.upsert({
+        where: { email: requester.email },
+        update: {},
+        create: { ...requester, userId: user.id },
+      });
     }
     const staffUsers = [] as Array<{ id: number; email: string }>;
     for (const staff of LAB3_STAFF_SEED) {
@@ -156,7 +160,7 @@ export async function seedLab3Data(prisma: PrismaClient): Promise<void> {
     if (!requesterOne || !requesterTwo) throw new Error("Lab 3 requester mapping is incomplete");
 
     const ticketSeeds = [
-      { key: "lab3-seed-vpn", requester: requesterOne, requesterUserId: requesterUsers[0].id, categoryId: hardware.id, relatedSystemId: vpn.id, summary: "VPN access request", description: "Seeded staff workflow ticket.", requestedPriority: "HIGH" as const, itPriority: "HIGH" as const, currentStatus: "OPEN" as const, assignedStaffId: staffUsers[0]?.id ?? null },
+      { key: "lab3-seed-vpn", requester: requesterOne, requesterUserId: requesterUsers[0].id, categoryId: hardware.id, relatedSystemId: vpn.id, summary: "VPN access request", description: "Seeded staff workflow ticket.", requestedPriority: "HIGH" as const, itPriority: "HIGH" as const, currentStatus: "NEW" as const, assignedStaffId: staffUsers[0]?.id ?? null },
       { key: "lab3-seed-email", requester: requesterTwo, requesterUserId: requesterUsers[1].id, categoryId: software.id, relatedSystemId: emailSystem.id, summary: "Email client issue", description: "Seeded requester communication ticket.", requestedPriority: "MEDIUM" as const, itPriority: "MEDIUM" as const, currentStatus: "IN_PROGRESS" as const, assignedStaffId: staffUsers[1]?.id ?? null },
     ];
     for (const seed of ticketSeeds) {

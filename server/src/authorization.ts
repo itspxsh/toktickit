@@ -36,7 +36,7 @@ export function createRequesterAuthMiddleware(
   const sessionAuth = createPasswordChangedMiddleware(createAuthMiddleware(prismaProvider as never));
   return async (req: Request, res: Response, next: NextFunction) => {
     await sessionAuth(req, res, () => undefined);
-    if (!req.auth) return;
+    if (!req.auth || res.headersSent) return;
     if (!roleAllowed(req.auth.user.role, ["REQUESTER"])) {
       forbidden(res);
       return;

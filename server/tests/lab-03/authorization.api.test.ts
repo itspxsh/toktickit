@@ -106,6 +106,26 @@ describe("Lab 3 server authorization over Lab 2 requester routes", () => {
     expect(blocked.body.error.code).toBe("FORBIDDEN");
   });
 
+  it("T-AUTHZ-05 stops after the first-login password gate", async () => {
+    const guarded = createGuardedApp({
+      session: {
+        id: 1,
+        userId: 12,
+        tokenHash: "hash",
+        expiresAt: new Date(Date.now() + 60_000),
+        invalidatedAt: null,
+        user: { id: 12, role: "REQUESTER", isActive: true, mustChangePassword: true },
+      },
+    });
+    const response = await request(guarded.app)
+      .get("/api/tickets")
+      .set("Cookie", "tt_session=opaque-session-token-123456789");
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("PASSWORD_CHANGE_REQUIRED");
+    expect(guarded.prisma.requester.findUnique).not.toHaveBeenCalled();
+    expect(guarded.prisma.ticket.findMany).not.toHaveBeenCalled();
+  });
+
   it("requires CSRF on authenticated Lab 2 ticket creation", async () => {
     const { app } = createTestApp();
     const response = await request(app)

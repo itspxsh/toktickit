@@ -149,6 +149,11 @@ The required pass condition is zero skipped, flaky, or untraceable tests. A
 missing live service must be reported as a failed prerequisite, never silently
 converted to a pass.
 
+For reproducibility, the Prisma validation command is the repository-local
+executable `cd server && npx prisma validate` (Prisma CLI 5.22.0). A successful
+run prints `The schema at prisma/schema.prisma is valid.`; `prisma validate` is
+not exposed as an npm script.
+
 ## 8. Responsive/accessibility/security checklist
 
 Evidence must cover 320px mobile, 768px tablet, and a desktop viewport. Check

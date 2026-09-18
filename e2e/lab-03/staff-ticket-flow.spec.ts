@@ -7,7 +7,9 @@ test.describe("Lab 3 IT Staff journey", () => {
     await preflight(page);
     await signIn(page, "staff", testInfo);
     await page.goto("/admin/users");
-    await expect(page.getByRole("alert")).toHaveTextContent(/Access denied/i);
+    await expect(page.getByRole("alert")).toContainText(/Access denied/i);
+    const menu = page.getByRole("button", { name: "Open navigation menu" });
+    if (await menu.isVisible({ timeout: 1_000 }).catch(() => false)) await menu.click();
     await page.getByRole("link", { name: "Staff Tickets" }).click();
     await expect(page.getByRole("heading", { name: "Staff Ticket Queue" })).toBeVisible();
     await saveScreenshot(page, testInfo, "staff-queue", "success");
@@ -31,25 +33,29 @@ test.describe("Lab 3 IT Staff journey", () => {
     await expect(ticketLink).toBeVisible();
     await ticketLink.click();
     await expect(page.getByRole("heading", { name: "Staff Ticket Detail" })).toBeVisible();
+    await expect(page.getByLabel("IT Priority")).toBeVisible();
     await saveScreenshot(page, testInfo, "staff-ticket-detail", "success");
 
     const claim = page.getByRole("button", { name: "Claim ticket" });
     if (await claim.isVisible()) {
       await claim.click();
       await expect(page.locator('p[role="status"]')).toContainText(/Assignment updated|claimed/i);
+      await expect(page.getByLabel("IT Priority")).toBeVisible();
     }
     const currentPriority = await page.getByLabel("IT Priority").inputValue();
     await page.getByLabel("IT Priority").selectOption(currentPriority);
     await page.getByRole("button", { name: "Save priority" }).click();
     await expect(page.locator('p[role="status"]')).toContainText(/Priority updated/i);
-    const currentStatus = await page.getByLabel("Status").inputValue();
-    await page.getByLabel("Status").selectOption(currentStatus);
+    const statusSelect = page.getByLabel("Status", { exact: true });
+    const currentStatus = await statusSelect.inputValue();
+    const nextStatus = currentStatus === "NEW" ? "OPEN" : currentStatus;
+    await statusSelect.selectOption(nextStatus);
     await page.getByRole("button", { name: "Save status" }).click();
     await expect(page.locator('p[role="status"]')).toContainText(/Status updated/i);
-    await page.getByLabel("Public comment").fill("Staff E2E public comment");
+    await page.getByRole("textbox", { name: "Public comment", exact: true }).fill("Staff E2E public comment");
     await page.getByRole("button", { name: "Add public comment" }).click();
     await expect(page.locator('p[role="status"]')).toContainText(/Comment added/i);
-    await page.getByLabel("Internal note").fill("Staff E2E internal note");
+    await page.getByRole("textbox", { name: "Internal note", exact: true }).fill("Staff E2E internal note");
     await page.getByRole("button", { name: "Add internal note" }).click();
     await expect(page.locator('p[role="status"]')).toContainText(/Internal note added/i);
 

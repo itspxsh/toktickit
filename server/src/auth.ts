@@ -3,6 +3,7 @@ import type { Express, NextFunction, Request, RequestHandler, Response } from "e
 import { getPrisma } from "./prisma.js";
 
 export const SESSION_COOKIE = "tt_session";
+const SESSION_COOKIE_SECURE = process.env.SESSION_COOKIE_SECURE !== "false";
 export const SESSION_TTL_SECONDS = 12 * 60 * 60;
 const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 const PASSWORD_MIN = 12;
@@ -145,7 +146,8 @@ function parseCookies(header: string | undefined): Record<string, string> {
 }
 
 function cookieHeader(token: string, maxAge: number): string {
-  return `${SESSION_COOKIE}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax`;
+  const secure = SESSION_COOKIE_SECURE ? "; Secure" : "";
+  return `${SESSION_COOKIE}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly${secure}; SameSite=Lax`;
 }
 
 function setSessionCookie(res: Response, token: string, maxAge = SESSION_TTL_SECONDS): void {
