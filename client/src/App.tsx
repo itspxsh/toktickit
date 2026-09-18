@@ -28,7 +28,7 @@ import { StaffTicketDetail } from "./staff-ticket-detail.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
 import { StaffTicketQueue } from "./staff-ticket-queue.tsx";
 import { UserManagement } from "./user-management.tsx";
-import { AuthLoading, AuthProvider, ChangePassword, Login, useAuth } from "./auth.tsx";
+import { AuthLoading, AuthProvider, ChangePassword, Login, RoleGuard, useAuth } from "./auth.tsx";
 import type { AuthUser } from "./api.ts";
 import "./styles.css";
 
@@ -178,40 +178,42 @@ function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: 
     context.requestNavigation(() => navigate(path));
   }
 
+  const routeContent = mustSelect ? (
+    <RequesterSelection onContinue={() => navigate("/tickets")} />
+  ) : activePath === "/change-password" ? (
+    <ChangePassword />
+  ) : ticketDetailMatch ? (
+    <RequesterTicketDetail
+      ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
+      onNavigate={handleNavigate}
+    />
+  ) : staffTicketDetailMatch ? (
+    <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} />
+  ) : activePath === "/staff/tickets" ? (
+    <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} />
+  ) : activePath === "/admin/users" ? (
+    <UserManagement />
+  ) : activePath === "/tickets" ? (
+    <MyTickets onNavigate={handleNavigate} />
+  ) : activePath === "/create-ticket" ? (
+    <CreateTicket onNavigate={handleNavigate} />
+  ) : (
+    <HealthCheck />
+  );
+
   return (
     <AppShell
       activePath={activePath}
       role={authUser?.role}
       userName={authUser?.name}
       userEmail={authUser?.email}
-      requesterLabel={context.selectedRequester?.name}
+      requesterLabel={context.selectedRequester?.name ?? context.authenticatedRequester?.name}
       onChangeRequester={legacy ? handleChangeRequester : undefined}
       onChangePassword={authUser ? () => navigate("/change-password") : undefined}
       onLogout={authUser ? onLogout : undefined}
       onNavigate={handleNavigate}
     >
-      {mustSelect ? (
-        <RequesterSelection onContinue={() => navigate("/tickets")} />
-      ) : activePath === "/change-password" ? (
-        <ChangePassword />
-      ) : ticketDetailMatch ? (
-        <RequesterTicketDetail
-          ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
-          onNavigate={handleNavigate}
-        />
-      ) : staffTicketDetailMatch ? (
-        <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} />
-      ) : activePath === "/staff/tickets" ? (
-        <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} />
-      ) : activePath === "/admin/users" ? (
-        <UserManagement />
-      ) : activePath === "/tickets" ? (
-        <MyTickets onNavigate={handleNavigate} />
-      ) : activePath === "/create-ticket" ? (
-        <CreateTicket onNavigate={handleNavigate} />
-      ) : (
-        <HealthCheck />
-      )}
+      {authUser ? <RoleGuard role={authUser.role} path={activePath}>{routeContent}</RoleGuard> : routeContent}
       {legacy && <RequesterChangeConfirmation />}
     </AppShell>
   );
@@ -233,7 +235,7 @@ function AuthenticatedApp() {
   if (auth.status === "anonymous") return <Login onSuccess={() => void auth.refresh()} />;
   if (!auth.user) return <Login onSuccess={() => void auth.refresh()} />;
   if (auth.user.mustChangePassword) return <ChangePassword onSuccess={() => void auth.refresh()} />;
-  return <RequesterProvider mode={auth.user.role === "REQUESTER" ? "authenticated" : "disabled"} authenticatedRequester={auth.user.role === "REQUESTER" ? { id: auth.user.id, name: auth.user.name, email: auth.user.email } : null}><RequesterAwareApp authUser={auth.user} onLogout={() => { void auth.logout(); }} /></RequesterProvider>;
+  return <RequesterProvider mode={auth.user.role === "REQUESTER" ? "authenticated" : "disabled"} authenticatedRequester={auth.user.role === "REQUESTER" ? { name: auth.user.name, email: auth.user.email } : null}><RequesterAwareApp authUser={auth.user} onLogout={() => { void auth.logout(); }} /></RequesterProvider>;
 }
 
 export default function App() {

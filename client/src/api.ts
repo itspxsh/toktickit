@@ -32,6 +32,7 @@ export interface TicketView {
   description: string;
   itPriority: string | null;
   currentStatus: "NEW";
+  appearsResolved?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -238,6 +239,9 @@ async function csrfHeaders(): Promise<HeadersInit> {
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthUser> {
+  // A new login establishes a new session; never reuse a CSRF token from an
+  // expired or logged-out session.
+  csrfToken = null;
   const response = await fetch(`${API_URL}/api/auth/login`, {
     method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -333,6 +337,10 @@ export function developmentRequesterHeaders(requesterId: number): HeadersInit {
   return { "X-Development-Requester-Id": String(requesterId) };
 }
 
+function requesterHeaders(requesterId?: number): HeadersInit {
+  return requesterId === undefined ? {} : developmentRequesterHeaders(requesterId);
+}
+
 function isReferenceRow(value: unknown): value is Category {
   if (!value || typeof value !== "object") return false;
   const row = value as Record<string, unknown>;
@@ -381,16 +389,17 @@ export function createIdempotencyKey(): string {
 /** Submit one requester-scoped Ticket using a stable idempotency key. */
 export async function createTicket(
   payload: CreateTicketPayload,
-  requesterId: number,
+  requesterId: number | undefined,
   idempotencyKey = createIdempotencyKey(),
 ): Promise<CreateTicketResponse> {
   const response = await fetch(`${API_URL}/api/tickets`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...developmentRequesterHeaders(requesterId),
+      ...requesterHeaders(requesterId),
       "Idempotency-Key": idempotencyKey,
     },
+    credentials: "include",
     body: JSON.stringify(payload),
   });
 
@@ -416,11 +425,12 @@ export async function createTicket(
 /** Load one requester-owned Ticket and read-only attachment metadata. */
 export async function fetchTicketDetail(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   signal?: AbortSignal,
 ): Promise<TicketDetailView> {
   const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}`, {
-    headers: developmentRequesterHeaders(requesterId),
+    headers: requesterHeaders(requesterId),
+    credentials: "include",
     signal,
   });
   const body: unknown = await response.json().catch(() => null);
@@ -574,7 +584,7 @@ async function parseAttachmentResponse(response: Response, fallback: string): Pr
 /** Upload one file; callers may invoke this once per selected file. */
 export async function uploadAttachment(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   file: File,
   signal?: AbortSignal,
 ): Promise<TicketAttachmentView> {
@@ -582,7 +592,8 @@ export async function uploadAttachment(
   form.append("file", file, file.name);
   const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments`, {
     method: "POST",
-    headers: developmentRequesterHeaders(requesterId),
+    headers: requesterHeaders(requesterId),
+    credentials: "include",
     body: form,
     signal,
   });
@@ -592,13 +603,13 @@ export async function uploadAttachment(
 /** Fetch a private active attachment stream using the testing requester context. */
 export async function downloadAttachment(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   attachmentId: number,
   signal?: AbortSignal,
 ): Promise<Blob> {
   const response = await fetch(
     `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}/download`,
-    { headers: developmentRequesterHeaders(requesterId), signal },
+    { headers: requesterHeaders(requesterId), credentials: "include", signal },
   );
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null);
@@ -611,7 +622,7 @@ export async function downloadAttachment(
 /** Soft-remove one owned active attachment and preserve its metadata. */
 export async function removeAttachment(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   attachmentId: number,
   reason: string,
   signal?: AbortSignal,
@@ -620,7 +631,8 @@ export async function removeAttachment(
     `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}`,
     {
       method: "DELETE",
-      headers: { "Content-Type": "application/json", ...developmentRequesterHeaders(requesterId) },
+      headers: { "Content-Type": "application/json", ...requesterHeaders(requesterId) },
+      credentials: "include",
       body: JSON.stringify({ reason }),
       signal,
     },
@@ -630,7 +642,7 @@ export async function removeAttachment(
 
 /** Load the selected requester's Ticket list using only the testing context header. */
 export async function fetchMyTickets(
-  requesterId: number,
+  requesterId: number | undefined,
   query: TicketListQuery = {},
   signal?: AbortSignal,
 ): Promise<TicketListResponse> {
@@ -647,7 +659,8 @@ export async function fetchMyTickets(
 
   const suffix = params.toString() ? `?${params.toString()}` : "";
   const response = await fetch(`${API_URL}/api/tickets${suffix}`, {
-    headers: developmentRequesterHeaders(requesterId),
+    headers: requesterHeaders(requesterId),
+    credentials: "include",
     signal,
   });
   const body: unknown = await response.json().catch(() => null);
@@ -668,6 +681,21 @@ export async function fetchMyTickets(
     throw new Error("Unable to load My Tickets.");
   }
   return body as TicketListResponse;
+}
+
+export async function indicateTicketResolved(ticketNumber: string, appearsResolved: boolean): Promise<{ ticketNumber: string; appearsResolved: boolean }> {
+  const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/resolution-indication`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
+    body: JSON.stringify({ appearsResolved }),
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw errorFromBody(body, "Unable to update resolution indication.", response.status);
+  if (!body || typeof body !== "object" || typeof (body as { ticketNumber?: unknown }).ticketNumber !== "string" || typeof (body as { appearsResolved?: unknown }).appearsResolved !== "boolean") {
+    throw new Error("Unable to update resolution indication.");
+  }
+  return body as { ticketNumber: string; appearsResolved: boolean };
 }
 
 // Issue 2 + Issue 4 — call the backend.

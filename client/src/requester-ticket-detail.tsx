@@ -2,6 +2,7 @@ import { useEffect, useState, type MouseEvent } from "react";
 import {
   ApiError,
   fetchTicketDetail,
+  indicateTicketResolved,
   type TicketDetailView,
 } from "./api.ts";
 import {
@@ -36,10 +37,12 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
   const [ticket, setTicket] = useState<TicketDetailView | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [reloadToken, setReloadToken] = useState(0);
+  const [resolutionBusy, setResolutionBusy] = useState(false);
+  const [resolutionError, setResolutionError] = useState("");
 
   useEffect(() => {
-    const requesterId = requesterContext.selectedRequesterId;
-    if (requesterId === null) {
+    const requesterId = requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined;
+    if (requesterContext.mode === "development" && requesterId === null) {
       setState("error");
       setErrorMessage("Select a Development Requester before viewing a Ticket.");
       return;
@@ -72,7 +75,21 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
       ignore = true;
       controller.abort();
     };
-  }, [reloadToken, requesterContext.selectedRequesterId, ticketNumber]);
+  }, [reloadToken, requesterContext.mode, requesterContext.selectedRequesterId, ticketNumber]);
+
+  async function toggleResolution() {
+    if (!ticket || resolutionBusy) return;
+    setResolutionBusy(true);
+    setResolutionError("");
+    try {
+      const next = await indicateTicketResolved(ticket.ticketNumber, !ticket.appearsResolved);
+      setTicket((current) => current ? { ...current, appearsResolved: next.appearsResolved } : current);
+    } catch (reason: unknown) {
+      setResolutionError(reason instanceof Error ? reason.message : "Unable to update resolution indication.");
+    } finally {
+      setResolutionBusy(false);
+    }
+  }
 
   function handleBack(event: MouseEvent<HTMLAnchorElement>) {
     if (!onNavigate) return;
@@ -128,7 +145,7 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
         <div>
           <p className="eyebrow">Requester Ticket Detail</p>
           <h1 id="ticket-detail-title">Ticket {ticket.ticketNumber}</h1>
-          <p>Read-only details for the selected Development Requester.</p>
+          <p>Read-only details for the selected requester.</p>
         </div>
         <a className="button button--secondary" href="/tickets" onClick={handleBack}>
           Back to My Tickets
@@ -174,9 +191,18 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
         </FormField>
       </fieldset>
 
+      <section className="card stack" aria-labelledby="resolution-indication-title">
+        <h2 id="resolution-indication-title">Problem status</h2>
+        <p aria-live="polite">Problem appears resolved: {ticket.appearsResolved ? "Yes" : "No"}</p>
+        {resolutionError && <ErrorState>{resolutionError}</ErrorState>}
+        <button type="button" className="button button--secondary" aria-pressed={ticket.appearsResolved === true} disabled={resolutionBusy} onClick={() => void toggleResolution()}>
+          {ticket.appearsResolved ? "Mark problem unresolved" : "Problem appears resolved"}
+        </button>
+      </section>
+
       <AttachmentSection
         ticketNumber={ticket.ticketNumber}
-        requesterId={requesterContext.selectedRequesterId as number}
+        requesterId={requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined}
         attachments={ticket.attachments}
         onAttachmentsChange={(attachments) => {
           setTicket((current) => current ? { ...current, attachments } : current);

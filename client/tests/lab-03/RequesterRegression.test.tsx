@@ -30,7 +30,7 @@ describe("L3-08 authenticated requester continuity", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     render(
-      <RequesterProvider mode="authenticated" authenticatedRequester={{ id: 10, name: "Requester", email: "requester@example.test" }}>
+      <RequesterProvider mode="authenticated" authenticatedRequester={{ name: "Requester", email: "requester@example.test" }}>
         <RequesterTicketDetail ticketNumber="TKT-0001" />
       </RequesterProvider>,
     );

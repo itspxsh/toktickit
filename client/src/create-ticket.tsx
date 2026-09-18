@@ -144,7 +144,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
     setInitialUploads((current) => current.map((item) => item.key === key ? { ...item, ...update } : item));
   }
 
-  async function processInitialUpload(item: InitialUploadItem, ticket: CreateTicketResponse, requesterId: number) {
+  async function processInitialUpload(item: InitialUploadItem, ticket: CreateTicketResponse, requesterId?: number) {
     const controller = new AbortController();
     uploadControllers.current.set(item.key, controller);
     updateInitialUpload(item.key, { status: "uploading", message: undefined });
@@ -173,8 +173,8 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
   }
 
   function beginInitialUploads(ticket: CreateTicketResponse) {
-    const requesterId = requesterContext.selectedRequesterId;
-    if (attachments.length === 0 || requesterId === null) return;
+    const requesterId = requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined;
+    if (attachments.length === 0) return;
     const items = attachments.map((file, index): InitialUploadItem => ({
       key: `${file.name}-${file.size}-${file.lastModified}-${index}`,
       file,
@@ -189,7 +189,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isSubmitting || created || requesterContext.selectedRequesterId === null) return;
+    if (isSubmitting || created || (requesterContext.mode === "development" && requesterContext.selectedRequesterId === null)) return;
     const nextErrors = validate(values);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -204,7 +204,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
           requestedPriority: values.requestedPriority as RequestedPriority,
           description: values.description.trim(),
         },
-        requesterContext.selectedRequesterId,
+        requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined,
         idempotencyKey,
       );
       setCreated(response);
@@ -250,7 +250,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
                     <button
                       type="button"
                       className="button button--tertiary"
-                      onClick={() => void processInitialUpload(item, created, created.data.requester.id)}
+                      onClick={() => void processInitialUpload(item, created, requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined)}
                     >
                       Retry upload {item.file.name}
                     </button>
@@ -321,7 +321,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
             <input id="ticket-date" value="Generated after submission" readOnly aria-readonly="true" />
           </FormField>
           <FormField id="ticket-requester" label="Requester" hint="Development Requester testing context">
-            <input id="ticket-requester" value={requesterContext.selectedRequester?.name ?? "No requester selected"} readOnly aria-readonly="true" />
+            <input id="ticket-requester" value={requesterContext.selectedRequester?.name ?? requesterContext.authenticatedRequester?.name ?? "No requester selected"} readOnly aria-readonly="true" />
           </FormField>
         </div>
 
@@ -372,7 +372,7 @@ export function CreateTicket({ onNavigate }: CreateTicketProps = {}) {
         {errors.submit && <Alert tone="error">{errors.submit}</Alert>}
         <div className="form-actions">
           <button type="button" className="button button--secondary" onClick={clearForm}>Clear</button>
-          <button type="submit" className="button button--primary" disabled={controlsDisabled || isSubmitting || requesterContext.selectedRequesterId === null}>
+          <button type="submit" className="button button--primary" disabled={controlsDisabled || isSubmitting || (requesterContext.mode === "development" && requesterContext.selectedRequesterId === null)}>
             {isSubmitting ? "Creating…" : "Submit Ticket"}
           </button>
         </div>

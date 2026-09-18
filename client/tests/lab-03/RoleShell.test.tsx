@@ -13,7 +13,7 @@ describe("L3-08 role-aware shell", () => {
   });
 
   it("T-UI-03 / AC-03 exposes staff and admin destinations from server role", () => {
-    render(<AppShell activePath="/admin/users" role="ADMIN" userName="System Administrator" userEmail="admin@example.test"><p>content</p></AppShell>);
+    render(<AppShell activePath="/admin/users" role="ADMIN" userName="System Administrator" userEmail="admin@example.test" onLogout={() => undefined} onChangePassword={() => undefined}><p>content</p></AppShell>);
     expect(screen.getByRole("link", { name: "Staff Tickets" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "User Management" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByText("Administrator")).toBeInTheDocument();

@@ -116,8 +116,8 @@ export function AppShell({
               <strong>{userEmail ?? ""}</strong>
             </span>
             <span className="status-badge status-badge--neutral" role="status" aria-label={`Role: ${roleName}`}><span aria-hidden="true">●</span> {roleName}</span>
-            <button type="button" className="button button--tertiary" onClick={onChangePassword}>Change Password</button>
-            <button type="button" className="button button--tertiary" onClick={onLogout}>Log out</button>
+            {onChangePassword && <button type="button" className="button button--tertiary" onClick={onChangePassword}>Change Password</button>}
+            {onLogout && <button type="button" className="button button--tertiary" onClick={onLogout}>Log out</button>}
           </div> : <div className="app-shell__context" aria-label="Development Requester context">
             <span className="app-shell__requester">
               <span className="app-shell__context-label">Requester</span>

@@ -102,7 +102,10 @@ export function ChangePassword({ onSuccess }: { onSuccess?: (user: AuthUser) => 
     if (next !== confirm) { setMessage("New password confirmation does not match."); return; }
     setBusy(true);
     try { const user = await auth.changePassword(current, next); setCurrent(""); setNext(""); setConfirm(""); onSuccess?.(user); }
-    catch (reason) { setMessage(safeMessage(reason, "Unable to change password.")); }
+    catch (reason) {
+      setCurrent(""); setNext(""); setConfirm("");
+      setMessage(safeMessage(reason, "Unable to change password."));
+    }
     finally { setBusy(false); }
   }
   return <section className="card stack" aria-labelledby="change-password-title">
@@ -120,3 +123,14 @@ export function ChangePassword({ onSuccess }: { onSuccess?: (user: AuthUser) => 
 
 export function Forbidden() { return <section className="card stack" role="alert"><h1>Access denied</h1><p>You do not have permission to view this page.</p></section>; }
 export function AuthLoading() { return <LoadingState label="Loading session…" />; }
+
+function roleAllowsPath(role: AuthRole, path: string): boolean {
+  if (path === "/change-password" || path === "/" || path === "") return true;
+  if (role === "REQUESTER") return path === "/tickets" || path.startsWith("/tickets/") || path === "/create-ticket";
+  if (role === "IT_STAFF") return path === "/staff/tickets" || path.startsWith("/staff/tickets/");
+  return path === "/staff/tickets" || path.startsWith("/staff/tickets/") || path === "/admin/users";
+}
+
+export function RoleGuard({ role, path, children }: { role: AuthRole; path: string; children: ReactNode }) {
+  return roleAllowsPath(role, path) ? <>{children}</> : <Forbidden />;
+}

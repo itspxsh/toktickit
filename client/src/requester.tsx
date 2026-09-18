@@ -19,6 +19,8 @@ export interface RequesterContextValue {
   contextVersion: number;
   createTicketDirty: boolean;
   error: string | null;
+  authenticatedRequester: Pick<Requester, "name" | "email"> | null;
+  mode: "development" | "authenticated" | "disabled";
   pendingChange: boolean;
   requesters: Requester[];
   selectedRequester: Requester | null;
@@ -57,12 +59,12 @@ function removePersistedRequesterId(): void {
 export interface RequesterProviderProps {
   children: ReactNode;
   mode?: "development" | "authenticated" | "disabled";
-  authenticatedRequester?: Requester | null;
+  authenticatedRequester?: Pick<Requester, "name" | "email"> | null;
 }
 
 export function RequesterProvider({ children, mode = "development", authenticatedRequester = null }: RequesterProviderProps) {
   const [requesters, setRequesters] = useState<Requester[]>([]);
-  const [selectedRequesterId, setSelectedRequesterId] = useState<number | null>(() => mode === "authenticated" ? authenticatedRequester?.id ?? null : readPersistedRequesterId());
+  const [selectedRequesterId, setSelectedRequesterId] = useState<number | null>(() => mode === "development" ? readPersistedRequesterId() : null);
   const [status, setStatus] = useState<RequesterLoadStatus>("loading");
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -76,8 +78,8 @@ export function RequesterProvider({ children, mode = "development", authenticate
 
   useEffect(() => {
     if (mode !== "development") {
-      setRequesters(mode === "authenticated" && authenticatedRequester ? [authenticatedRequester] : []);
-      setSelectedRequesterId(mode === "authenticated" ? authenticatedRequester?.id ?? null : null);
+      setRequesters([]);
+      setSelectedRequesterId(null);
       setError(null);
       setStatus("success");
       return;
@@ -180,6 +182,8 @@ export function RequesterProvider({ children, mode = "development", authenticate
       contextVersion,
       createTicketDirty,
       error,
+      authenticatedRequester,
+      mode,
       pendingChange,
       requesters,
       selectedRequester,
@@ -201,6 +205,8 @@ export function RequesterProvider({ children, mode = "development", authenticate
       contextVersion,
       createTicketDirty,
       error,
+      authenticatedRequester,
+      mode,
       pendingChange,
       requestChangeRequester,
       requestNavigation,
