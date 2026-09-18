@@ -21,4 +21,4 @@ Total live matrix: 9/9 passed, with no retries or skips. The API used a local
 HTTP origin and `SESSION_COOKIE_SECURE=false` only for this local test server;
 the application default remains Secure cookies. The exact migration and seed
 provenance is retained in `../migration/deploy.txt`. Evidence commit:
-`90ffb87` (`fix(lab3): close release migration and evidence gates`).
+`8376f65` (`fix(lab3): close release migration and evidence gates`).

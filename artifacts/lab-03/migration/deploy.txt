@@ -1,5 +1,5 @@
 Lab 3 release-gate migration evidence (redacted)
-Captured from release-gate evidence commit `90ffb87`.
+Captured from release-gate evidence commit `8376f65`.
 
 Database scope: fresh local PostgreSQL database with a `_test` suffix.
 Secrets and connection URLs are intentionally omitted.
