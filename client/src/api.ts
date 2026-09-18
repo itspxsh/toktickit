@@ -187,6 +187,89 @@ export class ApiError extends Error {
   }
 }
 
+export type AuthRole = "REQUESTER" | "IT_STAFF" | "ADMIN";
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: AuthRole;
+  isActive: boolean;
+  mustChangePassword: boolean;
+}
+
+let csrfToken: string | null = null;
+
+function parseAuthUser(value: unknown): AuthUser | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as Record<string, unknown>;
+  return typeof row.id === "number" && typeof row.name === "string" && typeof row.email === "string" &&
+    (row.role === "REQUESTER" || row.role === "IT_STAFF" || row.role === "ADMIN") &&
+    typeof row.isActive === "boolean" && typeof row.mustChangePassword === "boolean"
+    ? row as unknown as AuthUser : null;
+}
+
+function errorFromBody(body: unknown, fallback: string, status: number): ApiError {
+  const error = body && typeof body === "object" && "error" in body
+    ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+    : undefined;
+  const message = typeof error?.message === "string" ? error.message : fallback;
+  const fields = error?.fieldErrors && typeof error.fieldErrors === "object"
+    ? error.fieldErrors as Record<string, string> : undefined;
+  return new ApiError(message, status, fields);
+}
+
+export async function fetchCurrentUser(signal?: AbortSignal): Promise<AuthUser | null> {
+  const response = await fetch(`${API_URL}/api/auth/me`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (response.status === 401) return null;
+  if (!response.ok) throw errorFromBody(body, "Unable to load your session.", response.status);
+  return parseAuthUser(body && typeof body === "object" && "user" in body ? (body as { user?: unknown }).user : body);
+}
+
+async function csrfHeaders(): Promise<HeadersInit> {
+  if (!csrfToken) {
+    const response = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
+    const body: unknown = await response.json().catch(() => null);
+    if (!response.ok) throw errorFromBody(body, "Unable to prepare this action.", response.status);
+    csrfToken = body && typeof body === "object" && typeof (body as { csrfToken?: unknown }).csrfToken === "string"
+      ? (body as { csrfToken: string }).csrfToken : null;
+  }
+  return csrfToken ? { "X-CSRF-Token": csrfToken } : {};
+}
+
+export async function loginUser(email: string, password: string): Promise<AuthUser> {
+  const response = await fetch(`${API_URL}/api/auth/login`, {
+    method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw errorFromBody(body, "Email or password is incorrect.", response.status);
+  const user = parseAuthUser(body && typeof body === "object" && "user" in body ? (body as { user?: unknown }).user : null);
+  if (!user) throw new ApiError("Unable to complete sign in.", response.status);
+  return user;
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<AuthUser> {
+  const response = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw errorFromBody(body, "Unable to change password.", response.status);
+  const user = parseAuthUser(body && typeof body === "object" && "user" in body ? (body as { user?: unknown }).user : null);
+  if (!user) throw new ApiError("Unable to change password.", response.status);
+  csrfToken = null;
+  return user;
+}
+
+export async function logoutUser(): Promise<void> {
+  const response = await fetch(`${API_URL}/api/auth/logout`, {
+    method: "POST", credentials: "include", headers: await csrfHeaders(),
+  });
+  csrfToken = null;
+  if (!response.ok) throw errorFromBody(await response.json().catch(() => null), "Unable to sign out.", response.status);
+}
+
 /** Load the authenticated IT Staff/Admin queue; actor identity comes from the server session. */
 export async function fetchStaffTickets(
   query: StaffQueueQuery = {},
