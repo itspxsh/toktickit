@@ -2,10 +2,10 @@ import { expect, test } from "../../client/node_modules/@playwright/test/index.j
 import { API_BASE_URL, expectNoHorizontalOverflow, preflight, saveScreenshot, signIn } from "./support.js";
 
 test.describe("Lab 3 IT Staff journey", () => {
-  test("T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates queue/detail workflow and isolation", async ({ page }, testInfo) => {
+  test("T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates filters, pagination controls, priority/status updates, workflow, and isolation", async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await preflight(page);
-    await signIn(page, "staff");
+    await signIn(page, "staff", testInfo);
     await page.goto("/admin/users");
     await expect(page.getByRole("alert")).toHaveTextContent(/Access denied/i);
     await page.getByRole("link", { name: "Staff Tickets" }).click();
@@ -13,9 +13,19 @@ test.describe("Lab 3 IT Staff journey", () => {
     await saveScreenshot(page, testInfo, "staff-queue", "success");
     await page.getByLabel("Search tickets").fill("TKT-");
     await page.getByLabel("Status").selectOption("NEW");
+    await page.getByLabel("Page size").selectOption("50");
+    await expect(page.getByLabel("Page size")).toHaveValue("50");
+    const nextPage = page.getByRole("button", { name: "Next" });
+    if (await nextPage.isEnabled()) {
+      await nextPage.click();
+      await expect(page.getByRole("button", { name: "Previous" })).toBeEnabled();
+      await page.getByRole("button", { name: "Previous" }).click();
+    } else {
+      await expect(nextPage).toBeDisabled();
+    }
     await expectNoHorizontalOverflow(page);
     await page.keyboard.press("Tab");
-    await expect(page.locator(":focus")).toBeVisible();
+    await expect(page.locator(":focus-visible")).toBeVisible();
 
     const ticketLink = page.locator("tbody tr").first().getByRole("link", { name: /TKT-/ });
     await expect(ticketLink).toBeVisible();
@@ -28,6 +38,14 @@ test.describe("Lab 3 IT Staff journey", () => {
       await claim.click();
       await expect(page.locator('p[role="status"]')).toContainText(/Assignment updated|claimed/i);
     }
+    const currentPriority = await page.getByLabel("IT Priority").inputValue();
+    await page.getByLabel("IT Priority").selectOption(currentPriority);
+    await page.getByRole("button", { name: "Save priority" }).click();
+    await expect(page.locator('p[role="status"]')).toContainText(/Priority updated/i);
+    const currentStatus = await page.getByLabel("Status").inputValue();
+    await page.getByLabel("Status").selectOption(currentStatus);
+    await page.getByRole("button", { name: "Save status" }).click();
+    await expect(page.locator('p[role="status"]')).toContainText(/Status updated/i);
     await page.getByLabel("Public comment").fill("Staff E2E public comment");
     await page.getByRole("button", { name: "Add public comment" }).click();
     await expect(page.locator('p[role="status"]')).toContainText(/Comment added/i);

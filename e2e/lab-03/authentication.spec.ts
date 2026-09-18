@@ -2,15 +2,15 @@ import { expect, test } from "../../client/node_modules/@playwright/test/index.j
 import { API_BASE_URL, csrfToken, expectNoHorizontalOverflow, preflight, saveScreenshot, signIn } from "./support.js";
 
 test.describe("Lab 3 requester authenticated journey", () => {
-  test("T-E2E-01 / AC-01, AC-02, AC-04 exercises login, ownership, resolution indication, comment, and logout", async ({ page }, testInfo) => {
+  test("T-E2E-01 / AC-01, AC-02, AC-04 exercises login, ownership, API comment, resolution indication, and logout", async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await preflight(page);
-    await signIn(page, "requester");
+    await signIn(page, "requester", testInfo);
     await saveScreenshot(page, testInfo, "authentication", "requester-signed-in");
 
     const rows = page.locator("tbody tr");
     await expect.poll(() => rows.count(), "seeded requester tickets are required").toBeGreaterThan(0);
-    const ticketNumber = await rows.first().getByRole("link", { name: /TKT-/ }).textContent();
+    const ticketNumber = (await rows.first().getByRole("rowheader").textContent())?.trim() ?? "";
     expect(ticketNumber).toMatch(/^TKT-\d{4}-\d{6}$/);
     await rows.first().getByRole("link", { name: /Open ticket/i }).click();
     await expect(page.getByRole("heading", { name: new RegExp(`Ticket ${ticketNumber}`) })).toBeVisible();
@@ -23,8 +23,11 @@ test.describe("Lab 3 requester authenticated journey", () => {
     });
     expect(commentResponse.status()).toBe(201);
 
-    const resolution = page.getByRole("button", { name: /Problem appears resolved/i });
-    await resolution.click();
+    const resolutionState = page.getByText(/^Problem appears resolved: (Yes|No)$/);
+    const currentResolution = (await resolutionState.textContent())?.trim();
+    if (currentResolution === "Problem appears resolved: No") {
+      await page.getByRole("button", { name: /Problem appears resolved/i }).click();
+    }
     await expect(page.getByText("Problem appears resolved: Yes")).toBeVisible();
     await saveScreenshot(page, testInfo, "authentication", "requester-ticket-detail");
     await expectNoHorizontalOverflow(page);

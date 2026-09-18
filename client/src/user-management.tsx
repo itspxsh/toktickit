@@ -71,7 +71,7 @@ export function UserManagement({ pageSize = 20 }: UserManagementProps = {}) {
       setEditorOpen(false);
       setNotice("User saved.");
       setReload((value) => value + 1);
-    } catch { setNotice("Unable to save user."); }
+    } catch (reason: unknown) { setNotice(reason instanceof Error ? reason.message : "Unable to save user."); }
   }
 
   async function resetPasswordForUser() {
@@ -82,7 +82,7 @@ export function UserManagement({ pageSize = 20 }: UserManagementProps = {}) {
       setResetPassword("");
       setNotice("Initial password reset; the user must change it on next login.");
       setReload((value) => value + 1);
-    } catch { setNotice("Unable to reset initial password."); }
+    } catch (reason: unknown) { setNotice(reason instanceof Error ? reason.message : "Unable to reset initial password."); }
   }
 
   async function confirmActivationChange() {
@@ -93,8 +93,8 @@ export function UserManagement({ pageSize = 20 }: UserManagementProps = {}) {
       setActivationTarget(null);
       setNotice(activationTarget.nextActive ? "User activated." : "User deactivated; active sessions were invalidated.");
       setReload((value) => value + 1);
-    } catch {
-      setNotice("Unable to change user status.");
+    } catch (reason: unknown) {
+      setNotice(reason instanceof Error ? reason.message : "Unable to change user status.");
     }
   }
 

@@ -47,18 +47,20 @@ export async function preflight(page: Page): Promise<void> {
   }
 }
 
-export async function signIn(page: Page, role: E2ERole): Promise<void> {
+export async function signIn(page: Page, role: E2ERole, testInfo?: TestInfo): Promise<void> {
   const credentials = ROLE_ENV[role];
   const email = requiredEnv(credentials.email);
   const password = requiredEnv(credentials.password);
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  if (testInfo) await saveScreenshot(page, testInfo, "authentication", `${role}-login`);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
 
   const changePassword = page.getByRole("heading", { name: "Change Password" });
   if (await changePassword.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    if (testInfo) await saveScreenshot(page, testInfo, "authentication", `${role}-change-password`);
     const nextPassword = requiredEnv(credentials.newPassword);
     await page.getByLabel("Current password").fill(password);
     await page.getByLabel("New password").fill(nextPassword);

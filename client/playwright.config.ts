@@ -24,10 +24,10 @@ export default defineConfig({
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
-    { name: "tablet", use: { ...devices["Desktop Chrome"], viewport: { width: 820, height: 1180 } } },
+    { name: "tablet", use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 } } },
     // Use Chromium at the mobile viewport so the suite is reproducible without
     // requiring a second browser binary merely for responsive assertions.
-    { name: "mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } } },
+    { name: "mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 320, height: 800 } } },
   ],
   webServer: [
     {
