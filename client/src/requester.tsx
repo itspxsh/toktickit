@@ -19,6 +19,8 @@ export interface RequesterContextValue {
   contextVersion: number;
   createTicketDirty: boolean;
   error: string | null;
+  authenticatedRequester: Pick<Requester, "name" | "email"> | null;
+  mode: "development" | "authenticated" | "disabled";
   pendingChange: boolean;
   requesters: Requester[];
   selectedRequester: Requester | null;
@@ -54,9 +56,15 @@ function removePersistedRequesterId(): void {
   if (typeof window !== "undefined") window.localStorage.removeItem(REQUESTER_STORAGE_KEY);
 }
 
-export function RequesterProvider({ children }: { children: ReactNode }) {
+export interface RequesterProviderProps {
+  children: ReactNode;
+  mode?: "development" | "authenticated" | "disabled";
+  authenticatedRequester?: Pick<Requester, "name" | "email"> | null;
+}
+
+export function RequesterProvider({ children, mode = "development", authenticatedRequester = null }: RequesterProviderProps) {
   const [requesters, setRequesters] = useState<Requester[]>([]);
-  const [selectedRequesterId, setSelectedRequesterId] = useState<number | null>(readPersistedRequesterId);
+  const [selectedRequesterId, setSelectedRequesterId] = useState<number | null>(() => mode === "development" ? readPersistedRequesterId() : null);
   const [status, setStatus] = useState<RequesterLoadStatus>("loading");
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -69,6 +77,13 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
   const [contextVersion, setContextVersion] = useState(0);
 
   useEffect(() => {
+    if (mode !== "development") {
+      setRequesters([]);
+      setSelectedRequesterId(null);
+      setError(null);
+      setStatus("success");
+      return;
+    }
     const controller = new AbortController();
     let ignore = false;
 
@@ -97,7 +112,7 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
       ignore = true;
       controller.abort();
     };
-  }, [reloadToken]);
+  }, [authenticatedRequester, mode, reloadToken]);
 
   const selectedRequester = useMemo(
     () => requesters.find((requester) => requester.id === selectedRequesterId) ?? null,
@@ -114,12 +129,12 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
     (id: number) => {
       const requester = requesters.find((candidate) => candidate.id === id);
       if (!requester) return false;
-      persistRequesterId(requester.id);
+      if (mode === "development") persistRequesterId(requester.id);
       setSelectedRequesterId(requester.id);
       setContextVersion((version) => version + 1);
       return true;
     },
-    [requesters],
+    [mode, requesters],
   );
 
   const requestChangeRequester = useCallback(
@@ -167,6 +182,8 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
       contextVersion,
       createTicketDirty,
       error,
+      authenticatedRequester,
+      mode,
       pendingChange,
       requesters,
       selectedRequester,
@@ -188,6 +205,8 @@ export function RequesterProvider({ children }: { children: ReactNode }) {
       contextVersion,
       createTicketDirty,
       error,
+      authenticatedRequester,
+      mode,
       pendingChange,
       requestChangeRequester,
       requestNavigation,

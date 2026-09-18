@@ -26,7 +26,7 @@ let fileKeySequence = 0;
 export interface AttachmentSectionProps {
   attachments: TicketAttachmentView[];
   onAttachmentsChange?: (attachments: TicketAttachmentView[]) => void;
-  requesterId: number;
+  requesterId?: number;
   ticketNumber: string;
 }
 

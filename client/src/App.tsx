@@ -28,6 +28,8 @@ import { StaffTicketDetail } from "./staff-ticket-detail.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
 import { StaffTicketQueue } from "./staff-ticket-queue.tsx";
 import { UserManagement } from "./user-management.tsx";
+import { AuthLoading, AuthProvider, ChangePassword, Login, RoleGuard, useAuth } from "./auth.tsx";
+import type { AuthUser } from "./api.ts";
 import "./styles.css";
 
 export {
@@ -102,7 +104,7 @@ function HealthCheck() {
     <section className="card stack" aria-labelledby="health-check-title">
         <div>
           <p className="eyebrow">Lab 1 compatibility check</p>
-          <h1 id="health-check-title">TokTickIT service status</h1>
+          <h1 id="health-check-title">Service status</h1>
           <p>Use this diagnostic while the Lab 2 requester and ticket screens are being assembled.</p>
         </div>
 
@@ -110,12 +112,12 @@ function HealthCheck() {
           {state === "loading" ? "Loading…" : "Check System"}
         </button>
 
-        {state === "loading" && <LoadingState label="loading" />}
+        {state === "loading" && <p className="loading-state" role="status">⌛ loading</p>}
 
         {state === "success" && (
           <div className="stack" aria-live="polite">
             <p>
-              <strong>System Status:</strong> <StatusBadge label="Online" tone="success" />
+              <strong>System Status: Online</strong> <StatusBadge label="Online" tone="success" />
             </p>
             {categories.length > 0 && (
               <div>
@@ -133,7 +135,7 @@ function HealthCheck() {
         {state === "error" && (
           <div className="stack" aria-live="assertive">
             <p>
-              <strong>System Status:</strong> <StatusBadge label="Offline" tone="error" />
+              <strong>System Status: Offline</strong> <StatusBadge label="Offline" tone="error" />
             </p>
             <Alert tone="error">{errorMessage}</Alert>
           </div>
@@ -142,24 +144,24 @@ function HealthCheck() {
   );
 }
 
-function RequesterAwareApp() {
+function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: AuthUser | null; legacy?: boolean; onLogout?: () => void }) {
   const [activePath, navigate] = usePathname();
   const context = useRequesterContext();
-  const requesterRequired =
+  const requesterRequired = (legacy || authUser?.role === "REQUESTER") && (
     activePath === "/tickets" ||
     activePath.startsWith("/tickets/") ||
     activePath === "/create-ticket" ||
-    activePath.startsWith("/create-ticket/");
-  const selectionRoute = activePath === "/select-requester";
+    activePath.startsWith("/create-ticket/"));
+  const selectionRoute = legacy && activePath === "/select-requester";
   const ticketDetailMatch = activePath.match(/^\/tickets\/([^/]+)$/);
   const staffTicketDetailMatch = activePath.match(/^\/staff\/tickets\/([^/]+)$/);
-  const mustSelect =
+  const mustSelect = legacy && (
     selectionRoute ||
-    (requesterRequired && (context.status !== "success" || !context.selectedRequester));
+    (requesterRequired && (context.status !== "success" || !context.selectedRequester)));
 
   useEffect(() => {
     if (
-      requesterRequired &&
+      legacy && requesterRequired &&
       context.status === "success" &&
       !context.selectedRequester &&
       !selectionRoute
@@ -176,34 +178,43 @@ function RequesterAwareApp() {
     context.requestNavigation(() => navigate(path));
   }
 
+  const routeContent = mustSelect ? (
+    <RequesterSelection onContinue={() => navigate("/tickets")} />
+  ) : activePath === "/change-password" ? (
+    <ChangePassword />
+  ) : ticketDetailMatch ? (
+    <RequesterTicketDetail
+      ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
+      onNavigate={handleNavigate}
+    />
+  ) : staffTicketDetailMatch ? (
+    <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} />
+  ) : activePath === "/staff/tickets" ? (
+    <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} />
+  ) : activePath === "/admin/users" ? (
+    <UserManagement />
+  ) : activePath === "/tickets" ? (
+    <MyTickets onNavigate={handleNavigate} />
+  ) : activePath === "/create-ticket" ? (
+    <CreateTicket onNavigate={handleNavigate} />
+  ) : (
+    <HealthCheck />
+  );
+
   return (
     <AppShell
       activePath={activePath}
-      requesterLabel={context.selectedRequester?.name}
-      onChangeRequester={handleChangeRequester}
+      role={authUser?.role}
+      userName={authUser?.name}
+      userEmail={authUser?.email}
+      requesterLabel={context.selectedRequester?.name ?? context.authenticatedRequester?.name}
+      onChangeRequester={legacy ? handleChangeRequester : undefined}
+      onChangePassword={authUser ? () => navigate("/change-password") : undefined}
+      onLogout={authUser ? onLogout : undefined}
       onNavigate={handleNavigate}
     >
-      {mustSelect ? (
-        <RequesterSelection onContinue={() => navigate("/tickets")} />
-      ) : ticketDetailMatch ? (
-        <RequesterTicketDetail
-          ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
-          onNavigate={handleNavigate}
-        />
-      ) : staffTicketDetailMatch ? (
-        <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} />
-      ) : activePath === "/staff/tickets" ? (
-        <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} />
-      ) : activePath === "/admin/users" ? (
-        <UserManagement />
-      ) : activePath === "/tickets" ? (
-        <MyTickets onNavigate={handleNavigate} />
-      ) : activePath === "/create-ticket" ? (
-        <CreateTicket onNavigate={handleNavigate} />
-      ) : (
-        <HealthCheck />
-      )}
-      <RequesterChangeConfirmation />
+      {authUser ? <RoleGuard role={authUser.role} path={activePath}>{routeContent}</RoleGuard> : routeContent}
+      {legacy && <RequesterChangeConfirmation />}
     </AppShell>
   );
 }
@@ -216,10 +227,17 @@ function decodeTicketNumber(value: string): string {
   }
 }
 
+function AuthenticatedApp() {
+  const auth = useAuth();
+  if (auth.status === "loading") return <AuthLoading />;
+  if (auth.status === "error") return <ErrorState onRetry={() => void auth.refresh()}>{auth.error ?? "Unable to load your session."}</ErrorState>;
+  if (auth.status === "legacy") return <RequesterProvider><RequesterAwareApp legacy /></RequesterProvider>;
+  if (auth.status === "anonymous") return <Login onSuccess={() => void auth.refresh()} />;
+  if (!auth.user) return <Login onSuccess={() => void auth.refresh()} />;
+  if (auth.user.mustChangePassword) return <ChangePassword onSuccess={() => void auth.refresh()} />;
+  return <RequesterProvider mode={auth.user.role === "REQUESTER" ? "authenticated" : "disabled"} authenticatedRequester={auth.user.role === "REQUESTER" ? { name: auth.user.name, email: auth.user.email } : null}><RequesterAwareApp authUser={auth.user} onLogout={() => { void auth.logout(); }} /></RequesterProvider>;
+}
+
 export default function App() {
-  return (
-    <RequesterProvider>
-      <RequesterAwareApp />
-    </RequesterProvider>
-  );
+  return <AuthProvider testLegacyFallback><AuthenticatedApp /></AuthProvider>;
 }
