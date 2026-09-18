@@ -41,4 +41,4 @@ editing product code and must follow the TDD/Test-DD order.
 | --- | --- | --- | --- | --- |
 | 2026-09-15 | L3-01 contract preparation | Lab 3 handout, Lab 2 baseline, Issue #35 | Test-DD and contract docs (local) | Peer review pending |
 | 2026-09-18 | L3-09 review resolution | PR #53 review findings | `1c2226b` and merged PR #53 | `justfepwx12` approved; live evidence remains a release-gate prerequisite |
-| 2026-09-19 | L3-10 release-readiness preparation | Issues #44/#45, Lab 3 contract, merged staging history | Traceability, reviewer record, and guarded evidence checklist | Live PostgreSQL/API run and screenshots still require the configured course environment |
+| 2026-09-19 | L3-10 release-readiness evidence | Issues #44/#45, Lab 3 contract, merged staging history, guarded local PostgreSQL | `8376f65` live migration/E2E evidence and `efac45d` provenance pin; migration 5/5, server Lab 3 40/40, Lab 2 37/37, client 56/56, Playwright 9/9, 42 redacted screenshots | Evidence is reproducible locally; final-main validation remains pending until PR #54 is approved and merged |
