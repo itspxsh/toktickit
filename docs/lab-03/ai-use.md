@@ -8,7 +8,7 @@ commit/command references only; it is not a substitute for peer approval.
 
 * `Lab_3_sheet.pdf` (SE Lab 3, score 60), supplied by the course instructor.
 * Lab 1 and Lab 2 handouts and the released Lab 2 contract/API/UI/test docs.
-* The released TokTickIT tree at `main`/`lab3-staging` commit `d4a034c`.
+* The released TokTickIT tree at `main`/`lab3-staging` contract baseline `d4a034c` and the merged Lab 3 staging tip recorded in `reviewer.md`.
 * Issue #35 and its peer-review workflow; reviewer `justfepwx12`.
 
 ## Decisions recorded for review
@@ -40,3 +40,5 @@ editing product code and must follow the TDD/Test-DD order.
 | Date | Agent/task | Inputs | Output/commit | Human verification |
 | --- | --- | --- | --- | --- |
 | 2026-09-15 | L3-01 contract preparation | Lab 3 handout, Lab 2 baseline, Issue #35 | Test-DD and contract docs (local) | Peer review pending |
+| 2026-09-18 | L3-09 review resolution | PR #53 review findings | `1c2226b` and merged PR #53 | `justfepwx12` approved; live evidence remains a release-gate prerequisite |
+| 2026-09-19 | L3-10 release-readiness preparation | Issues #44/#45, Lab 3 contract, merged staging history | Traceability, reviewer record, and guarded evidence checklist | Live PostgreSQL/API run and screenshots still require the configured course environment |

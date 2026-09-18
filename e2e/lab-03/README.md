@@ -13,6 +13,11 @@ Required environment names:
 - `E2E_CREATED_INITIAL_PASSWORD`
 - `E2E_CREATED_RESET_PASSWORD`
 
+`E2E_CREATED_RESET_PASSWORD` must be 12–128 characters because the Admin reset
+dialog enforces the Lab 3 password policy. All values are fake, local fixture
+inputs supplied through the environment; do not commit, print, or screenshot
+them.
+
 ## Exact local evidence workflow
 
 Use a test-scoped `DATABASE_URL_TEST` for migration evidence and a separately
@@ -60,3 +65,8 @@ The suite runs desktop (1440px), tablet (768px), and mobile (320px) projects
 with no retry or skip path. It writes screenshot provenance under
 `artifacts/lab-03/screenshots/` and the HTML report under
 `artifacts/lab-03/playwright-report/`.
+
+Release-gate evidence is incomplete until one green live run is retained with
+the pinned commit, the 1440px/768px/320px viewport matrix, redacted Playwright
+screenshots, and guarded migration/seed output. Discovery output alone is not
+execution evidence.

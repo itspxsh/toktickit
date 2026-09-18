@@ -40,19 +40,23 @@ lab: [@justfepwx12](https://github.com/justfepwx12).
 | [L3-06 (#41)](https://github.com/itspxsh/toktickit/issues/41) / [PR #50](https://github.com/itspxsh/toktickit/pull/50) | IT Staff ticket detail/workflow/comments/notes | Approved review by `justfepwx12` on 2026-09-18; requested duplicate-route, Admin-reopen, test-coverage, and UI-error fixes verified | Approved; Lab 3 67/67 and Lab 2 regression 37/37 passed | [67e3b1c](https://github.com/itspxsh/toktickit/commit/67e3b1c) into `lab3-staging` |
 | [L3-07 (#42)](https://github.com/itspxsh/toktickit/issues/42) / [PR #51](https://github.com/itspxsh/toktickit/pull/51) / [Review](https://github.com/itspxsh/toktickit/pull/51#pullrequestreview-5241209951) | Administrator user management | Approved review by `justfepwx12` on 2026-09-18; password-hash and CSRF follow-ups recorded as non-blocking | Approved; server 76/76, client 41/41, clean builds and Prisma validation | [e6534a4](https://github.com/itspxsh/toktickit/commit/e6534a4) into `lab3-staging` |
 | [L3-08 (#43)](https://github.com/itspxsh/toktickit/issues/43) / [PR #52](https://github.com/itspxsh/toktickit/pull/52) | Authenticated role shell and UI integration | [Approved review](https://github.com/itspxsh/toktickit/pull/52#pullrequestreview-5250598354) by `justfepwx12` on 2026-09-18 | Approved; client 56/56, build and `git diff --check` passed after requested fixes | [e82f9b3](https://github.com/itspxsh/toktickit/commit/e82f9b378d17f1be708bd33a9a8d31e1f455b489) into `lab3-staging` |
-| L3-09 | E2E, security, responsive/accessibility evidence | [PR #53](https://github.com/itspxsh/toktickit/pull/53) requested changes; skeleton-only status and live evidence deferred pending guarded environment | _pending_ | _pending_ |
-| L3-10 | Final Lab 3 evidence and release readiness | _pending_ | _pending_ | _pending_ |
+| [L3-09 (#44)](https://github.com/itspxsh/toktickit/issues/44) / [PR #53](https://github.com/itspxsh/toktickit/pull/53) | E2E, security, responsive/accessibility evidence | [Approved review](https://github.com/itspxsh/toktickit/pull/53#pullrequestreview-5251429730) by `justfepwx12` on 2026-09-18; skeleton-only status and live evidence were explicitly deferred to the release gate | Approved after `1c2226b`; discovery 9/9, client 56/56, build and `git diff --check` passed | [dddbbfc](https://github.com/itspxsh/toktickit/commit/dddbbfcecdf1956239d0223a94baaad291ccf02e) into `lab3-staging` |
+| L3-10 (#45) | Final Lab 3 evidence and release readiness | _pending_ | _pending_ | _pending_ |
 
 ## Release gate
 
 The release PR may target `main` only after every implementation PR is merged
 into `lab3-staging`, the final validation commands pass with no skipped/flaky
 tests, screenshots are provenance-linked, all Lab 3 Issues are Done on the
-Issues-only Kanban board, and the reviewer confirms the release. After the
-release merge, record the final-main commit and rerun the complete validation.
+Issues-only Kanban board, and the reviewer confirms the release. PR #53 was
+approved as a reviewable skeleton; its live PostgreSQL/API run, screenshots,
+and migration output remain mandatory release-gate evidence. The
+`E2E_CREATED_RESET_PASSWORD` fixture must be at least 12 characters and must
+remain environment-only. After the release merge, record the final-main commit
+and rerun the complete validation.
 
 ## Reviewer response log
 
 | Date | Reviewer | URL | Summary / required changes | Resolution commit |
 | --- | --- | --- | --- | --- |
-| 2026-09-18 | [@justfepwx12](https://github.com/justfepwx12) | [PR #53 review](https://github.com/itspxsh/toktickit/pull/53#pullrequestreview-5251108145) | Requested ticket-number locator correction, exact E2E titles/steps, and live evidence; non-blocking notes covered rerun-safe resolution, reset commands, viewport mapping, and focus evidence. | pending |
+| 2026-09-18 | [@justfepwx12](https://github.com/justfepwx12) | [PR #53 review](https://github.com/itspxsh/toktickit/pull/53#pullrequestreview-5251108145) and [approval](https://github.com/itspxsh/toktickit/pull/53#pullrequestreview-5251429730) | Requested ticket-number locator correction, exact E2E titles/steps, and live evidence; `1c2226b` resolved the blocking contract gaps. Approval accepted the skeleton-only boundary and retained live-run, screenshot, migration-output, and 12-character fixture requirements for L3-10. | [1c2226b](https://github.com/itspxsh/toktickit/commit/1c2226bbc7b6947c9bbd31d1441d31146a1ed694) |

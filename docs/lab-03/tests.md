@@ -8,7 +8,8 @@ references used by the other Lab 3 contract documents.
 ## 1. Test strategy and boundaries
 
 The released Lab 2 tree at `main`/`lab3-staging` commit `d4a034c` is the
-regression baseline. Lab 3 tests run with an isolated PostgreSQL test database
+regression baseline. The current Lab 3 release candidate is validated from
+the pinned staging tip recorded in `reviewer.md`. Lab 3 tests run with an isolated PostgreSQL test database
 whose name is explicitly test-scoped. No test may use a development or
 production `DATABASE_URL`.
 
@@ -98,7 +99,15 @@ real secret is committed.
 | T-E2E-04 | Desktop/tablet/mobile screenshots cover Login, Change Password, Staff Queue, Staff Detail, and User Management states. | `artifacts/lab-03/screenshots/{authentication,staff-queue,staff-ticket-detail,user-management}/` |
 | T-E2E-05 | Fresh migration/seed and an upgrade from Lab 2 are run from a clean test database with command output retained. | `artifacts/lab-03/migration/` |
 
-## 5. Acceptance-criterion traceability
+## 5. Contract and release evidence checks
+
+| ID | Check | Concrete path/evidence |
+| --- | --- | --- |
+| T-CONTRACT-01 | All four contract documents contain the required sections, stable IDs, exclusions, and mutually consistent API/UI/test rules. | `docs/lab-03/specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md` |
+| T-CONTRACT-02 | Every acceptance criterion maps to concrete Test IDs and the peer-review record links the implementation and release decisions. | This matrix and `docs/lab-03/reviewer.md` |
+| RELEASE-01 | All Lab 3 Issues are closed/Done on the Issues-only Kanban, the release PR is reviewer-approved, and final-main validation is recorded after merge. | GitHub Project #1, release PR, `reviewer.md`, and final command output |
+
+## 6. Acceptance-criterion traceability
 
 | AC | Contract outcome | Required evidence |
 | --- | --- | --- |
@@ -120,8 +129,10 @@ real secret is committed.
 | AC-16 | Security review finds no client-trusted identity, secret leakage, or cross-owner disclosure. | T-AUTHZ-02..04, T-COMMENT-03..04, T-MIG-05, T-E2E-02..03 |
 | AC-17 | Regression suite remains green from the Lab 2 released baseline. | T-REG-01 and complete Lab 2 command output |
 | AC-18 | Evidence is reproducible, screenshot provenance is recorded, and every AC maps to a concrete test. | T-E2E-04..05, this matrix, `reviewer.md` |
+| AC-19 | Contract and implementation trace every AC to concrete Test IDs and a reviewer confirmation. | T-CONTRACT-01..02, this matrix, `reviewer.md` |
+| AC-20 | Product and course Definition of Done are satisfied without any excluded Lab 4 behaviour. | RELEASE-01, `reviewer.md`, `ai-use.md`, and the reviewed release PR |
 
-## 6. Commands and pass criteria
+## 7. Commands and pass criteria
 
 Implementation issues must run the focused suite first, then the regression
 suite. The final release issue must retain the exact commands and counts:
@@ -138,7 +149,7 @@ The required pass condition is zero skipped, flaky, or untraceable tests. A
 missing live service must be reported as a failed prerequisite, never silently
 converted to a pass.
 
-## 7. Responsive/accessibility/security checklist
+## 8. Responsive/accessibility/security checklist
 
 Evidence must cover 320px mobile, 768px tablet, and a desktop viewport. Check
 keyboard-only traversal, visible `:focus-visible`, labelled controls, field
@@ -150,7 +161,7 @@ Security evidence must include forged identity fields, cross-requester IDs,
 inactive users, stale cookies, CSRF/origin failures, path/query tampering,
 password-hash/token redaction, and no secrets in screenshots or logs.
 
-## 8. Deferred items (explicitly outside Lab 3)
+## 9. Deferred items (explicitly outside Lab 3)
 
 No test is planned for email delivery, MFA, SSO, self-registration, password
 reset email, Actions Taken, SLA/escalation/notifications, dashboards/KPIs,
