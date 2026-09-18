@@ -1,20 +1,22 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const suite = process.env.E2E_SUITE === "lab3" ? "lab-03" : "lab-02";
+
 /**
  * The release suite intentionally runs against the real local API and Vite
  * servers. A missing database therefore produces a visible test failure; no
  * mock or skip path is configured here.
  */
 export default defineConfig({
-  testDir: "../e2e/lab-02",
+  testDir: `../e2e/${suite}`,
   timeout: 45_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
   forbidOnly: true,
   retries: 0,
   workers: 1,
-  reporter: [["list"], ["html", { outputFolder: "../artifacts/lab-02/playwright-report", open: "never" }]],
-  outputDir: "../artifacts/lab-02/playwright-results",
+  reporter: [["list"], ["html", { outputFolder: `../artifacts/${suite}/playwright-report`, open: "never" }]],
+  outputDir: `../artifacts/${suite}/playwright-results`,
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173",
     trace: "retain-on-failure",
