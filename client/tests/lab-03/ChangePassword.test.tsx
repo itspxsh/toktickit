@@ -22,4 +22,22 @@ describe("L3-08 Change Password", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/12.*128/i);
     expect(screen.queryByRole("link", { name: "My Tickets" })).not.toBeInTheDocument();
   });
+
+  it("clears all password fields after a failed server change", async () => {
+    const user = userEvent.setup();
+    vi.restoreAllMocks();
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: { code: "UNAUTHENTICATED" } }), { status: 401 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ csrfToken: "csrf-1" }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: { message: "Unable to change password." } }), { status: 400 })));
+    render(<AuthProvider><ChangePassword /></AuthProvider>);
+    await user.type(screen.getByLabelText("Current password"), "temporary password");
+    await user.type(screen.getByLabelText("New password"), "a valid password");
+    await user.type(screen.getByLabelText("Confirm new password"), "a valid password");
+    await user.click(screen.getByRole("button", { name: "Change password" }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByLabelText("Current password")).toHaveValue("");
+    expect(screen.getByLabelText("New password")).toHaveValue("");
+    expect(screen.getByLabelText("Confirm new password")).toHaveValue("");
+  });
 });
