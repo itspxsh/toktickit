@@ -1,9 +1,9 @@
 import { getPrisma } from "../src/prisma.js";
-import { seedReferenceData } from "../src/data-foundation.js";
+import { seedLab3Data } from "../src/data-foundation.js";
 
 async function main() {
   const prisma = getPrisma();
-  await seedReferenceData(prisma);
+  await seedLab3Data(prisma);
   console.log("Seeding completed successfully.");
 }
 

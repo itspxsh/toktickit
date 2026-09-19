@@ -1,5 +1,6 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, RequestHandler } from "express";
 import { getPrisma } from "../prisma.js";
+import { requireCsrf } from "../auth.js";
 import { allocateTicketNumber, type TicketSequenceClient } from "../ticket-number.js";
 
 type Model = {
@@ -145,6 +146,13 @@ function parseRequesterId(value: string | undefined): number | null {
   if (!value || !/^\d+$/.test(value.trim())) return null;
   const id = Number(value.trim());
   return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+function requesterContext(req: Request): number | null {
+  if (req.requesterId !== undefined) return req.requesterId;
+  // The header is retained only for isolated Lab 2 route tests that do not
+  // install authentication. An authenticated request can never fall back to it.
+  return req.auth ? null : parseRequesterId(req.header("X-Development-Requester-Id"));
 }
 
 function isUuid(value: string | undefined): value is string {
@@ -391,9 +399,12 @@ function isUniqueViolation(error: unknown): boolean {
 export function registerTicketRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
+  authorizationMiddleware?: RequestHandler,
+  writeMiddleware?: RequestHandler,
 ): void {
+  if (authorizationMiddleware) app.use("/api/tickets", authorizationMiddleware);
   app.get("/api/tickets/:ticketNumber", async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -438,7 +449,7 @@ export function registerTicketRoutes(
   });
 
   app.get("/api/tickets", async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -506,8 +517,8 @@ export function registerTicketRoutes(
     }
   });
 
-  app.post("/api/tickets", async (req: Request, res: Response) => {
-    const requesterId = parseRequesterId(req.header("X-Development-Requester-Id"));
+  const createTicket = async (req: Request, res: Response) => {
+    const requesterId = requesterContext(req);
     if (requesterId === null) {
       res.status(400).json({
         error: { code: "INVALID_REQUESTER_CONTEXT", message: "A positive Development Requester id is required." },
@@ -583,6 +594,7 @@ export function registerTicketRoutes(
             ticketSequence: allocation.ticketSequence,
             ticketDate,
             requesterId,
+            ...(req.auth?.user.id ? { requesterUserId: req.auth.user.id } : {}),
             categoryId: parsed.input.categoryId,
             relatedSystemId: parsed.input.relatedSystemId,
             summary: parsed.input.summary,
@@ -618,5 +630,8 @@ export function registerTicketRoutes(
         error: { code: "INTERNAL_ERROR", message: "Unable to create Ticket." },
       });
     }
-  });
+  };
+  const writeGuard = writeMiddleware ?? (authorizationMiddleware ? requireCsrf : undefined);
+  if (writeGuard) app.post("/api/tickets", writeGuard, createTicket);
+  else app.post("/api/tickets", createTicket);
 }

@@ -74,8 +74,14 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
   const [reloadToken, setReloadToken] = useState(0);
   const [categories, setCategories] = useState<Category[]>([]);
   const [relatedSystems, setRelatedSystems] = useState<RelatedSystem[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const query = useMemo(() => toQuery(controls), [controls]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(controls.search), 250);
+    return () => window.clearTimeout(timer);
+  }, [controls.search]);
+
+  const query = useMemo(() => toQuery({ ...controls, search: debouncedSearch }), [controls, debouncedSearch]);
   const hasSearchOrFilter = Boolean(
     controls.search.trim() || controls.categoryId || controls.relatedSystemId || controls.requestedPriority,
   );
@@ -103,8 +109,8 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
   }, []);
 
   useEffect(() => {
-    const requesterId = requesterContext.selectedRequesterId;
-    if (requesterId === null || requesterContext.status !== "success") return;
+    const requesterId = requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined;
+    if ((requesterContext.mode === "development" && requesterId === null) || requesterContext.status !== "success") return;
 
     const controller = new AbortController();
     let ignore = false;
@@ -124,7 +130,7 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
       ignore = true;
       controller.abort();
     };
-  }, [query, reloadToken, requesterContext.contextVersion, requesterContext.selectedRequesterId, requesterContext.status]);
+  }, [query, reloadToken, requesterContext.contextVersion, requesterContext.mode, requesterContext.selectedRequesterId, requesterContext.status]);
 
   function updateControl<K extends keyof ListControls>(field: K, value: ListControls[K]) {
     setControls((current) => ({ ...current, [field]: value, page: 1 }));
@@ -140,7 +146,7 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
     onNavigate(path);
   }
 
-  const requesterName = requesterContext.selectedRequester?.name ?? "This requester";
+  const requesterName = requesterContext.selectedRequester?.name ?? requesterContext.authenticatedRequester?.name ?? "This requester";
   const noTickets = result?.data.length === 0 && result.pagination.totalItems === 0 && !hasSearchOrFilter;
 
   return (

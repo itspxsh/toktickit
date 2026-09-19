@@ -28,6 +28,11 @@ export interface AppShellProps {
   requesterLabel?: string | null;
   onChangeRequester?: () => void;
   onNavigate?: (path: string) => void;
+  role?: "REQUESTER" | "IT_STAFF" | "ADMIN";
+  userName?: string;
+  userEmail?: string;
+  onLogout?: () => void;
+  onChangePassword?: () => void;
 }
 
 export function AppShell({
@@ -36,6 +41,11 @@ export function AppShell({
   requesterLabel = null,
   onChangeRequester,
   onNavigate,
+  role,
+  userName,
+  userEmail,
+  onLogout,
+  onChangePassword,
 }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -47,6 +57,13 @@ export function AppShell({
   }, []);
 
   const isActive = (path: string) => activePath === path || activePath.startsWith(`${path}/`);
+
+  const roleName = role === "IT_STAFF" ? "IT Staff" : role === "ADMIN" ? "Administrator" : "Requester";
+  const destinations = role === "ADMIN"
+    ? [{ path: "/staff/tickets", label: "Staff Tickets" }, { path: "/admin/users", label: "User Management" }]
+    : role === "IT_STAFF"
+      ? [{ path: "/staff/tickets", label: "Staff Tickets" }]
+      : [{ path: "/tickets", label: "My Tickets" }, { path: "/create-ticket", label: "Create Ticket" }];
 
   return (
     <div className="app-shell">
@@ -84,37 +101,24 @@ export function AppShell({
             className={`app-shell__nav${menuOpen ? " app-shell__nav--open" : ""}`}
             aria-label="Primary navigation"
           >
-            <a
-              href="/tickets"
-              className={`app-shell__nav-link${isActive("/tickets") ? " app-shell__nav-link--active" : ""}`}
-              aria-current={isActive("/tickets") ? "page" : undefined}
-              onClick={(event) => {
-                setMenuOpen(false);
-                if (onNavigate) {
-                  event.preventDefault();
-                  onNavigate("/tickets");
-                }
-              }}
-            >
-              My Tickets
-            </a>
-            <a
-              href="/create-ticket"
-              className={`app-shell__nav-link${isActive("/create-ticket") ? " app-shell__nav-link--active" : ""}`}
-              aria-current={isActive("/create-ticket") ? "page" : undefined}
-              onClick={(event) => {
-                setMenuOpen(false);
-                if (onNavigate) {
-                  event.preventDefault();
-                  onNavigate("/create-ticket");
-                }
-              }}
-            >
-              Create Ticket
-            </a>
+            {destinations.map((destination) => <a
+              key={destination.path}
+              href={destination.path}
+              className={`app-shell__nav-link${isActive(destination.path) ? " app-shell__nav-link--active" : ""}`}
+              aria-current={isActive(destination.path) ? "page" : undefined}
+              onClick={(event) => { setMenuOpen(false); if (onNavigate) { event.preventDefault(); onNavigate(destination.path); } }}
+            >{destination.label}</a>)}
           </nav>
 
-          <div className="app-shell__context" aria-label="Development Requester context">
+          {role ? <div className="app-shell__context" aria-label="Authenticated user context">
+            <span className="app-shell__requester">
+              <span className="app-shell__context-label">{userName ?? "User"}</span>
+              <strong>{userEmail ?? ""}</strong>
+            </span>
+            <span className="status-badge status-badge--neutral" role="status" aria-label={`Role: ${roleName}`}><span aria-hidden="true">●</span> {roleName}</span>
+            {onChangePassword && <button type="button" className="button button--tertiary" onClick={onChangePassword}>Change Password</button>}
+            {onLogout && <button type="button" className="button button--tertiary" onClick={onLogout}>Log out</button>}
+          </div> : <div className="app-shell__context" aria-label="Development Requester context">
             <span className="app-shell__requester">
               <span className="app-shell__context-label">Requester</span>
               <strong>{requesterLabel ?? "No requester selected"}</strong>
@@ -123,7 +127,7 @@ export function AppShell({
             <button type="button" className="button button--tertiary" onClick={onChangeRequester}>
               Change Requester
             </button>
-          </div>
+          </div>}
         </div>
       </header>
 
@@ -149,6 +153,7 @@ export function FormField({ children, error, hint, id, label, required = false }
     .join(" ");
   const enhancedChild = isValidElement(children)
     ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+        "aria-label": label,
         "aria-describedby": describedBy || undefined,
         "aria-invalid": error ? "true" : undefined,
         "aria-required": required ? "true" : undefined,

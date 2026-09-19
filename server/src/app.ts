@@ -5,6 +5,12 @@ import { registerRequesterRoutes } from "./routes/requesters.js";
 import { registerTicketRoutes } from "./routes/tickets.js";
 import { registerAttachmentRoutes } from "./routes/attachments.js";
 import { registerReferenceDataRoutes } from "./routes/reference-data.js";
+import { registerRequesterWorkflowRoutes } from "./routes/requester-workflow.js";
+import { createAuthMiddleware, createPasswordChangedMiddleware, registerAuthRoutes, requireCsrf } from "./auth.js";
+import { createAdminAuthMiddleware, createRequesterAuthMiddleware, createStaffAuthMiddleware } from "./authorization.js";
+import { registerStaffQueueRoutes } from "./routes/staff-queue.js";
+import { registerStaffTicketDetailRoutes } from "./routes/staff-ticket-detail.js";
+import { registerAdminUserRoutes } from "./routes/users-admin.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -13,7 +19,8 @@ void getPrisma;
 // Supertest can import `app` without opening a port. Do not merge these files.
 export const app = express();
 
-app.use(cors());          // already wired: lets the Vite dev server call this API
+const AUTH_ORIGIN = process.env.AUTH_ORIGIN ?? "http://localhost:3000";
+app.use(cors({ origin: AUTH_ORIGIN, credentials: true }));
 app.use(express.json());
 app.use((error: unknown, _req: Request, res: Response, next: NextFunction) => {
   if (error && typeof error === "object" && (error as { type?: unknown }).type === "entity.parse.failed") {
@@ -35,9 +42,22 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
-registerReferenceDataRoutes(app);
-registerRequesterRoutes(app);
-registerTicketRoutes(app);
-registerAttachmentRoutes(app);
+registerAuthRoutes(app);
+const authenticated = createAuthMiddleware();
+const authenticatedAndChanged = createPasswordChangedMiddleware(authenticated);
+const requesterAuthenticated = createRequesterAuthMiddleware();
+const staffAuthenticated = createStaffAuthMiddleware();
+const adminAuthenticated = createAdminAuthMiddleware();
+registerReferenceDataRoutes(app, undefined, authenticatedAndChanged);
+registerRequesterRoutes(app, undefined, authenticatedAndChanged);
+registerRequesterWorkflowRoutes(app, undefined, authenticatedAndChanged);
+// One shared requester guard covers both Lab 2 ticket and attachment routes;
+// write handlers add CSRF independently so reads remain safe and usable.
+app.use("/api/tickets", requesterAuthenticated);
+registerTicketRoutes(app, undefined, undefined, requireCsrf);
+registerAttachmentRoutes(app, undefined, undefined, requireCsrf);
+registerStaffQueueRoutes(app, undefined, staffAuthenticated);
+registerStaffTicketDetailRoutes(app, undefined, staffAuthenticated, requireCsrf);
+registerAdminUserRoutes(app, undefined, adminAuthenticated, requireCsrf);
 
 export default app;

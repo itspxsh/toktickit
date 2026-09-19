@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, RequestHandler } from "express";
 import { getPrisma } from "../prisma.js";
 
 type ReferenceModel = {
@@ -28,7 +28,12 @@ function sendReferenceError(res: Response, label: string): void {
 export function registerReferenceDataRoutes(
   app: Express,
   prismaProvider: PrismaProvider = getPrisma as unknown as PrismaProvider,
+  authorizationMiddleware?: RequestHandler,
 ): void {
+  if (authorizationMiddleware) {
+    app.use("/api/categories", authorizationMiddleware);
+    app.use("/api/related-systems", authorizationMiddleware);
+  }
   app.get("/api/categories", async (_req: Request, res: Response) => {
     try {
       const categories = await prismaProvider().category.findMany({

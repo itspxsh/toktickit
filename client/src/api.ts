@@ -32,6 +32,7 @@ export interface TicketView {
   description: string;
   itPriority: string | null;
   currentStatus: "NEW";
+  appearsResolved?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,6 +52,52 @@ export interface TicketAttachmentView {
 
 export interface TicketDetailView extends TicketView {
   attachments: TicketAttachmentView[];
+}
+
+export type StaffTicketStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
+export type StaffTicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export interface StaffPerson { id: number; name: string; role?: string }
+export interface StaffComment { id: number; author: StaffPerson; body: string; createdAt: string }
+export interface StaffTicketDetailView {
+  ticketNumber: string;
+  summary: string;
+  description: string;
+  ticketDate: string;
+  requestedPriority: RequestedPriority;
+  itPriority: StaffTicketPriority | null;
+  currentStatus: StaffTicketStatus;
+  appearsResolved: boolean;
+  requester: { id: number; name: string; email: string };
+  assignedStaff: { id: number; name: string } | null;
+  attachments: TicketAttachmentView[];
+  publicComments: StaffComment[];
+  internalNotes: StaffComment[];
+}
+
+export type AdminUserRole = "REQUESTER" | "IT_STAFF" | "ADMIN";
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: AdminUserRole;
+  isActive: boolean;
+  mustChangePassword: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface AdminUserListQuery {
+  q?: string;
+  role?: AdminUserRole;
+  isActive?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+export interface AdminUserListResponse {
+  items: AdminUser[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface CreateTicketResponse {
@@ -96,6 +143,39 @@ export interface TicketListResponse {
   };
 }
 
+export type StaffQueueStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
+export type StaffQueuePriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type StaffQueueAssignment = "unassigned" | "mine" | "assigned";
+export type StaffQueueSort = "updatedAtDesc" | "priorityDesc" | "statusAsc";
+
+export interface StaffQueueItem {
+  ticketNumber: string;
+  summary: string;
+  requester: { id: number; name: string };
+  itPriority: StaffQueuePriority | null;
+  currentStatus: StaffQueueStatus;
+  assignedStaff: { id: number; name: string } | null;
+  updatedAt: string;
+}
+
+export interface StaffQueueQuery {
+  q?: string;
+  status?: StaffQueueStatus;
+  itPriority?: StaffQueuePriority;
+  assignment?: StaffQueueAssignment;
+  sort?: StaffQueueSort;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface StaffQueueResponse {
+  items: StaffQueueItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 export class ApiError extends Error {
   readonly fieldErrors?: Record<string, string>;
   readonly status: number;
@@ -106,6 +186,118 @@ export class ApiError extends Error {
     this.status = status;
     this.fieldErrors = fieldErrors;
   }
+}
+
+export type AuthRole = "REQUESTER" | "IT_STAFF" | "ADMIN";
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: AuthRole;
+  isActive: boolean;
+  mustChangePassword: boolean;
+}
+
+let csrfToken: string | null = null;
+
+function parseAuthUser(value: unknown): AuthUser | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as Record<string, unknown>;
+  return typeof row.id === "number" && typeof row.name === "string" && typeof row.email === "string" &&
+    (row.role === "REQUESTER" || row.role === "IT_STAFF" || row.role === "ADMIN") &&
+    typeof row.isActive === "boolean" && typeof row.mustChangePassword === "boolean"
+    ? row as unknown as AuthUser : null;
+}
+
+function errorFromBody(body: unknown, fallback: string, status: number): ApiError {
+  const error = body && typeof body === "object" && "error" in body
+    ? (body as { error?: { message?: unknown; fieldErrors?: unknown } }).error
+    : undefined;
+  const message = typeof error?.message === "string" ? error.message : fallback;
+  const fields = error?.fieldErrors && typeof error.fieldErrors === "object"
+    ? error.fieldErrors as Record<string, string> : undefined;
+  return new ApiError(message, status, fields);
+}
+
+export async function fetchCurrentUser(signal?: AbortSignal): Promise<AuthUser | null> {
+  const response = await fetch(`${API_URL}/api/auth/me`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (response.status === 401) return null;
+  if (!response.ok) throw errorFromBody(body, "Unable to load your session.", response.status);
+  return parseAuthUser(body && typeof body === "object" && "user" in body ? (body as { user?: unknown }).user : body);
+}
+
+async function csrfHeaders(): Promise<HeadersInit> {
+  if (!csrfToken) {
+    const response = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
+    const body: unknown = await response.json().catch(() => null);
+    if (!response.ok) throw errorFromBody(body, "Unable to prepare this action.", response.status);
+    csrfToken = body && typeof body === "object" && typeof (body as { csrfToken?: unknown }).csrfToken === "string"
+      ? (body as { csrfToken: string }).csrfToken : null;
+  }
+  return csrfToken ? { "X-CSRF-Token": csrfToken } : {};
+}
+
+export async function loginUser(email: string, password: string): Promise<AuthUser> {
+  // A new login establishes a new session; never reuse a CSRF token from an
+  // expired or logged-out session.
+  csrfToken = null;
+  const response = await fetch(`${API_URL}/api/auth/login`, {
+    method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw errorFromBody(body, "Email or password is incorrect.", response.status);
+  const user = parseAuthUser(body && typeof body === "object" && "user" in body ? (body as { user?: unknown }).user : null);
+  if (!user) throw new ApiError("Unable to complete sign in.", response.status);
+  return user;
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<AuthUser> {
+  const response = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw errorFromBody(body, "Unable to change password.", response.status);
+  const user = parseAuthUser(body && typeof body === "object" && "user" in body ? (body as { user?: unknown }).user : null);
+  if (!user) throw new ApiError("Unable to change password.", response.status);
+  csrfToken = null;
+  return user;
+}
+
+export async function logoutUser(): Promise<void> {
+  const response = await fetch(`${API_URL}/api/auth/logout`, {
+    method: "POST", credentials: "include", headers: await csrfHeaders(),
+  });
+  csrfToken = null;
+  if (!response.ok) throw errorFromBody(await response.json().catch(() => null), "Unable to sign out.", response.status);
+}
+
+/** Load the authenticated IT Staff/Admin queue; actor identity comes from the server session. */
+export async function fetchStaffTickets(
+  query: StaffQueueQuery = {},
+  signal?: AbortSignal,
+): Promise<StaffQueueResponse> {
+  const params = new URLSearchParams();
+  if (query.q?.trim()) params.set("q", query.q.trim());
+  if (query.status) params.set("status", query.status);
+  if (query.itPriority) params.set("itPriority", query.itPriority);
+  if (query.assignment) params.set("assignment", query.assignment);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.pageSize !== undefined) params.set("pageSize", String(query.pageSize));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_URL}/api/staff/tickets${suffix}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load staff Tickets.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("items" in body) || !("page" in body) || !("pageSize" in body) || !("total" in body) || !("totalPages" in body)) {
+    throw new Error("Unable to load staff Tickets.");
+  }
+  return body as StaffQueueResponse;
 }
 
 export interface SystemStatus {
@@ -143,6 +335,10 @@ function isRequester(value: unknown): value is Requester {
 /** Headers for later requester-scoped calls; this is testing context only. */
 export function developmentRequesterHeaders(requesterId: number): HeadersInit {
   return { "X-Development-Requester-Id": String(requesterId) };
+}
+
+function requesterHeaders(requesterId?: number): HeadersInit {
+  return requesterId === undefined ? {} : developmentRequesterHeaders(requesterId);
 }
 
 function isReferenceRow(value: unknown): value is Category {
@@ -193,16 +389,17 @@ export function createIdempotencyKey(): string {
 /** Submit one requester-scoped Ticket using a stable idempotency key. */
 export async function createTicket(
   payload: CreateTicketPayload,
-  requesterId: number,
+  requesterId: number | undefined,
   idempotencyKey = createIdempotencyKey(),
 ): Promise<CreateTicketResponse> {
   const response = await fetch(`${API_URL}/api/tickets`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...developmentRequesterHeaders(requesterId),
+      ...requesterHeaders(requesterId),
       "Idempotency-Key": idempotencyKey,
     },
+    credentials: "include",
     body: JSON.stringify(payload),
   });
 
@@ -228,11 +425,12 @@ export async function createTicket(
 /** Load one requester-owned Ticket and read-only attachment metadata. */
 export async function fetchTicketDetail(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   signal?: AbortSignal,
 ): Promise<TicketDetailView> {
   const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}`, {
-    headers: developmentRequesterHeaders(requesterId),
+    headers: requesterHeaders(requesterId),
+    credentials: "include",
     signal,
   });
   const body: unknown = await response.json().catch(() => null);
@@ -268,6 +466,111 @@ function readApiError(body: unknown, fallback: string): { message: string; field
   };
 }
 
+async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+  const csrfResponse = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
+  const csrfBody: unknown = await csrfResponse.json().catch(() => null);
+  if (!csrfResponse.ok || !csrfBody || typeof csrfBody !== "object" || typeof (csrfBody as { csrfToken?: unknown }).csrfToken !== "string") {
+    throw new ApiError("Unable to authorise this action.", csrfResponse.status || 401);
+  }
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": (csrfBody as { csrfToken: string }).csrfToken },
+    body: JSON.stringify(body),
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(payload, "Unable to update Ticket.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  return payload as T;
+}
+
+async function adminMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+  const csrfResponse = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
+  const csrfBody: unknown = await csrfResponse.json().catch(() => null);
+  if (!csrfResponse.ok || !csrfBody || typeof csrfBody !== "object" || typeof (csrfBody as { csrfToken?: unknown }).csrfToken !== "string") {
+    throw new ApiError("Unable to authorise this action.", csrfResponse.status || 401);
+  }
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": (csrfBody as { csrfToken: string }).csrfToken },
+    body: JSON.stringify(body),
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const parsed = readApiError(payload, "Unable to update users.");
+    throw new ApiError(parsed.message, response.status, parsed.fieldErrors);
+  }
+  return payload as T;
+}
+
+export async function fetchAdminUsers(query: AdminUserListQuery = {}, signal?: AbortSignal): Promise<AdminUserListResponse> {
+  const params = new URLSearchParams();
+  if (query.q?.trim()) params.set("q", query.q.trim());
+  if (query.role) params.set("role", query.role);
+  if (query.isActive !== undefined) params.set("isActive", String(query.isActive));
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.pageSize !== undefined) params.set("pageSize", String(query.pageSize));
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`${API_URL}/api/admin/users${suffix}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const parsed = readApiError(body, "Unable to load users.");
+    throw new ApiError(parsed.message, response.status, parsed.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("items" in body)) throw new Error("Unable to load users.");
+  return body as AdminUserListResponse;
+}
+
+export function createAdminUser(payload: { name: string; email: string; role: AdminUserRole; initialPassword: string }) {
+  return adminMutation<{ user: AdminUser }>("/api/admin/users", "POST", payload);
+}
+
+export function updateAdminUser(userId: number, payload: Partial<Pick<AdminUser, "name" | "email" | "role" | "isActive">>) {
+  return adminMutation<{ user: AdminUser }>(`/api/admin/users/${userId}`, "PATCH", payload);
+}
+
+export function resetAdminUserPassword(userId: number, initialPassword: string) {
+  return adminMutation<{ user: AdminUser }>(`/api/admin/users/${userId}/reset-initial-password`, "POST", { initialPassword });
+}
+
+export async function fetchStaffTicketDetail(ticketNumber: string, signal?: AbortSignal): Promise<StaffTicketDetailView> {
+  const response = await fetch(`${API_URL}/api/staff/tickets/${encodeURIComponent(ticketNumber)}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load Ticket.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !("ticket" in body)) throw new Error("Unable to load Ticket.");
+  return (body as { ticket: StaffTicketDetailView }).ticket;
+}
+
+export function claimStaffTicket(ticketNumber: string) {
+  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/claim`, "POST", {});
+}
+
+export function assignStaffTicket(ticketNumber: string, assignedStaffId: number) {
+  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/assignment`, "PATCH", { assignedStaffId });
+}
+
+export function updateStaffPriority(ticketNumber: string, itPriority: StaffTicketPriority) {
+  return staffMutation<{ itPriority: StaffTicketPriority }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/priority`, "PATCH", { itPriority });
+}
+
+export function updateStaffStatus(ticketNumber: string, currentStatus: StaffTicketStatus, confirm = false) {
+  return staffMutation<{ currentStatus: StaffTicketStatus }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/status`, "PATCH", { currentStatus, confirm });
+}
+
+export function addStaffPublicComment(ticketNumber: string, body: string) {
+  return staffMutation<{ comment: StaffComment }>(`/api/tickets/${encodeURIComponent(ticketNumber)}/comments`, "POST", { body });
+}
+
+export function addInternalNote(ticketNumber: string, body: string) {
+  return staffMutation<{ note: StaffComment }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/internal-notes`, "POST", { body });
+}
+
 async function parseAttachmentResponse(response: Response, fallback: string): Promise<TicketAttachmentView> {
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
@@ -281,7 +584,7 @@ async function parseAttachmentResponse(response: Response, fallback: string): Pr
 /** Upload one file; callers may invoke this once per selected file. */
 export async function uploadAttachment(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   file: File,
   signal?: AbortSignal,
 ): Promise<TicketAttachmentView> {
@@ -289,7 +592,8 @@ export async function uploadAttachment(
   form.append("file", file, file.name);
   const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments`, {
     method: "POST",
-    headers: developmentRequesterHeaders(requesterId),
+    headers: requesterHeaders(requesterId),
+    credentials: "include",
     body: form,
     signal,
   });
@@ -299,13 +603,13 @@ export async function uploadAttachment(
 /** Fetch a private active attachment stream using the testing requester context. */
 export async function downloadAttachment(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   attachmentId: number,
   signal?: AbortSignal,
 ): Promise<Blob> {
   const response = await fetch(
     `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}/download`,
-    { headers: developmentRequesterHeaders(requesterId), signal },
+    { headers: requesterHeaders(requesterId), credentials: "include", signal },
   );
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null);
@@ -318,7 +622,7 @@ export async function downloadAttachment(
 /** Soft-remove one owned active attachment and preserve its metadata. */
 export async function removeAttachment(
   ticketNumber: string,
-  requesterId: number,
+  requesterId: number | undefined,
   attachmentId: number,
   reason: string,
   signal?: AbortSignal,
@@ -327,7 +631,8 @@ export async function removeAttachment(
     `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}`,
     {
       method: "DELETE",
-      headers: { "Content-Type": "application/json", ...developmentRequesterHeaders(requesterId) },
+      headers: { "Content-Type": "application/json", ...requesterHeaders(requesterId) },
+      credentials: "include",
       body: JSON.stringify({ reason }),
       signal,
     },
@@ -337,7 +642,7 @@ export async function removeAttachment(
 
 /** Load the selected requester's Ticket list using only the testing context header. */
 export async function fetchMyTickets(
-  requesterId: number,
+  requesterId: number | undefined,
   query: TicketListQuery = {},
   signal?: AbortSignal,
 ): Promise<TicketListResponse> {
@@ -354,7 +659,8 @@ export async function fetchMyTickets(
 
   const suffix = params.toString() ? `?${params.toString()}` : "";
   const response = await fetch(`${API_URL}/api/tickets${suffix}`, {
-    headers: developmentRequesterHeaders(requesterId),
+    headers: requesterHeaders(requesterId),
+    credentials: "include",
     signal,
   });
   const body: unknown = await response.json().catch(() => null);
@@ -375,6 +681,21 @@ export async function fetchMyTickets(
     throw new Error("Unable to load My Tickets.");
   }
   return body as TicketListResponse;
+}
+
+export async function indicateTicketResolved(ticketNumber: string, appearsResolved: boolean): Promise<{ ticketNumber: string; appearsResolved: boolean }> {
+  const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/resolution-indication`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(await csrfHeaders()) },
+    body: JSON.stringify({ appearsResolved }),
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw errorFromBody(body, "Unable to update resolution indication.", response.status);
+  if (!body || typeof body !== "object" || typeof (body as { ticketNumber?: unknown }).ticketNumber !== "string" || typeof (body as { appearsResolved?: unknown }).appearsResolved !== "boolean") {
+    throw new Error("Unable to update resolution indication.");
+  }
+  return body as { ticketNumber: string; appearsResolved: boolean };
 }
 
 // Issue 2 + Issue 4 — call the backend.
