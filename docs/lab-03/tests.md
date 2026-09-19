@@ -51,6 +51,7 @@ real secret is committed.
 | T-AUTHZ-02 | Requester cannot call staff/admin routes, forge role/owner/author fields, or read another requester’s ticket. | `server/tests/lab-03/authorization.api.test.ts` | API/security |
 | T-AUTHZ-03 | IT Staff cannot call user-management routes; Administrator can, subject to safety rules. | `server/tests/lab-03/authorization.api.test.ts` | API/security |
 | T-AUTHZ-04 | Inactive users and sessions are rejected even when a stale cookie is presented. | `server/tests/lab-03/authorization.api.test.ts` | API |
+| T-AUTHZ-05 | First-login password-gated requests stop before requester/ticket lookups with `PASSWORD_CHANGE_REQUIRED`. | `server/tests/lab-03/authorization.api.test.ts` | API/security |
 | T-STAFF-01 | Queue supports exact defaults, search, status/priority/assignment filters, deterministic sort, and pagination metadata. | `server/tests/lab-03/staff-queue.api.test.ts` | API |
 | T-STAFF-02 | Queue never returns another requester’s private data or `passwordHash`/session fields. | `server/tests/lab-03/staff-queue.api.test.ts` | API/security |
 | T-STAFF-03 | Claim is atomic; a race returns a conflict and does not overwrite an existing owner. | `server/tests/lab-03/staff-queue.api.test.ts` | API/concurrency |
@@ -113,7 +114,7 @@ real secret is committed.
 | --- | --- | --- |
 | AC-01 | Login, logout, current user, opaque session, and safe failures. | T-AUTH-01..06, T-UI-01, T-E2E-01 |
 | AC-02 | Mandatory first-login password change and session rotation. | T-AUTH-03..04, T-UI-02, T-E2E-01 |
-| AC-03 | Server-enforced role navigation and authorization matrix. | T-AUTHZ-01..04, T-UI-03, T-E2E-02..03 |
+| AC-03 | Server-enforced role navigation and authorization matrix. | T-AUTHZ-01..05, T-UI-03, T-E2E-02..03 |
 | AC-04 | Lab 2 requester ticket/attachment regression and ownership continuity. | T-REG-01, T-MIG-02..03, T-UI-06, T-E2E-01 |
 | AC-05 | Staff queue query, filters, pagination, and isolation. | T-STAFF-01..02, T-UI-04, T-E2E-02 |
 | AC-06 | Claim, assign, and reassign ownership safely under a race. | T-STAFF-03..04, T-UI-05, T-E2E-02 |
@@ -124,7 +125,7 @@ real secret is committed.
 | AC-11 | Admin activation/deactivation and initial-password reset safeguards. | T-ADMIN-03..04, T-UI-07, T-E2E-03 |
 | AC-12 | Migration preserves Lab 2 data and maps requester ownership. | T-MIG-01..03, T-E2E-05 |
 | AC-13 | Idempotent role/ticket/comment seed with no reactivation or secrets. | T-MIG-04..05, T-E2E-05 |
-| AC-14 | API payloads, validation, status codes, and safe error envelope are exact. | T-AUTH-01..06, T-AUTHZ-01..04, T-STAFF-01..04, T-DETAIL-01..04, T-COMMENT-01..05, T-ADMIN-01..04 |
+| AC-14 | API payloads, validation, status codes, and safe error envelope are exact. | T-AUTH-01..06, T-AUTHZ-01..05, T-STAFF-01..04, T-DETAIL-01..04, T-COMMENT-01..05, T-ADMIN-01..04 |
 | AC-15 | UI states, accessibility, focus management, responsive layout, and non-color cues. | T-UI-01..09, T-E2E-04 |
 | AC-16 | Security review finds no client-trusted identity, secret leakage, or cross-owner disclosure. | T-AUTHZ-02..04, T-COMMENT-03..04, T-MIG-05, T-E2E-02..03 |
 | AC-17 | Regression suite remains green from the Lab 2 released baseline. | T-REG-01 and complete Lab 2 command output |

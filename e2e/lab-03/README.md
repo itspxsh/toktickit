@@ -24,7 +24,10 @@ Use a test-scoped `DATABASE_URL_TEST` for migration evidence and a separately
 configured local development `DATABASE_URL` for the live web-server run. Do
 not paste either URL or any password into logs, screenshots, or source. The
 release-gate run used a local HTTP transport with `SESSION_COOKIE_SECURE=false`
-only for the test server; production/default configuration remains Secure.
+only for the test server; production/default configuration remains Secure. Set
+`AUTH_ORIGIN` to the exact client origin served by Playwright (for this setup,
+`export AUTH_ORIGIN=http://127.0.0.1:5173`) so CSRF origin checks and browser
+credentials are reproducible.
 
 ```text
 cd server
