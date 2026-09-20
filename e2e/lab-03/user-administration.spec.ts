@@ -16,7 +16,8 @@ test.describe("Lab 3 Administrator journey", () => {
 
     const email = `e2e-${Date.now()}@example.test`;
     await page.getByRole("button", { name: "Create User" }).click();
-    const notice = page.locator('section[aria-labelledby="user-management-title"] > p[role="status"]');
+    const notice = page.locator('section[aria-labelledby="user-management-title"] > p[role="status"]')
+      .filter({ hasText: /User saved|Initial password reset|activated|deactivated|cannot deactivate|last active Administrator/i });
     await page.getByLabel("Name").fill("Lab 3 E2E Requester");
     await page.getByLabel("Email").fill(email);
     await page.locator("#admin-user-role-select").selectOption("REQUESTER");

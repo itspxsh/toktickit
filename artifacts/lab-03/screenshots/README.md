@@ -1,7 +1,7 @@
 # Lab 3 screenshot provenance
 
 The PNGs in this directory are redacted Playwright artifacts produced by the
-live release-gate run. They contain only fake local fixture data; passwords,
+post-release reliability run. They contain only fake local fixture data; passwords,
 session tokens, database URLs, and secrets are not included.
 
 Viewport matrix:
@@ -20,5 +20,5 @@ The run executed the three journeys in `e2e/lab-03/` for each project:
 Total live matrix: 9/9 passed, with no retries or skips. The API used a local
 HTTP origin and `SESSION_COOKIE_SECURE=false` only for this local test server;
 the application default remains Secure cookies. The exact migration and seed
-provenance is retained in `../migration/deploy.txt`. Evidence commit:
-`8376f65` (`fix(lab3): close release migration and evidence gates`).
+provenance is retained in `../migration/deploy.txt`. Reliability evidence
+commit: `1e639c8` (`evidence(lab3): retain reliability matrix screenshots`).
