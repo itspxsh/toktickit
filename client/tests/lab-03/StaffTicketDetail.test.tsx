@@ -68,4 +68,22 @@ describe("StaffTicketDetail", () => {
     fireEvent.click(screen.getByRole("button", { name: /save priority/i }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/Ticket status changed; refresh and retry/i);
   });
+
+  it("T-UI-05 keeps a successful mutation notice visible after the detail reload", async () => {
+    render(<StaffTicketDetail ticketNumber={ticket.ticketNumber} />);
+    await waitFor(() => expect(document.body.textContent).toContain("Checked gateway logs."));
+    fireEvent.change(screen.getByRole("combobox", { name: "IT Priority" }), { target: { value: "URGENT" } });
+    fireEvent.click(screen.getByRole("button", { name: /save priority/i }));
+    expect(await screen.findByText("Priority updated.", { selector: "p" })).toBeInTheDocument();
+  });
+
+  it("T-UI-05 clears a prior notice when navigating to another ticket", async () => {
+    const view = render(<StaffTicketDetail ticketNumber={ticket.ticketNumber} />);
+    await waitFor(() => expect(document.body.textContent).toContain("Checked gateway logs."));
+    fireEvent.change(screen.getByRole("combobox", { name: "IT Priority" }), { target: { value: "URGENT" } });
+    fireEvent.click(screen.getByRole("button", { name: /save priority/i }));
+    expect(await screen.findByText("Priority updated.", { selector: "p" })).toBeInTheDocument();
+    view.rerender(<StaffTicketDetail ticketNumber="TKT-2026-000005" />);
+    await waitFor(() => expect(screen.queryByText("Priority updated.", { selector: "p" })).not.toBeInTheDocument());
+  });
 });
