@@ -39,9 +39,13 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
+    setNotice("");
+  }, [ticketNumber]);
+
+  useEffect(() => {
     const controller = new AbortController();
     let ignore = false;
-    setState("loading"); setError(""); setNotice("");
+    setState("loading"); setError("");
     fetchStaffTicketDetail(ticketNumber, controller.signal).then((value) => {
       if (ignore) return;
       setTicket(value); setPriority(value.itPriority ?? "LOW"); setStatus(value.currentStatus); setAssignee(value.assignedStaff ? String(value.assignedStaff.id) : ""); setState("success");
