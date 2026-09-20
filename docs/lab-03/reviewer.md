@@ -42,18 +42,18 @@ lab: [@justfepwx12](https://github.com/justfepwx12).
 | [L3-08 (#43)](https://github.com/itspxsh/toktickit/issues/43) / [PR #52](https://github.com/itspxsh/toktickit/pull/52) | Authenticated role shell and UI integration | [Approved review](https://github.com/itspxsh/toktickit/pull/52#pullrequestreview-5250598354) by `justfepwx12` on 2026-09-18 | Approved; client 56/56, build and `git diff --check` passed after requested fixes | [e82f9b3](https://github.com/itspxsh/toktickit/commit/e82f9b378d17f1be708bd33a9a8d31e1f455b489) into `lab3-staging` |
 | [L3-09 (#44)](https://github.com/itspxsh/toktickit/issues/44) / [PR #53](https://github.com/itspxsh/toktickit/pull/53) | E2E, security, responsive/accessibility evidence | [Approved review](https://github.com/itspxsh/toktickit/pull/53#pullrequestreview-5251429730) by `justfepwx12` on 2026-09-18; skeleton-only status and live evidence were explicitly deferred to the release gate | Approved after `1c2226b`; discovery 9/9, client 56/56, build and `git diff --check` passed | [dddbbfc](https://github.com/itspxsh/toktickit/commit/dddbbfcecdf1956239d0223a94baaad291ccf02e) into `lab3-staging` |
 | [L3-10 (#45)](https://github.com/itspxsh/toktickit/issues/45) / [PR #54](https://github.com/itspxsh/toktickit/pull/54) | Final Lab 3 evidence and release readiness | Live gate captured in [8376f65](https://github.com/itspxsh/toktickit/commit/8376f65): migration deploy 3/3, migration integration 5/5, server Lab 3 40/40, Lab 2 regression 37/37, client 56/56, Playwright 9/9, 42 screenshots | Re-review requested from `justfepwx12`; pending approval/merge | Pending final-main validation |
+| [Post-release reliability (#55)](https://github.com/itspxsh/toktickit/issues/55) / [PR #56](https://github.com/itspxsh/toktickit/pull/56) | Preserve Staff Ticket Detail success notices through reload, make the Admin E2E notice assertion unambiguous, and retain refreshed redacted browser evidence | [PR #56 review request](https://github.com/itspxsh/toktickit/pull/56) to `justfepwx12`; TDD red [bef4dba](https://github.com/itspxsh/toktickit/commit/bef4dba), implementation [5ca2289](https://github.com/itspxsh/toktickit/commit/5ca2289), evidence [1e639c8](https://github.com/itspxsh/toktickit/commit/1e639c8) | Awaiting peer review | Pending merge into `main` |
 
 ## Release gate
 
-The release PR may target `main` only after every implementation PR is merged
-into `lab3-staging`, the final validation commands pass with no skipped/flaky
-tests, screenshots are provenance-linked, all Lab 3 Issues are Done on the
-Issues-only Kanban board, and the reviewer confirms the release. PR #53 was
-approved as a reviewable skeleton; its live PostgreSQL/API run, screenshots,
-and migration output are now captured by PR #54 as release-gate evidence. The
+PR #54 promoted the Lab 3 release into `main`. The post-release reliability
+follow-up in PR #56 must be reviewed and merged before the final-main gate is
+closed: the branch rerun is green, but the same validation must be repeated
+after its merge on `main`. The gate still requires no skipped/flaky tests,
+provenance-linked screenshots, retained migration output, all Lab 3 Issues Done
+on the Issues-only Kanban board, and reviewer confirmation. The
 `E2E_CREATED_RESET_PASSWORD` fixture must be at least 12 characters and must
-remain environment-only. After the release merge, record the final-main commit
-and rerun the complete validation.
+remain environment-only.
 
 ## Reviewer response log
 
@@ -61,3 +61,4 @@ and rerun the complete validation.
 | --- | --- | --- | --- | --- |
 | 2026-09-18 | [@justfepwx12](https://github.com/justfepwx12) | [PR #53 review](https://github.com/itspxsh/toktickit/pull/53#pullrequestreview-5251108145) and [approval](https://github.com/itspxsh/toktickit/pull/53#pullrequestreview-5251429730) | Requested ticket-number locator correction, exact E2E titles/steps, and live evidence; `1c2226b` resolved the blocking contract gaps. Approval accepted the skeleton-only boundary and retained live-run, screenshot, migration-output, and 12-character fixture requirements for L3-10. | [1c2226b](https://github.com/itspxsh/toktickit/commit/1c2226bbc7b6947c9bbd31d1441d31146a1ed694) |
 | 2026-09-19 | [@justfepwx12](https://github.com/justfepwx12) | [PR #54 review](https://github.com/itspxsh/toktickit/pull/54) | Requested live PostgreSQL/API validation, retained screenshot/migration provenance, and final-main validation before release. Also identified the L3-09 dependency typo, Prisma command wording, missing `T-AUTHZ-05` traceability, notice reset behavior, and `AUTH_ORIGIN` reproducibility. | [1c45150](https://github.com/itspxsh/toktickit/commit/1c45150) |
+| 2026-09-21 | [@justfepwx12](https://github.com/justfepwx12) | [PR #56](https://github.com/itspxsh/toktickit/pull/56) | Post-release reliability follow-up: Staff Ticket Detail notices were cleared by their own reload effect, and the Admin E2E locator also matched transient loading status. Added red tests, separated ticket-navigation reset from reload, scoped the locator, and reran the guarded browser matrix at desktop/tablet/mobile 3/3 each. | [5ca2289](https://github.com/itspxsh/toktickit/commit/5ca2289) and [1e639c8](https://github.com/itspxsh/toktickit/commit/1e639c8) |
