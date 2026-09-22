@@ -12,6 +12,7 @@ test.describe("Lab 3 Administrator journey", () => {
     if (await menu.isVisible({ timeout: 1_000 }).catch(() => false)) await menu.click();
     await page.getByRole("link", { name: "User Management" }).click();
     await expect(page.getByRole("heading", { name: "User Management" })).toBeVisible();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
     await saveScreenshot(page, testInfo, "user-management", "initial");
 
     const email = `e2e-${Date.now()}@example.test`;
