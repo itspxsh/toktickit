@@ -22,3 +22,25 @@ $ DATABASE_URL_TEST=<guarded-test-url> LAB3_INITIAL_PASSWORD=<redacted> npm run 
 Test Files 1 passed (1)
 Tests 5 passed (5)
 No skipped or flaky tests.
+
+Final-main confirmation (redacted), application commit `8b95276`, 2026-09-22.
+
+Database scope: a newly created local PostgreSQL database ending in `_test`;
+the URL and all credentials are omitted. This is distinct from the live E2E
+database and from prior Lab data.
+
+$ cd server
+$ DATABASE_URL=<guarded-final-main-test-url> npx prisma migrate deploy
+3 migrations found in prisma/migrations
+Applying migration 20260816095224_init
+Applying migration 20260906010000_lab2_data_foundation
+Applying migration 20260915150000_lab3_data_foundation
+All migrations have been successfully applied.
+
+$ DATABASE_URL_TEST=<guarded-final-main-test-url> LAB3_TEST_INITIAL_PASSWORD=<redacted> npm run db:test:reset
+Test database reset and seeded successfully.
+
+$ DATABASE_URL_TEST=<guarded-final-main-test-url> LAB3_TEST_INITIAL_PASSWORD=<redacted> npm run test:integration -- tests/lab-03/migration.integration.test.ts
+Test Files 1 passed (1)
+Tests 5 passed (5)
+No skipped or flaky tests.

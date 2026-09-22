@@ -6,10 +6,10 @@ test.describe("Lab 3 requester authenticated journey", () => {
     test.setTimeout(90_000);
     await preflight(page);
     await signIn(page, "requester", testInfo);
-    await saveScreenshot(page, testInfo, "authentication", "requester-signed-in");
 
     const rows = page.locator("tbody tr");
     await expect.poll(() => rows.count(), "seeded requester tickets are required").toBeGreaterThan(0);
+    await saveScreenshot(page, testInfo, "authentication", "requester-signed-in");
     const ticketNumber = (await rows.first().getByRole("rowheader").textContent())?.trim() ?? "";
     expect(ticketNumber).toMatch(/^TKT-\d{4}-\d{6}$/);
     await rows.first().getByRole("link", { name: /Open ticket/i }).click();

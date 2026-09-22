@@ -12,7 +12,6 @@ test.describe("Lab 3 IT Staff journey", () => {
     if (await menu.isVisible({ timeout: 1_000 }).catch(() => false)) await menu.click();
     await page.getByRole("link", { name: "Staff Tickets" }).click();
     await expect(page.getByRole("heading", { name: "Staff Ticket Queue" })).toBeVisible();
-    await saveScreenshot(page, testInfo, "staff-queue", "success");
     await page.getByLabel("Search tickets").fill("TKT-");
     await page.getByLabel("Status").selectOption("NEW");
     await page.getByLabel("Page size").selectOption("50");
@@ -31,6 +30,7 @@ test.describe("Lab 3 IT Staff journey", () => {
 
     const ticketLink = page.locator("tbody tr").first().getByRole("link", { name: /TKT-/ });
     await expect(ticketLink).toBeVisible();
+    await saveScreenshot(page, testInfo, "staff-queue", "success");
     await ticketLink.click();
     await expect(page.getByRole("heading", { name: "Staff Ticket Detail" })).toBeVisible();
     await expect(page.getByLabel("IT Priority")).toBeVisible();
