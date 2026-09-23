@@ -75,16 +75,16 @@ repository is not part of this submission repository.
 
 | Partner PR | Scope and outcome |
 | --- | --- |
-| [#112/#113](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-01 Spec-DD/Test-DD; requested contract/traceability corrections, then approved after the corrected PR. |
-| [#114](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-02 data foundation; approved after migration/seed checks; noted unused `SeedClient` as non-blocking cleanup. |
-| [#115](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-03 authentication; requested cookie forwarding, timing-safe dummy verification, CSRF/origin and negative-test coverage; approved after fixes. |
-| [#116](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-04 authorization; requested first-login gates, CSRF and safe error alignment; approved after fixes. |
-| [#117](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-05 staff queue; approved after contract, query, projection and regression validation. |
-| [#118](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-06 detail/workflow; requested duplicate-route removal and Admin-only reopen; approved after tests and fixes. |
-| [#119](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-07 comments/notes; approved after append-only, author attribution and authorization checks. |
-| [#120](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-08 admin user management; approved after safety guards and password-hash checks. |
-| [#121](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-09 automated evidence; approved after E2E selector, viewport and provenance corrections. |
-| [#122](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pulls) | L3-10 release documentation; approved after path, traceability and release-evidence corrections. |
+| [#112/#113](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/113) | L3-01 Spec-DD/Test-DD; requested contract/traceability corrections, then approved after the corrected PR. |
+| [#114](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/114) | L3-02 data foundation; approved after migration/seed checks; noted unused `SeedClient` as non-blocking cleanup. |
+| [#115](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/115) | L3-03 authentication; requested cookie forwarding, timing-safe dummy verification, CSRF/origin and negative-test coverage; approved after fixes. |
+| [#116](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/116) | L3-04 authorization; requested first-login gates, CSRF and safe error alignment; approved after fixes. |
+| [#117](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/117) | L3-05 staff queue; approved after contract, query, projection and regression validation. |
+| [#118](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/118) | L3-06 detail/workflow; requested duplicate-route removal and Admin-only reopen; approved after tests and fixes. |
+| [#119](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/119) | L3-07 comments/notes; approved after append-only, author attribution and authorization checks. |
+| [#120](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/120) | L3-08 admin user management; approved after safety guards and password-hash checks. |
+| [#121](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/121) | L3-09 automated evidence; approved after E2E selector, viewport and provenance corrections. |
+| [#122](https://github.com/justfepwx12/TokTikIT-CPE334-Software-Engineering/pull/122) | L3-10 release documentation; approved after path, traceability and release-evidence corrections. |
 
 ## Reviewer response log
 
