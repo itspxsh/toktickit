@@ -32,6 +32,7 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 | T-ACT-06 | 06,18 | Owned all-state Requester read, cross-owner/missing Ticket and child errors equal, no revisions/notes/secrets; requester writes403. | actions-taken.api.test.ts |
 | T-ACT-07 | 09 | Same key/payload/actor200 replay once, different payload/actor409; replay after lost response precedes stale-version check. | actions-taken.api.test.ts |
 | T-ACT-08 | 05,09 | Forced revision insert error rolls back Action/Ticket counters and all data; parent/action predicate assertions. | actions-taken.api.test.ts |
+| T-ACT-09 | 06 | Requester and Staff Action/revision pagination defaults, valid boundaries, and 400 for page<1 or pageSize outside 1..100. | actions-taken.api.test.ts |
 | T-WF-01 | 07 | Parameterized 8x8x3 role matrix, invalid/malformed/unchanged state, Admin-only cancelled reopen. | ticket-workflow.api.test.ts |
 | T-WF-02 | 08 | Zero/all-cancelled/unfinished/follow-up fail; eligible work permits resolve/close; advisory flag does not bypass gate. | ticket-workflow.api.test.ts |
 | T-WF-03 | 07,09 | Version required for claim/assignment/priority/status, stale409, atomic unassigned claim; terminal writes blocked; query conditions asserted. | ticket-workflow.api.test.ts |
@@ -111,7 +112,7 @@ The following bridge makes functional requirements traceable through acceptance 
 | FR-05 | AC-05 |
 | FR-06 | AC-07, AC-08 |
 | FR-07 | AC-09 |
-| FR-08 | AC-13, AC-17 |
+| FR-08 | AC-06, AC-13, AC-14, AC-17 |
 | FR-09 | AC-10, AC-12 |
 | FR-10 | AC-11, AC-12 |
 | FR-11 | AC-11, AC-12 |
@@ -132,7 +133,7 @@ The acceptance criteria collectively include the proposed BRs in `specification.
 | AC-03 | T-UNIT-01, T-ACT-02..03, T-SEC-03, T-UI-ACT-01 |
 | AC-04 | T-UNIT-01, T-ACT-04, T-UI-ACT-02, T-E2E-01 |
 | AC-05 | T-ACT-05/08, T-WF-04, T-UI-ACT-03, T-E2E-01 |
-| AC-06 | T-ACT-06, T-SEC-01, T-UI-ACT-03, T-E2E-01 |
+| AC-06 | T-ACT-06/09, T-SEC-01, T-UI-ACT-03, T-E2E-01 |
 | AC-07 | T-UNIT-02, T-WF-01/03, T-UI-WF-01..02, T-E2E-02 |
 | AC-08 | T-UNIT-02, T-WF-02, T-RACE-02, T-UI-WF-01, T-E2E-02 |
 | AC-09 | T-UNIT-03, T-ACT-07..08, T-WF-03, T-RACE-01..03, T-UI-ACT-04, T-UI-WF-02 |
@@ -140,7 +141,7 @@ The acceptance criteria collectively include the proposed BRs in `specification.
 | AC-11 | T-DASH-S-01..03, T-DB-DASH-01, T-UI-DS-01, T-E2E-03 |
 | AC-12 | T-UNIT-03, T-DASH-R-02, T-DASH-S-02, T-QUERY-01, T-UI-NAV-01..02, T-E2E-03 |
 | AC-13 | T-REG-01, T-UI-NAV-01, T-UI-REG-01, T-E2E-03 |
-| AC-14 | T-UI-ACT-01/04, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-A11Y-01 |
+| AC-14 | T-REG-01..02, T-UI-ACT-01/04, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-UI-REG-01, T-A11Y-01, T-E2E-02..03 |
 | AC-15 | T-MIG-01..05, T-WF-04 |
 | AC-16 | T-MIG-03 |
 | AC-17 | T-REG-01..02, T-RACE-04, T-UI-REG-01, T-E2E-02..03, all existing Labs1..3 tests and adapted live browser suites |

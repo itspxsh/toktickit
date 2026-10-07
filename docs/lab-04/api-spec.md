@@ -21,7 +21,7 @@ type ActionView = {
 };
 type TicketSummary = {
   ticketNumber: string; summary: string; currentStatus: TicketStatus;
-  itPriority: Priority | null; updatedAt: string;
+  itPriority: Priority | null; updatedAt: string; resolvedAt: string | null;
   href: string; // server-controlled role-specific relative Ticket Detail URL
 };
 type Metric = { value: number; drillDown: string };
@@ -65,7 +65,7 @@ Errors always `{error:{code,message,fieldErrors?,details?}}`; never concatenate 
 
 `GET /api/tickets/:ticketNumber/actions?page=1&pageSize=20` - Requester, owned Ticket only.
 
-Return `{...Page<ActionView>, ticketVersion:number}`, order createdAt ASC/id ASC. Optional `focusActionId` positive integer resolves the page containing that authorized child using its stable ordering; mutually exclusive with explicit page, absent/foreign child returns ACTION_NOT_FOUND. The returned page/pageSize remain authoritative for rendering Dashboard anchors. All states available through pagination; no hidden cancelled items. Requester body omits revision log/private notes entirely. Existing requester/staff Ticket detail gets `workflowVersion`, staff additionally `allowedTransitions:TicketStatus[]` and `resolutionGate:{canResolve:boolean,blockers:string[]}` computed from current work. Shared read logic must avoid visibility drift.
+Both use integer `page>=1`, `pageSize=1..100`, defaults `1/20`; values outside bounds return 400. Return `{...Page<ActionView>, ticketVersion:number}`, order createdAt ASC/id ASC. Optional `focusActionId` positive integer resolves the page containing that authorized child using its stable ordering; mutually exclusive with explicit page, absent/foreign child returns ACTION_NOT_FOUND. The returned page/pageSize remain authoritative for rendering Dashboard anchors. All states available through pagination; no hidden cancelled items. Requester body omits revision log/private notes entirely. Existing requester/staff Ticket detail exposes `resolvedAt:string|null` (UTC ISO or null for legacy/never resolved) and `workflowVersion`; staff additionally gets `allowedTransitions:TicketStatus[]` and `resolutionGate:{canResolve:boolean,blockers:string[]}` computed from current work. Shared read logic must avoid visibility drift.
 
 ### Create
 
@@ -106,7 +106,7 @@ Return `{action,ticketVersion}`. Complete stamps performedBy=actor, completedAt=
 
 ### Staff-only audit
 
-`GET /api/staff/tickets/:ticketNumber/actions/:actionId/revisions?page=1&pageSize=20` returns `Page<{version,kind,actor:Person,createdAt,snapshot}>`, ascending version. Snapshot uses Action content/scalar metadata, not arbitrary raw User objects. Requesters cannot use this endpoint (403) or receive its data from other responses. This is a small audit section, not a new report builder.
+`GET /api/staff/tickets/:ticketNumber/actions/:actionId/revisions?page=1&pageSize=20` uses integer `page>=1`, `pageSize=1..100`, defaults `1/20`; out-of-range values return 400. It returns `Page<{version,kind,actor:Person,createdAt,snapshot}>`, ascending version. Snapshot uses Action content/scalar metadata, not arbitrary raw User objects. Requesters cannot use this endpoint (403) or receive its data from other responses. This is a small audit section, not a new report builder.
 
 ## 4. Existing Ticket workflow extensions
 
@@ -117,13 +117,13 @@ All staff claim/assignment/priority/status paths remain as released; add `expect
 * PATCH `.../priority`: `{expectedTicketVersion,itPriority:Priority}`.
 * PATCH `.../status`: `{expectedTicketVersion,currentStatus:TicketStatus,confirm?:boolean}`.
 * Preserve each existing success shape and append `ticketVersion`; status additionally returns allowedTransitions and resolutionGate.
-* Lock parent, re-read its authorized state, compare counter, return unchanged status as a200 no-op before transition/gate checks, otherwise validate target/role/gate, update and append TicketStatusEvent atomically. Cancellation/closing actual transitions need confirmation. Terminal Ticket cannot change assignment/priority; reopening restores editability.
+* Lock parent, re-read its authorized state, compare counter, return unchanged status as a 200 no-op before transition/gate checks, otherwise validate target/role/gate, update and append TicketStatusEvent atomically. Every effective transition to RESOLVED, every effective transition to CANCELLED, and RESOLVED -> CLOSED require `confirm=true`; confirmation is required for resolution because it makes a Ticket terminal to Requester work and should not be accidental. Terminal Ticket cannot change assignment/priority; reopening restores editability.
 * Extend GET staff detail with ordered statusEvents safe actor/from/to/time, and existing private notes. Requester gets ordered safe statusEvents too (formal status changes are public), never private notes or ActionRevision history.
 * Requester resolution-indication route remains separate, advisory and owned; public comment/internal note paths stay append-only. These appends do not increment workflowVersion or alter resolution eligibility.
 
 ## 5. List filters for drill-down
 
-Extend GET `/api/tickets` and `/api/staff/tickets` without replacing the existing list envelope. Existing search/category/system/requestedPriority/staff filters remain. Status accepts all 8 (omitted=all), statusGroup active|resolved, updatedSince/resolvedSince UTC ISO, before UTC ISO. A date lower bound requires before, lower < before, and before not in future beyond 60s clock tolerance. Date filters use inclusive lower/exclusive upper. Invalid/contradictory status/group or unresolved date bounds =400.
+Extend GET `/api/tickets` and `/api/staff/tickets` without replacing the existing list envelope. Existing search/category/system/requestedPriority/staff filters remain. Status accepts all 8 (omitted=all), statusGroup active|resolved, updatedSince/resolvedSince UTC ISO, before UTC ISO. At most one lower-bound key may be supplied: `updatedSince` applies to `updatedAt`; `resolvedSince` applies to `resolvedAt` and requires `statusGroup=resolved`. Either lower bound requires `before`. `before` alone is valid and applies only the exclusive upper bound: to `resolvedAt` when `statusGroup=resolved`, otherwise to `updatedAt`. Recent-resolution filters exclude unknown `resolvedAt`. When both bounds are present, lower < before; `before` must not be more than 60s in the future. Date filters use inclusive lower/exclusive upper. Invalid/contradictory status/group or date bounds return 400. Existing Lab 3 list endpoints continue ignoring unknown query keys for compatibility; new dashboard endpoints below intentionally reject unknown keys to catch misspelled dashboard parameters.
 
 Staff itPriority additionally accepts UNPRIORITIZED to match null legacy values. Requester does not gain staff owner/priority management. Filter state must be encoded in URL and safely initialized from it; pagination resets to1 when a filter changes. Use canonical allow-listed query serializer; strip unapproved redirect/origin fields. All count/data queries share the same authorized predicate; page beyond end yields empty items with correct total/totalPages, never out-of-scope data.
 
@@ -141,7 +141,7 @@ type RequesterDashboard = {
 };
 ```
 
-Metric predicates and links exactly match specification BR-23..32. No query actor selection; unknown new-dashboard query keys return400. Empty scope returns all numeric zeros and []; failure returns an error, not zeros. No description, email, comments, notes, action revisions or entire Ticket collection.
+Metric predicates and links exactly match specification BR-23..32. No query actor selection; unknown new-dashboard query keys return 400 intentionally, unlike the compatibility behavior of existing Lab 3 list endpoints. `TicketSummary.resolvedAt` carries UTC ISO or null (legacy/never resolved) so the client can display summary dates honestly; it never infers a date from `updatedAt`. Empty scope returns all numeric zeros and []; failure returns an error, not zeros. No description, email, comments, notes, action revisions or entire Ticket collection.
 
 ## 7. Staff/Admin Dashboard
 

@@ -20,15 +20,15 @@ Status/priority combine text and non-color cues. Private Internal Notes clearly 
 
 ## 3. Requester Dashboard `/dashboard`
 
-Heading "My Dashboard", current signed-in Requester summary, last updated/asOf and Refresh. Four cards: "Open tickets", "Waiting for you", "Updated in the last 7 days", "Resolved in the last 7 days". Each card displays exact backend value with an accessible link naming metric/count, not a clickable div. Link destinations from API are allow-listed same-origin relative paths.
+Heading "My Dashboard", current signed-in Requester summary, last updated/asOf and Refresh. Four cards: "Active tickets", "Waiting for you", "Updated in the last 7 days", "Resolved in the last 7 days". Each card displays exact backend value with an accessible link naming metric/count, not a clickable div. Link destinations from API are allow-listed same-origin relative paths.
 
 Attention list up to5 waiting Tickets; recent list up to5 updated within window. Rows include Ticket Number, summary, status, IT Priority when present and updated time. Show safe owned Detail link. State that these are summaries with My Tickets link; do not duplicate full search/list UI. Zero cards still visible; sections explain "No tickets waiting for you" / "No recent updates". Never show another owner/private note or action revision.
 
 ## 4. Staff/Admin Dashboard `/staff/dashboard`
 
-Heading "Support Dashboard", four metric cards: "Unassigned open tickets", "My open tickets", "Urgent open tickets", "My unfinished actions". Status distribution all8 and active-priority distribution all5 including "Not prioritized"; use compact text/count lists, no chart dependency. Count links name the metric/filter.
+Heading "Support Dashboard", four metric cards: "Unassigned active tickets", "My active tickets", "Urgent active tickets", "My unfinished actions". Status distribution all8 and active-priority distribution all5 including "Not prioritized"; use compact text/count lists, no chart dependency. Count links name the metric/filter.
 
-Recent Tickets up to5 and Urgent Tickets up to5 include Number/summary/status/priority/owner if safe; direct Detail links. My Actions section `id=my-actions` is a paginated list5/page (max20), showing Action description/state/date/Ticket link and accessible Previous/Next/current-page. Links target Ticket Detail `#action-<id>` with focus/scroll after Action is loaded; if off-page, resolve the target's page server-side or fetch authorized target and then load that page, never silently leave anchor on an absent element. Admin shares this view, not a new analytics dashboard.
+Recent Tickets up to5 and Urgent Tickets up to5 include Number/summary/status/priority and `resolvedAt` when available; owner is not required in the summary and is omitted from these rows. Include direct Detail links. My Actions section `id=my-actions` is a paginated list5/page (max20), showing Action description/state/date/Ticket link and accessible Previous/Next/current-page. Links target Ticket Detail `#action-<id>` with focus/scroll after Action is loaded; if off-page, resolve the target's page server-side or fetch authorized target and then load that page, never silently leave anchor on an absent element. Admin shares this view, not a new analytics dashboard.
 
 All counts/lists are API-driven; keep asOf visible. Loading skeletons have screen-reader loading label; skeletons cannot serve as final success screenshots. Failure includes Retry, no misleading zero metrics. Empty/forbidden states are independently tested.
 
@@ -54,7 +54,7 @@ Same current Action content/state/order and all-state pagination, strictly read-
 
 Staff Detail status control includes current status plus server `allowedTransitions` only. Label read-only Requester status. Admin-only cancelled reopen excluded from Staff UI and forbidden on server. On a candidate RESOLVED/CLOSED change, show gate summary (completed/unfinished/follow-up) and specific safe blockers; backend rechecks on save regardless of UI state.
 
-Close/Cancel require confirmation, cancellation dialog explains parent becomes read-only. Legacy zero-action resolved Ticket is not silently repaired: show explanation that truthful work requires permitted Reopen first. Status event timeline uses stable ascending time/id, immutable actor/from/to. Do not conflate Comments, Internal Notes, Actions or status events.
+Every effective transition to RESOLVED, every effective transition to CANCELLED, and RESOLVED -> CLOSED require explicit confirmation; the resolution confirmation explains that the Ticket becomes terminal to Requester work. A no-op that leaves status unchanged does not prompt. Cancellation dialog explains parent becomes read-only. Legacy zero-action resolved Ticket is not silently repaired: show explanation that truthful work requires permitted Reopen first. Status event timeline uses stable ascending time/id, immutable actor/from/to. Do not conflate Comments, Internal Notes, Actions or status events.
 
 Assignment dropdown uses active support endpoint, not empty injected options; Admin can be Owner. Claim derives actor on server. Version conflicts refresh only with user consent. Disable duplicate mutations until settled. Summary/status/gate update after success without losing unrelated unsaved Action/comment drafts.
 
