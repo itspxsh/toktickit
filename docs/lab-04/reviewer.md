@@ -8,7 +8,7 @@ This is the Lab 4 review ledger. It records only verifiable events; a requested 
 | --- | --- | --- |
 | Issue | `[Lab 4] L4-01 - Approve Sprint 4 engineering contract (Spec-DD/Test-DD)` ([#59](https://github.com/itspxsh/toktickit/issues/59)) | Open; peer review pending |
 | Baseline | `main` at `da689edc95c7e19a209dc20ec964c04b14590d78` when the contract was prepared | Verified locally |
-| Branch | `feature/lab4-01-engineering-contract` from `lab4-staging` at `da689edc95c7e19a209dc20ec964c04b14590d78` | Pushed; contract commit [3fd26cf](https://github.com/itspxsh/toktickit/commit/3fd26cfb817bdcb1b5d14b6e32fb3ff65052a614) |
+| Branch | `feature/lab4-01-engineering-contract` from `lab4-staging` at `da689edc95c7e19a209dc20ec964c04b14590d78` | Pushed; contract commit [3fd26cf](https://github.com/itspxsh/toktickit/commit/3fd26cfb817bdcb1b5d14b6e32fb3ff65052a614); review-record update [d9e0928](https://github.com/itspxsh/toktickit/commit/d9e0928c6c4748cb30f9925bc723abb046384007) |
 | Contract PR | [#60](https://github.com/itspxsh/toktickit/pull/60), base `lab4-staging` | Open; review requested |
 | Reviewer / approval | [@justfepwx12](https://github.com/justfepwx12) requested on PR #60; no review has occurred yet | Pending; not approved |
 | Merge | No contract merge has occurred | Pending |
