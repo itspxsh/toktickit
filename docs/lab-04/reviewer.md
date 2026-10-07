@@ -9,17 +9,19 @@ This is the Lab 4 review ledger. It records only verifiable events; a requested 
 | Issue | `[Lab 4] L4-01 - Approve Sprint 4 engineering contract (Spec-DD/Test-DD)` ([#59](https://github.com/itspxsh/toktickit/issues/59)) | Open; peer review pending |
 | Baseline | `main` at `da689edc95c7e19a209dc20ec964c04b14590d78` when the contract was prepared | Verified locally |
 | Branch | `feature/lab4-01-engineering-contract` from `lab4-staging` at `da689edc95c7e19a209dc20ec964c04b14590d78` | Pushed; contract commit [3fd26cf](https://github.com/itspxsh/toktickit/commit/3fd26cfb817bdcb1b5d14b6e32fb3ff65052a614); review-record update [d9e0928](https://github.com/itspxsh/toktickit/commit/d9e0928c6c4748cb30f9925bc723abb046384007) |
-| Contract PR | [#60](https://github.com/itspxsh/toktickit/pull/60), base `lab4-staging` | Open; changes requested; follow-up fixes in progress |
-| Reviewer / approval | [@justfepwx12](https://github.com/justfepwx12) reviewed PR #60 ([review](https://github.com/itspxsh/toktickit/pull/60#pullrequestreview-5440584685)) | Changes requested; approval pending |
+| Contract PR | [#60](https://github.com/itspxsh/toktickit/pull/60), base `lab4-staging` | Open; follow-up fixes pushed; re-review requested |
+| Reviewer / approval | [@justfepwx12](https://github.com/justfepwx12) reviewed PR #60 ([review](https://github.com/itspxsh/toktickit/pull/60#pullrequestreview-5440584685)) and was re-requested after the fix push | Awaiting re-review; approval pending |
 | Merge | No contract merge has occurred | Pending |
 
 ### L4-01 review response log
 
 | Review evidence | Findings and contract response | Status |
 | --- | --- | --- |
-| [@justfepwx12 review #5440584685](https://github.com/itspxsh/toktickit/pull/60#pullrequestreview-5440584685) | Dashboard `TicketSummary` omits owner (not required by UI); add nullable `resolvedAt` to summary and detail; require confirmation for every effective transition to RESOLVED; rename dashboard Open labels to Active; cap Actions/revisions pageSize at 100; define before-only and unknown-query behavior; state assignment/priority audit intent; strengthen FR-08 traceability; retain `performedBy` as an explicit unresolved contract decision. | Addressed in this follow-up change; re-review pending |
+| [@justfepwx12 review #5440584685](https://github.com/itspxsh/toktickit/pull/60#pullrequestreview-5440584685) | Dashboard `TicketSummary` omits owner (not required by UI); add nullable `resolvedAt` to summary and detail; require confirmation for every effective transition to RESOLVED; rename dashboard Open labels to Active; cap Actions/revisions pageSize at 100; define before-only and unknown-query behavior; state assignment/priority audit intent; strengthen FR-08 traceability; retain `performedBy` as an explicit unresolved contract decision. | Addressed by [3ff284b](https://github.com/itspxsh/toktickit/commit/3ff284befea6bf4dd391937fd83e9cd38c82012c); re-review requested |
 
 The selected dashboard contract omits owner from summary rows to avoid expanding identity exposure. `resolvedAt` is exposed as UTC ISO or null (legacy/never resolved). No L4-02+ implementation Issue may start until the reviewer and author resolve the `performedBy` meaning and approve/merge this contract PR.
+
+The fix response is recorded in [PR comment #6044678008](https://github.com/itspxsh/toktickit/pull/60#issuecomment-6044678008); re-review was requested in [PR event #32717620441](https://github.com/itspxsh/toktickit/pull/60#event-32717620441). GitHub currently shows the request awaiting `@justfepwx12`.
 
 ### Contract review checklist
 
