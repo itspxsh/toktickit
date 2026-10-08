@@ -34,7 +34,7 @@ describe("L2-02 data foundation", () => {
       expect(schema).toContain(enumName);
     }
     expect(schema).toMatch(/clientRequestId\s+String\s+@unique/);
-    expect(schema).toContain("ticketSequence    BigInt            @unique");
+    expect(schema).toMatch(/ticketSequence\s+BigInt\s+@unique/);
     expect(schema).toContain("@@index([requesterId, updatedAt, id])");
     expect(schema).toContain("@@index([ticketId, status, createdAt])");
   });
