@@ -78,6 +78,15 @@ describe("Lab 4 inherited Lab 1–3 regressions (T-REG-01)", () => {
       internalNote: { create: vi.fn() },
     }) as never, adminAuth, ((_req, _res, next) => next()) as RequestHandler);
 
+    const claimed = await request(app)
+      .post("/api/staff/tickets/TKT-2026-000077/claim")
+      .send({});
+    expect(claimed.status).toBe(200);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: ticket.id, assignedStaffId: null },
+      data: { assignedStaffId: 42 },
+    });
+
     const response = await request(app)
       .patch("/api/staff/tickets/TKT-2026-000077/assignment")
       .send({ assignedStaffId: 42 });
