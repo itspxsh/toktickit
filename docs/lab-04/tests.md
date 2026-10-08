@@ -13,7 +13,7 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 * `server/tests/lab-04/workflow-concurrency.integration.test.ts`: real transactions and races using separate connections/barriers.
 * `server/tests/lab-04/dashboard.integration.test.ts`: independently calculated metrics and performance-smoke fixture.
 * `server/tests/lab-04/previous-labs.api.test.ts`: intended authenticated regression/priority/owner/attachment edge cases.
-* `client/tests/lab-04/{ActionsTaken,TicketWorkflow,RequesterDashboard,StaffDashboard,DashboardRouting,Regression,VisualAccessibility}.test.tsx`: UI behavior with honest network fixture mocks; layout acceptance additionally live E2E + PNG review. This matches `client/vite.config.ts` include `tests/**/*.test.tsx`; do not put tests under src where they would be undiscovered.
+* `client/tests/lab-04/{ActionsTaken,TicketWorkflow,RequesterDashboard,StaffDashboard,DashboardRouting,Regression,previous-labs,VisualAccessibility}.test.tsx`: UI behavior with honest network fixture mocks; layout acceptance additionally live E2E + PNG review. This matches `client/vite.config.ts` include `tests/**/*.test.tsx`; do not put tests under src where they would be undiscovered.
 * `e2e/lab-04/{actions-taken-flow,ticket-resolution,dashboards}.spec.ts`: three live end-to-end journeys, three approved viewports; nine executions if exactly one test per file. Add tests only with updated discovery/expected count; never force a claimed 9 when actual suite differs. Also execute adapted `e2e/lab-02/requester-ticket-flow.spec.ts` and all `e2e/lab-03/*.spec.ts` for final live regression. Supersede removed Development Requester identity steps with authenticated fixtures, preserving Ticket/Attachment behaviors and historical artifacts.
 * `scripts/lab-04/verify-contract.mjs`: cross-file ID/path/coverage and docs-only close-out diff checks, no product privileges.
 
@@ -82,6 +82,7 @@ Do not run destructive migration files concurrently against one DB. Execute sepa
 | T-UI-NAV-01 | 12,13 | Server-derived role landing/guard/nav aria-current, query/hash/back/forward reload, no localStorage identity. | DashboardRouting.test.tsx |
 | T-UI-NAV-02 | 12,14 | URL filters visibly applied/clearable, date bounds, search debounce, page>5 aria-current and same-path navigation. | DashboardRouting.test.tsx |
 | T-UI-REG-01 | 13,17 | Auth first-login/session expiry/password/logout, Lab1 diagnostic, requester create/list/detail/comment/resolution/attachment and Staff/Admin representative flows. | Regression.test.tsx |
+| T-UI-REG-02 | 13,17 | Authenticated category diagnostics and Create Ticket reference requests include browser credentials required by the protected Lab3 endpoints. | previous-labs.test.tsx |
 | T-STYLE-01 | 19 | Token reuse, priority/status non-color text, shared labels/errors/read-only semantics, no placeholder controls. | VisualAccessibility.test.tsx |
 | T-A11Y-01 | 14,19 | Keyboard focus/dialog trap/Escape/restore, descriptions, live notices and metrics links accessible names. | VisualAccessibility.test.tsx |
 
@@ -140,11 +141,11 @@ The acceptance criteria collectively include the proposed BRs in `specification.
 | AC-10 | T-DASH-R-01..02, T-DASH-S-03, T-DB-DASH-01, T-UI-DR-01, T-E2E-03 |
 | AC-11 | T-DASH-S-01..03, T-DB-DASH-01, T-UI-DS-01, T-E2E-03 |
 | AC-12 | T-UNIT-03, T-DASH-R-02, T-DASH-S-02, T-QUERY-01, T-UI-NAV-01..02, T-E2E-03 |
-| AC-13 | T-REG-01, T-UI-NAV-01, T-UI-REG-01, T-E2E-03 |
+| AC-13 | T-REG-01, T-UI-NAV-01, T-UI-REG-01..02, T-E2E-03 |
 | AC-14 | T-REG-01..02, T-UI-ACT-01/04, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-UI-REG-01, T-A11Y-01, T-E2E-02..03 |
 | AC-15 | T-MIG-01..05, T-WF-04 |
 | AC-16 | T-MIG-03 |
-| AC-17 | T-REG-01..02, T-RACE-04, T-UI-REG-01, T-E2E-02..03, all existing Labs1..3 tests and adapted live browser suites |
+| AC-17 | T-REG-01..02, T-RACE-04, T-UI-REG-01..02, T-E2E-02..03, all existing Labs1..3 tests and adapted live browser suites |
 | AC-18 | T-ACT-06, T-SEC-01..03, T-MIG-05, T-E2E-01 |
 | AC-19 | T-STYLE-01, T-A11Y-01, T-RESP-01 |
 | AC-20 | T-PERF-01 |

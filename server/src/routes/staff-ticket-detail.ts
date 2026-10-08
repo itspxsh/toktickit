@@ -156,7 +156,7 @@ export function registerStaffTicketDetailRoutes(
     const number = ticketNumber(req, res);
     if (!number) return;
     const current = actor(req);
-    if (!current || current.role !== "IT_STAFF") return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
+    if (!current) return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
     const body = bodyObject(req.body);
     if (body && Object.keys(body).length > 0) return validation(res, "VALIDATION_ERROR", "Claim accepts an empty JSON body.");
     try {
@@ -180,8 +180,8 @@ export function registerStaffTicketDetailRoutes(
     }
     try {
       const prisma = prismaProvider();
-      const target = await prisma.user.findFirst({ where: { id: body.assignedStaffId, role: "IT_STAFF", isActive: true }, select: { id: true, name: true } });
-      if (!target) return validation(res, "INVALID_ASSIGNMENT", "Assignment target must be an active IT Staff user.");
+      const target = await prisma.user.findFirst({ where: { id: body.assignedStaffId, role: { in: ["IT_STAFF", "ADMIN"] }, isActive: true }, select: { id: true, name: true } });
+      if (!target) return validation(res, "INVALID_ASSIGNMENT", "Assignment target must be an active IT Staff or Administrator user.");
       const row = await loadTicket(prisma, number);
       if (!row) return notFound(res);
       const result = await prisma.ticket.updateMany({ where: { id: row.id }, data: { assignedStaffId: target.id } });

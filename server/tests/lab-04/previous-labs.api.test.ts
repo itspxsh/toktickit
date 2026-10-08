@@ -18,7 +18,7 @@ const adminAuth: RequestHandler = (req, _res, next) => {
   next();
 };
 
-describe("Lab 4 inherited Lab 1–3 regressions (T-REG-01)", () => {
+describe("T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions", () => {
   it("copies requester priority into the new Ticket IT priority and persists both", async () => {
     const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({
       id: 10,

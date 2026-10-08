@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkSystem, fetchReferenceData } from "../../src/api.js";
 
-describe("Lab 4 inherited authenticated diagnostic behavior (T-REG-01)", () => {
+describe("T-UI-REG-02 / AC-13, AC-17: authenticated reference fetches", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("includes browser credentials when requesting authenticated categories", async () => {
