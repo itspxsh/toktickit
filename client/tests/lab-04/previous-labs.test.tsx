@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { checkSystem } from "../../src/api.js";
+import { checkSystem, fetchReferenceData } from "../../src/api.js";
 
 describe("Lab 4 inherited authenticated diagnostic behavior (T-REG-01)", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -16,6 +16,25 @@ describe("Lab 4 inherited authenticated diagnostic behavior (T-REG-01)", () => {
       2,
       "http://localhost:3000/api/categories",
       { credentials: "include" },
+    );
+  });
+
+  it("includes browser credentials for both authenticated reference lists", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValue({ ok: true, json: async () => [] });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchReferenceData();
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "http://localhost:3000/api/categories",
+      { credentials: "include", signal: undefined },
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:3000/api/related-systems",
+      { credentials: "include", signal: undefined },
     );
   });
 });
