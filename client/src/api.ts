@@ -353,8 +353,8 @@ export async function fetchReferenceData(signal?: AbortSignal): Promise<{
   relatedSystems: RelatedSystem[];
 }> {
   const [categoriesResponse, systemsResponse] = await Promise.all([
-    fetch(`${API_URL}/api/categories`, { signal }),
-    fetch(`${API_URL}/api/related-systems`, { signal }),
+    fetch(`${API_URL}/api/categories`, { credentials: "include", signal }),
+    fetch(`${API_URL}/api/related-systems`, { credentials: "include", signal }),
   ]);
   if (!categoriesResponse.ok || !systemsResponse.ok) {
     throw new Error("Unable to load Categories and Related Systems");
@@ -709,7 +709,7 @@ export async function checkSystem(): Promise<SystemStatus> {
     throw new Error("Unable to connect to TokTickIT API");
   }
 
-  const categoriesRes = await fetch(`${API_URL}/api/categories`);
+  const categoriesRes = await fetch(`${API_URL}/api/categories`, { credentials: "include" });
   if (!categoriesRes.ok) {
     throw new Error("Unable to connect to TokTickIT API");
   }

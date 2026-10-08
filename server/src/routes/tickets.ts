@@ -599,6 +599,7 @@ export function registerTicketRoutes(
             relatedSystemId: parsed.input.relatedSystemId,
             summary: parsed.input.summary,
             requestedPriority: parsed.input.requestedPriority,
+            itPriority: parsed.input.requestedPriority,
             description: parsed.input.description,
             currentStatus: "NEW",
             clientRequestId: idempotencyKey,

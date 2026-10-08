@@ -105,17 +105,17 @@ describe("staff ticket detail and workflow", () => {
     expect(conflict.body.error.code).toBe("TICKET_ALREADY_ASSIGNED");
   });
 
-  it("T-STAFF-04 / AC-06 accepts active IT Staff only and protects workflow transitions", async () => {
+  it("T-STAFF-04 / AC-06 accepts active IT Staff or Admin owners and protects workflow transitions", async () => {
     const { app, calls } = createTestApp({ staff: null });
     const invalidAssignment = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ assignedStaffId: 99 });
     expect(invalidAssignment.status).toBe(400);
     expect(invalidAssignment.body.error.code).toBe("INVALID_ASSIGNMENT");
-    expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: "IT_STAFF", isActive: true } }));
+    expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: { in: ["IT_STAFF", "ADMIN"] }, isActive: true } }));
 
     const transition = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "CLOSED", confirm: false });
     expect(transition.status).toBe(409);
     expect(transition.body.error.code).toBe("CONFIRMATION_REQUIRED");
-    expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: "IT_STAFF", isActive: true } }));
+    expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: { in: ["IT_STAFF", "ADMIN"] }, isActive: true } }));
 
     const priority = await request(createTestApp().app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "URGENT", authorUserId: 999, updatedAt: "forged" });
     expect(priority.status).toBe(400);
