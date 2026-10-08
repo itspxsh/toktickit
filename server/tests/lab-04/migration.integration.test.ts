@@ -100,11 +100,26 @@ describe.sequential("L4-03 migration and deterministic seed foundation", () => {
       const users = await prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*)::bigint AS count FROM "User"`;
       const tickets = await prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*)::bigint AS count FROM "Ticket"`;
       const actions = await prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*)::bigint AS count FROM "ActionTaken"`;
-      const beforeRows = await snapshotLab3Rows(prisma);
+      const statusRows = await prisma.$queryRaw<Array<{ currentStatus: string }>>`SELECT DISTINCT "currentStatus" FROM "Ticket" ORDER BY "currentStatus"`;
+      expect(statusRows.map(({ currentStatus }) => currentStatus)).toEqual([
+        "NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED",
+      ]);
+      const priorityRows = await prisma.$queryRaw<Array<{ itPriority: string | null }>>`SELECT DISTINCT "itPriority" FROM "Ticket" ORDER BY "itPriority" NULLS FIRST`;
+      expect(priorityRows.map(({ itPriority }) => itPriority)).toEqual([null, "LOW", "MEDIUM", "HIGH", "URGENT"]);
+      const actionCounts = await prisma.$queryRaw<Array<{ state: string; count: bigint }>>`SELECT "state", COUNT(*)::bigint AS count FROM "ActionTaken" GROUP BY "state" ORDER BY "state"`;
+      expect(actionCounts).toEqual([
+        { state: "PLANNED", count: 1n },
+        { state: "IN_PROGRESS", count: 1n },
+        { state: "COMPLETED", count: 1n },
+        { state: "CANCELLED", count: 1n },
+      ]);
+      const actionRevisions = await prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*)::bigint AS count FROM "ActionRevision"`;
+      expect(actionRevisions[0].count).toBe(4n);
       await prisma.$executeRawUnsafe(`UPDATE "User" SET "isActive"=false,"passwordHash"='changed-test-hash' WHERE "email"='support.one@example.test'`);
-      await prisma.$executeRawUnsafe(`UPDATE "Ticket" SET "currentStatus"='CANCELLED',"workflowVersion"=9 WHERE "id"=(SELECT "id" FROM "Ticket" WHERE "clientRequestId" LIKE 'lab4-seed-%' ORDER BY "id" LIMIT 1)`);
-      await prisma.$executeRawUnsafe(`UPDATE "ActionTaken" SET "description"='user-edited test fixture' WHERE "id"=(SELECT "id" FROM "ActionTaken" ORDER BY "id" LIMIT 1)`);
-      const changed = await prisma.$queryRawUnsafe<Array<{ id: number; description: string }>>(`SELECT "id","description" FROM "ActionTaken" ORDER BY "id" LIMIT 1`);
+      await prisma.$executeRawUnsafe(`UPDATE "Ticket" SET "currentStatus"='CANCELLED',"workflowVersion"=9 WHERE "clientRequestId"='lab4-seed-ticket-open'`);
+      const actionKey = (await prisma.$queryRaw<Array<{ clientRequestId: string }>>`SELECT "clientRequestId" FROM "ActionTaken" WHERE "ticketId"=(SELECT id FROM "Ticket" WHERE "clientRequestId"='lab4-seed-ticket-open') ORDER BY id LIMIT 1`)[0]!.clientRequestId;
+      await prisma.$executeRawUnsafe(`UPDATE "ActionTaken" SET "description"='user-edited test fixture' WHERE "clientRequestId"='${actionKey}'`);
+      const changed = await prisma.$queryRawUnsafe<Array<{ id: number; description: string }>>(`SELECT "id","description" FROM "ActionTaken" WHERE "clientRequestId"='${actionKey}'`);
       await seedLab3Data(prisma);
       await seedLab4Data(prisma);
       const afterUsers = await prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*)::bigint AS count FROM "User"`;
@@ -115,8 +130,7 @@ describe.sequential("L4-03 migration and deterministic seed foundation", () => {
       expect(afterActions).toEqual(actions);
       expect(await prisma.$queryRawUnsafe(`SELECT "id","description" FROM "ActionTaken" WHERE "id"=${changed[0]?.id}`)).toEqual(changed);
       expect(await prisma.$queryRawUnsafe(`SELECT "isActive","passwordHash" FROM "User" WHERE "email"='support.one@example.test'`)).toEqual([{ isActive: false, passwordHash: "changed-test-hash" }]);
-      expect(await prisma.$queryRawUnsafe(`SELECT "currentStatus","workflowVersion" FROM "Ticket" WHERE "clientRequestId" LIKE 'lab4-seed-%' LIMIT 1`)).toEqual([{ currentStatus: "CANCELLED", workflowVersion: 9 }]);
-      expect(beforeRows).toBeDefined();
+      expect(await prisma.$queryRawUnsafe(`SELECT "currentStatus","workflowVersion" FROM "Ticket" WHERE "clientRequestId"='lab4-seed-ticket-open'`)).toEqual([{ currentStatus: "CANCELLED", workflowVersion: 9 }]);
     } finally {
       if (oldPassword === undefined) delete process.env.LAB3_TEST_INITIAL_PASSWORD;
       else process.env.LAB3_TEST_INITIAL_PASSWORD = oldPassword;
@@ -153,7 +167,9 @@ describe.sequential("L4-03 migration and deterministic seed foundation", () => {
 
   it("T-MIG-05 refuses missing or non-test database URLs independently of NODE_ENV", () => {
     const original = process.env.NODE_ENV;
+    const originalDatabaseUrl = process.env.DATABASE_URL_TEST;
     process.env.NODE_ENV = "production";
+    delete process.env.DATABASE_URL_TEST;
     try {
       expect(() => assertTestDatabaseUrl(undefined)).toThrow(/DATABASE_URL_TEST is required/i);
       expect(() => assertTestDatabaseUrl("postgresql://localhost:5432/toktickit")).toThrow(/non-test database/i);
@@ -161,6 +177,8 @@ describe.sequential("L4-03 migration and deterministic seed foundation", () => {
     } finally {
       if (original === undefined) delete process.env.NODE_ENV;
       else process.env.NODE_ENV = original;
+      if (originalDatabaseUrl === undefined) delete process.env.DATABASE_URL_TEST;
+      else process.env.DATABASE_URL_TEST = originalDatabaseUrl;
     }
   });
 });
