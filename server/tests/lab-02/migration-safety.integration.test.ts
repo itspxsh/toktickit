@@ -44,10 +44,7 @@ describe("L2-02 migration safety (test database)", () => {
       await seedReferenceData(prisma);
       await prisma.category.update({ where: { name: "Hardware" }, data: { isActive: false } });
       await prisma.relatedSystem.update({ where: { name: "Email" }, data: { isActive: false } });
-      await prisma.requester.update({
-        where: { email: "jennifer@example.test" },
-        data: { isActive: false },
-      });
+      await prisma.$executeRaw`UPDATE "Requester" SET "isActive" = false WHERE "email" = 'jennifer@example.test'`;
       await seedReferenceData(prisma);
 
       await expect(

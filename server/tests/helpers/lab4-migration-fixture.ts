@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   copyFileSync,
   cpSync,
@@ -12,8 +12,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
-import type { PrismaClient } from "@prisma/client";
+import { basename, dirname, join, resolve } from "node:path";
+import { PrismaClient, type PrismaClient as PrismaClientType } from "@prisma/client";
 import { assertTestDatabaseUrl, createTestPrisma } from "./test-database.js";
 
 const migrationsRoot = new URL("../../prisma/migrations/", import.meta.url);
@@ -39,6 +39,38 @@ export async function resetGuardedTestDatabase(): Promise<void> {
   } finally {
     await prisma.$disconnect();
   }
+}
+
+/** Make and remove a PostgreSQL template clone with a unique guarded test name. */
+export async function cloneGuardedTestDatabase(sourceUrl: string): Promise<{ url: string; cleanup: () => Promise<void> }> {
+  assertTestDatabaseUrl(sourceUrl);
+  const source = new URL(sourceUrl);
+  const sourceName = decodeURIComponent(source.pathname.replace(/^\/+/, ""));
+  const cloneName = `toktickit_lab4_recovery_${process.pid}_${randomUUID().replaceAll("-", "").slice(0, 8)}_test`;
+  const admin = new URL(sourceUrl);
+  admin.pathname = "/postgres";
+  const adminClient = new PrismaClient({ datasources: { db: { url: admin.toString() } } });
+  const quoteIdentifier = (value: string) => `"${value.replaceAll('"', '""')}"`;
+  try {
+    await adminClient.$executeRawUnsafe(
+      `CREATE DATABASE ${quoteIdentifier(cloneName)} TEMPLATE ${quoteIdentifier(sourceName)}`,
+    );
+  } finally {
+    await adminClient.$disconnect();
+  }
+  const cloneUrl = new URL(sourceUrl);
+  cloneUrl.pathname = `/${encodeURIComponent(cloneName)}`;
+  return {
+    url: cloneUrl.toString(),
+    cleanup: async () => {
+      const cleanupClient = new PrismaClient({ datasources: { db: { url: admin.toString() } } });
+      try {
+        await cleanupClient.$executeRawUnsafe(`DROP DATABASE IF EXISTS ${quoteIdentifier(cloneName)} WITH (FORCE)`);
+      } finally {
+        await cleanupClient.$disconnect();
+      }
+    },
+  };
 }
 
 /** Use Prisma's migration engine against only the explicitly guarded test URL. */
@@ -86,7 +118,7 @@ const legacyColumns: Record<string, string[]> = {
   InternalNote: ["id", "ticketId", "authorUserId", "body", "createdAt"],
 };
 
-export async function snapshotLab3Rows(prisma: PrismaClient): Promise<Record<string, string>> {
+export async function snapshotLab3Rows(prisma: PrismaClientType): Promise<Record<string, string>> {
   const snapshots: Record<string, string> = {};
   for (const [table, columns] of Object.entries(legacyColumns)) {
     const select = columns.map((column) => `"${column}"`).join(", ");
@@ -98,16 +130,22 @@ export async function snapshotLab3Rows(prisma: PrismaClient): Promise<Record<str
   return snapshots;
 }
 
-export function createAttachmentFixtureFile(): { path: string; hash: string; cleanup: () => void } {
+export function createAttachmentFixtureFile(): { path: string; storageKey: string; hash: string; hashNow: () => string; cleanup: () => void } {
   const directory = mkdtempSync(join(tmpdir(), "toktickit-lab4-attachment-"));
   const path = join(directory, "legacy-attachment.bin");
   const bytes = Buffer.from("Lab 2 attachment fixture bytes\n");
   writeFileSync(path, bytes, { flag: "wx", mode: 0o600 });
   const hash = createHash("sha256").update(readFileSync(path)).digest("hex");
-  return { path, hash, cleanup: () => rmSync(directory, { recursive: true, force: true }) };
+  return {
+    path,
+    storageKey: basename(path),
+    hash,
+    hashNow: () => createHash("sha256").update(readFileSync(path)).digest("hex"),
+    cleanup: () => rmSync(directory, { recursive: true, force: true }),
+  };
 }
 
-export async function insertLab3PreservationFixture(prisma: PrismaClient): Promise<{ maxTicketSequence: bigint }> {
+export async function insertLab3PreservationFixture(prisma: PrismaClientType, attachmentStorageKey = "legacy-storage-key"): Promise<{ maxTicketSequence: bigint }> {
   await prisma.$executeRawUnsafe(`INSERT INTO "Category" ("name") VALUES ('Hardware'),('Software'),('Network'),('Account and Access')`);
   await prisma.$executeRawUnsafe(`INSERT INTO "RelatedSystem" ("name") VALUES ('VPN')`);
   const user = await prisma.$queryRawUnsafe<Array<{ id: number }>>(
@@ -127,18 +165,18 @@ export async function insertLab3PreservationFixture(prisma: PrismaClient): Promi
   const statuses = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
   for (let index = 0; index < statuses.length; index += 1) {
     const sequence = BigInt(100 + index);
-    const ticketNumber = `TKT-2026-${String(index + 1).padStart(6, "0")}`;
+    const ticketNumber = `TKT-2026-${sequence.toString().padStart(6, "0")}`;
     await prisma.$executeRawUnsafe(
       `INSERT INTO "Ticket" ("ticketNumber","ticketSequence","requesterId","requesterUserId","assignedStaffId","categoryId","relatedSystemId","summary","requestedPriority","description","itPriority","currentStatus","clientRequestId") VALUES ('${ticketNumber}',${sequence},${requester[0].id},${user[0].id},${index % 2 === 0 ? staff[0].id : admin[0].id},${category[0].id},${system[0].id},'Legacy ${statuses[index]}','HIGH','Preserve Lab 3 ticket','URGENT','${statuses[index]}','migration-${statuses[index].toLowerCase()}')`,
     );
   }
   await prisma.$executeRawUnsafe(`SELECT setval('ticket_number_seq', 107, true)`);
-  const ticket = await prisma.$queryRawUnsafe<Array<{ id: number }>>(`SELECT "id" FROM "Ticket" WHERE "ticketNumber"='TKT-2026-000001'`);
+  const ticket = await prisma.$queryRawUnsafe<Array<{ id: number }>>(`SELECT "id" FROM "Ticket" WHERE "ticketNumber"='TKT-2026-000100'`);
   await prisma.$executeRawUnsafe(
     `INSERT INTO "Session" ("userId","tokenHash","expiresAt") VALUES (${user[0].id},'test-session-hash-only',CURRENT_TIMESTAMP + INTERVAL '1 day')`,
   );
   await prisma.$executeRawUnsafe(
-    `INSERT INTO "Attachment" ("ticketId","originalName","storageKey","mimeType","sizeBytes","status","removedAt","removalReason","removedByUserId") VALUES (${ticket[0].id},'legacy.pdf','legacy-storage-key','application/pdf',31,'REMOVED',CURRENT_TIMESTAMP,'Legacy removal',${admin[0].id})`,
+    `INSERT INTO "Attachment" ("ticketId","originalName","storageKey","mimeType","sizeBytes","status","removedAt","removalReason","removedByUserId") VALUES (${ticket[0].id},'legacy.pdf','${attachmentStorageKey.replaceAll("'", "''")}','application/pdf',31,'REMOVED',CURRENT_TIMESTAMP,'Legacy removal',${admin[0].id})`,
   );
   await prisma.$executeRawUnsafe(
     `INSERT INTO "PublicComment" ("ticketId","authorUserId","body") VALUES (${ticket[0].id},${user[0].id},'Legacy public comment')`,
