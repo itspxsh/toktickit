@@ -326,4 +326,20 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(db.actionTaken.findMany).not.toHaveBeenCalled();
     expect(db.actionRevision.findMany).not.toHaveBeenCalled();
   });
+
+  it("T-ACT-05 exposes ordered staff-only revisions without adding Action or credential fields", async () => {
+    authenticatedAs("IT_STAFF");
+    db.ticket.findFirst.mockResolvedValue({ id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 4, currentStatus: "OPEN", assignedStaffId: null });
+    db.actionTaken.findFirst.mockResolvedValue({ id: 90 });
+    db.actionRevision.findMany.mockResolvedValue([{ version: 1, kind: "CREATE", createdAt: new Date("2026-10-10T00:00:00Z"), actor: { id: actor.id, name: actor.name, role: actor.role, isActive: true }, snapshot: { description: "Inspect gateway" } }]);
+    db.actionRevision.count.mockResolvedValue(1);
+    const response = await request(app).get("/api/staff/tickets/TKT-2026-000051/actions/90/revisions").set("Cookie", cookie);
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ items: [{ version: 1, kind: "CREATE", snapshot: { description: "Inspect gateway" } }], page: 1, pageSize: 20, total: 1, totalPages: 1 });
+    expect(response.body).not.toHaveProperty("ticketVersion");
+    expect(JSON.stringify(response.body)).not.toMatch(/passwordHash|tokenHash|email/);
+
+    const invalid = await request(app).get("/api/staff/tickets/TKT-2026-000051/actions/90/revisions?focusActionId=90").set("Cookie", cookie);
+    expect(invalid.status).toBe(400);
+  });
 });
