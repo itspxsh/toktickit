@@ -47,6 +47,7 @@ describe("L2-02 migration safety (test database)", () => {
       await prisma.requester.update({
         where: { email: "jennifer@example.test" },
         data: { isActive: false },
+        select: { isActive: true },
       });
       await seedReferenceData(prisma);
 
