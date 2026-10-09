@@ -237,6 +237,8 @@ export async function seedLab4Data(prisma: PrismaClient): Promise<void> {
       "NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER",
       "RESOLVED", "CLOSED", "REOPENED", "CANCELLED",
     ] as const;
+    // RESOLVED/CLOSED tickets intentionally have no Actions (legacy-shaped data); fixed
+    // resolvedAt/completedAt fixture times predate default createdAt timestamps.
     const tickets = new Map<string, { id: number; status: (typeof statuses)[number] }>();
 
     for (let index = 0; index < statuses.length; index += 1) {
