@@ -30,6 +30,34 @@ const actor = {
   mustChangePassword: false,
 };
 
+function actionFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 90,
+    ticketId: 51,
+    clientRequestId: "6d0e5ea5-3b6e-4ac4-bd7b-3115e23bc232",
+    payloadFingerprint: "f".repeat(64),
+    createdById: actor.id,
+    assigneeId: 77,
+    performedById: null,
+    description: "Inspect gateway configuration",
+    result: "",
+    followUpRequired: false,
+    followUpNote: "",
+    attachmentNotes: "",
+    state: "PLANNED",
+    cancellationReason: null,
+    completedAt: null,
+    cancelledAt: null,
+    createdAt: new Date("2026-10-10T00:00:00Z"),
+    updatedAt: new Date("2026-10-10T00:00:00Z"),
+    version: 1,
+    createdBy: { id: actor.id, name: actor.name, role: actor.role, isActive: true },
+    assignee: { id: 77, name: "Second Support Agent", role: "IT_STAFF", isActive: true },
+    performedBy: null,
+    ...overrides,
+  };
+}
+
 function authenticatedAs(role: string) {
   db.session.findUnique.mockResolvedValue({
     id: 9,
@@ -295,6 +323,76 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(response.body.error.code).toBe("ACTION_TRANSITION_NOT_ALLOWED");
     expect(db.actionTaken.updateMany).not.toHaveBeenCalled();
     expect(db.actionRevision.create).not.toHaveBeenCalled();
+  });
+
+  it("T-ACT-05 applies an effective edit once and records one immutable revision", async () => {
+    authenticatedAs("IT_STAFF");
+    const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null };
+    const before = actionFixture();
+    const after = actionFixture({ description: "Updated gateway configuration", version: 2 });
+    db.ticket.findFirst.mockResolvedValue(ticket);
+    db.ticket.findUnique.mockResolvedValue(ticket);
+    db.actionTaken.findFirst.mockResolvedValueOnce(before).mockResolvedValue(after);
+    db.actionTaken.updateMany.mockResolvedValue({ count: 1 });
+    db.ticket.update.mockResolvedValue({ workflowVersion: 4 });
+    const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const response = await request(app)
+      .patch("/api/staff/tickets/TKT-2026-000051/actions/90")
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
+      .send({ expectedTicketVersion: 3, expectedVersion: 1, description: "Updated gateway configuration" });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ ticketVersion: 4, action: { id: 90, description: after.description, version: 2 } });
+    expect(db.actionTaken.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 90, ticketId: 51, version: 1 }, data: expect.objectContaining({ version: { increment: 1 } }) }));
+    expect(db.actionRevision.create).toHaveBeenCalledTimes(1);
+    expect(db.actionRevision.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ actionId: 90, version: 2, actorId: actor.id, kind: "EDIT" }) }));
+    expect(db.ticket.update).toHaveBeenCalledTimes(1);
+  });
+
+  it("T-ACT-05 returns a no-op without changing either version or appending a revision", async () => {
+    authenticatedAs("IT_STAFF");
+    const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null };
+    const current = actionFixture();
+    db.ticket.findFirst.mockResolvedValue(ticket);
+    db.ticket.findUnique.mockResolvedValue(ticket);
+    db.actionTaken.findFirst.mockResolvedValue(current);
+    const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const response = await request(app)
+      .patch("/api/staff/tickets/TKT-2026-000051/actions/90")
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
+      .send({ expectedTicketVersion: 3, expectedVersion: 1, description: current.description });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ ticketVersion: 3, action: { id: 90, version: 1 } });
+    expect(db.actionTaken.updateMany).not.toHaveBeenCalled();
+    expect(db.actionRevision.create).not.toHaveBeenCalled();
+    expect(db.ticket.update).not.toHaveBeenCalled();
+  });
+
+  it("T-ACT-04 starts an Action without confirmation, then completes it with server-derived performer metadata", async () => {
+    authenticatedAs("IT_STAFF");
+    const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null };
+    const planned = actionFixture();
+    const started = actionFixture({ state: "IN_PROGRESS", version: 2 });
+    db.ticket.findFirst.mockResolvedValue(ticket);
+    db.ticket.findUnique.mockResolvedValue(ticket);
+    db.actionTaken.findFirst.mockResolvedValueOnce(planned).mockResolvedValueOnce(started);
+    db.user.findFirst.mockResolvedValue({ id: 77 });
+    db.actionTaken.updateMany.mockResolvedValue({ count: 1 });
+    db.ticket.update.mockResolvedValue({ workflowVersion: 4 });
+    const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const response = await request(app)
+      .post("/api/staff/tickets/TKT-2026-000051/actions/90/transitions")
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
+      .send({ expectedTicketVersion: 3, expectedVersion: 1, state: "IN_PROGRESS" });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ action: { id: 90, state: "IN_PROGRESS", version: 2 }, ticketVersion: 4 });
+    expect(db.actionRevision.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ kind: "START", version: 2 }) }));
+    expect(db.actionTaken.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { state: "IN_PROGRESS", version: { increment: 1 } } }));
   });
 
   it("returns only active support assignees with bounded deterministic paging", async () => {
