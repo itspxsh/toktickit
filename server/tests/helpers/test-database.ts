@@ -47,6 +47,19 @@ export async function resetTestDatabase(): Promise<void> {
         AND table_name <> '_prisma_migrations'
       ORDER BY table_name
     `;
+    const lab4Tables = new Set(["ActionTaken", "ActionRevision", "TicketStatusEvent"]);
+    const existingLab4Tables = tables.filter(({ table_name }) => lab4Tables.has(table_name)).map(({ table_name }) => table_name);
+    if (existingLab4Tables.length > 0 && existingLab4Tables.length !== lab4Tables.size) {
+      throw new Error("Refusing test reset: Lab 4 schema is only partially migrated");
+    }
+    if (existingLab4Tables.length === lab4Tables.size) {
+      const columns = await prisma.$queryRaw<Array<{ column_name: string }>>`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema='public' AND table_name='Ticket'
+          AND column_name IN ('workflowVersion','resolvedAt')
+      `;
+      if (columns.length !== 2) throw new Error("Refusing test reset: Lab 4 Ticket columns are incomplete");
+    }
     if (tables.length > 0) {
       const quotedTables = tables
         .map(({ table_name }) => `"${table_name.replaceAll('"', '""')}"`)
@@ -56,10 +69,14 @@ export async function resetTestDatabase(): Promise<void> {
       );
     }
 
-    const { seedLab3Data, seedReferenceData } = await import("../../src/data-foundation.js");
+    const { seedLab3Data, seedLab4Data, seedReferenceData } = await import("../../src/data-foundation.js");
     const hasLab3UserTable = tables.some(({ table_name }) => table_name === "User");
     if (hasLab3UserTable) await seedLab3Data(prisma);
     else await seedReferenceData(prisma);
+
+    if (existingLab4Tables.length === lab4Tables.size) {
+      await seedLab4Data(prisma);
+    }
   } finally {
     await prisma.$disconnect();
   }

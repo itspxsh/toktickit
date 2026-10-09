@@ -45,6 +45,22 @@ enum ItPriority {
   URGENT
 }
 
+enum ActionState {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ActionRevisionKind {
+  CREATE
+  EDIT
+  ASSIGN
+  START
+  COMPLETE
+  CANCEL
+}
+
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -64,11 +80,11 @@ model Requester {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
-  userId    Int?      @unique
+  userId    Int?     @unique
 
   tickets            Ticket[]
   removedAttachments Attachment[] @relation("AttachmentRemovedBy")
-  user                User?       @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user               User?        @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([isActive, name])
 }
@@ -86,34 +102,38 @@ model RelatedSystem {
 }
 
 model Ticket {
-  id                Int               @id @default(autoincrement())
+  id                  Int               @id @default(autoincrement())
   /// Always derived with allocateTicketNumber together with ticketSequence.
-  ticketNumber      String            @unique
-  ticketSequence    BigInt            @unique
-  ticketDate        DateTime          @default(now())
-  requesterId       Int
-  requesterUserId   Int?
-  assignedStaffId   Int?
-  categoryId        Int
-  relatedSystemId   Int
-  summary           String
-  requestedPriority RequestedPriority
-  description       String
-  itPriority        ItPriority?
-  currentStatus     CurrentStatus     @default(NEW)
+  ticketNumber        String            @unique
+  ticketSequence      BigInt            @unique
+  ticketDate          DateTime          @default(now())
+  requesterId         Int
+  requesterUserId     Int?
+  assignedStaffId     Int?
+  categoryId          Int
+  relatedSystemId     Int
+  summary             String
+  requestedPriority   RequestedPriority
+  description         String
+  itPriority          ItPriority?
+  currentStatus       CurrentStatus     @default(NEW)
   requesterResolvedAt DateTime?
-  clientRequestId   String            @unique
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @default(now()) @updatedAt
+  workflowVersion     Int               @default(1)
+  resolvedAt          DateTime?         @db.Timestamptz(3)
+  clientRequestId     String            @unique
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @default(now()) @updatedAt
 
-  requester     Requester     @relation(fields: [requesterId], references: [id], onDelete: Restrict)
-  requesterUser User?         @relation("TicketRequesterUser", fields: [requesterUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  assignedStaff User?         @relation("TicketAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  relatedSystem RelatedSystem @relation(fields: [relatedSystemId], references: [id], onDelete: Restrict)
-  attachments   Attachment[]
+  requester      Requester           @relation(fields: [requesterId], references: [id], onDelete: Restrict)
+  requesterUser  User?               @relation("TicketRequesterUser", fields: [requesterUserId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assignedStaff  User?               @relation("TicketAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  category       Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  relatedSystem  RelatedSystem       @relation(fields: [relatedSystemId], references: [id], onDelete: Restrict)
+  attachments    Attachment[]
   publicComments PublicComment[]
   internalNotes  InternalNote[]
+  actions        ActionTaken[]
+  statusEvents   TicketStatusEvent[]
 
   @@index([requesterId, updatedAt, id])
   @@index([requesterId, categoryId, updatedAt])
@@ -123,6 +143,8 @@ model Ticket {
   @@index([requesterUserId, updatedAt, id])
   @@index([assignedStaffId, currentStatus, updatedAt])
   @@index([itPriority, currentStatus, updatedAt])
+  @@index([requesterUserId, resolvedAt, id])
+  @@index([currentStatus, resolvedAt, id])
   @@index([categoryId])
   @@index([relatedSystemId])
 }
@@ -164,14 +186,80 @@ model User {
 
   requester          Requester?
   sessions           Session[]
-  requestedTickets   Ticket[] @relation("TicketRequesterUser")
-  assignedTickets    Ticket[] @relation("TicketAssignedStaff")
+  requestedTickets   Ticket[]            @relation("TicketRequesterUser")
+  assignedTickets    Ticket[]            @relation("TicketAssignedStaff")
   publicComments     PublicComment[]
   internalNotes      InternalNote[]
-  removedAttachments Attachment[] @relation("AttachmentRemovedByUser")
+  removedAttachments Attachment[]        @relation("AttachmentRemovedByUser")
+  createdActions     ActionTaken[]       @relation("ActionCreatedBy")
+  assignedActions    ActionTaken[]       @relation("ActionAssignedTo")
+  performedActions   ActionTaken[]       @relation("ActionPerformedBy")
+  actionRevisions    ActionRevision[]    @relation("ActionRevisionActor")
+  ticketStatusEvents TicketStatusEvent[] @relation("TicketStatusEventActor")
 
   @@index([isActive, role, name])
   @@index([role, isActive])
+}
+
+model ActionTaken {
+  id                 Int         @id @default(autoincrement())
+  ticketId           Int
+  clientRequestId    String      @db.Uuid
+  payloadFingerprint String
+  createdById        Int
+  assigneeId         Int
+  performedById      Int?
+  description        String
+  result             String      @default("")
+  followUpRequired   Boolean     @default(false)
+  followUpNote       String      @default("")
+  attachmentNotes    String      @default("")
+  state              ActionState @default(PLANNED)
+  cancellationReason String?
+  completedAt        DateTime?   @db.Timestamptz(3)
+  cancelledAt        DateTime?   @db.Timestamptz(3)
+  version            Int         @default(1)
+  createdAt          DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime    @default(now()) @updatedAt @db.Timestamptz(3)
+
+  ticket      Ticket           @relation(fields: [ticketId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdBy   User             @relation("ActionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  assignee    User             @relation("ActionAssignedTo", fields: [assigneeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  performedBy User?            @relation("ActionPerformedBy", fields: [performedById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  revisions   ActionRevision[]
+
+  @@unique([ticketId, clientRequestId])
+  @@index([ticketId, createdAt, id])
+  @@index([assigneeId, state, createdAt, id])
+}
+
+model ActionRevision {
+  id        Int                @id @default(autoincrement())
+  actionId  Int
+  version   Int
+  actorId   Int
+  kind      ActionRevisionKind
+  snapshot  Json               @db.JsonB
+  createdAt DateTime           @default(now()) @db.Timestamptz(3)
+
+  action ActionTaken @relation(fields: [actionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  actor  User        @relation("ActionRevisionActor", fields: [actorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([actionId, version])
+}
+
+model TicketStatusEvent {
+  id         Int           @id @default(autoincrement())
+  ticketId   Int
+  fromStatus CurrentStatus
+  toStatus   CurrentStatus
+  actorId    Int
+  createdAt  DateTime      @default(now()) @db.Timestamptz(3)
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  actor  User   @relation("TicketStatusEventActor", fields: [actorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([ticketId, createdAt, id])
 }
 
 model Session {
