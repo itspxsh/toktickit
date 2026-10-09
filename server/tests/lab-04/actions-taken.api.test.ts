@@ -371,7 +371,7 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(db.ticket.update).not.toHaveBeenCalled();
   });
 
-  it("T-ACT-04 starts an Action without confirmation, then completes it with server-derived performer metadata", async () => {
+  it("T-ACT-04 starts an Action without confirmation", async () => {
     authenticatedAs("IT_STAFF");
     const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null };
     const planned = actionFixture();
