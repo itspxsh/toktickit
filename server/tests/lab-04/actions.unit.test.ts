@@ -15,6 +15,8 @@ describe("L4-04 Action rules (T-UNIT-01 / T-UNIT-03)", () => {
     });
     expect(() => parseActionContent({ description: "<script>alert(1)</script>", followUpRequired: false })).toThrow(ActionRuleError);
     expect(() => parseActionContent({ description: "\u0001bad", followUpRequired: false })).toThrow(ActionRuleError);
+    expect(() => parseActionContent({ description: "line one\nline two", followUpRequired: false })).toThrow(ActionRuleError);
+    expect(() => parseActionContent({ description: "tab\there", followUpRequired: false })).toThrow(ActionRuleError);
     expect(() => parseActionContent({ description: "x".repeat(2_001), followUpRequired: false })).toThrow(ActionRuleError);
   });
 
