@@ -1048,8 +1048,11 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
   it("T-SEC-03 rejects unknown assignee query keys before reading users", async () => {
     authenticatedAs("IT_STAFF");
     const response = await request(app).get("/api/staff/assignees?includeInactive=true").set("Cookie", cookie);
+    const longQuery = await request(app).get(`/api/staff/assignees?q=${"x".repeat(101)}`).set("Cookie", cookie);
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(longQuery.status).toBe(400);
+    expect(longQuery.body.error.code).toBe("VALIDATION_ERROR");
     expect(db.user.findMany).not.toHaveBeenCalled();
     expect(db.user.count).not.toHaveBeenCalled();
   });
