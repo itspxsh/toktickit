@@ -1,4 +1,4 @@
-import type { Express, Request, RequestHandler, Response } from "express";
+import type { Express, Request, RequestHandler } from "express";
 import type { ActionState, PrismaClient } from "@prisma/client";
 import { requireCsrf } from "../auth.js";
 import { createRequesterAuthMiddleware, createStaffAuthMiddleware } from "../authorization.js";
@@ -17,6 +17,7 @@ import {
 } from "../lab-04/action-rules.js";
 import { createAction, listActions, transitionAction, updateAction } from "../lab-04/action-service.js";
 import { findAuthorizedTicket, parseIdentifier, parseTicketNumber } from "../lab-04/ticket-scope.js";
+import { sendActionHttpError } from "../http-errors.js";
 
 type Provider = () => PrismaClient;
 const DEFAULT_PAGE_SIZE = 20;
@@ -47,14 +48,6 @@ function pagination(req: Request, allowFocusAction = true): { page: number; page
     if (!Number.isSafeInteger(focusActionId)) throw new ActionRuleError(400, "INVALID_IDENTIFIER", "focusActionId must be a positive integer.");
   }
   return { page, pageSize, focusActionId, explicitPage: req.query.page !== undefined };
-}
-
-function sendError(res: Response, error: unknown): void {
-  if (error instanceof ActionRuleError) {
-    res.status(error.status).json({ error: { code: error.code, message: error.message, ...(error.fieldErrors ? { fieldErrors: error.fieldErrors } : {}) } });
-    return;
-  }
-  res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Something went wrong." } });
 }
 
 function actor(req: Request): number {
@@ -166,9 +159,9 @@ export function registerActionsTakenRoutes(
         const prisma = provider();
         const ticket = await findAuthorizedTicket(prisma, req, number, audience);
         if (!ticket) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
-        const result = await listActions(prisma, { req, ticket, ticketNumber: number, actorId: actor(req) }, page, pageSize, { focusActionId, explicitPage });
+        const result = await listActions(prisma, { ticket, ticketNumber: number, actorId: actor(req) }, page, pageSize, { focusActionId, explicitPage });
         res.status(200).json(result);
-      } catch (error) { sendError(res, error); }
+      } catch (error) { sendActionHttpError(req, res, error); }
     });
   };
   registerRead("/api/tickets/:ticketNumber/actions", requesterAuthorization, "requester");
@@ -182,9 +175,9 @@ export function registerActionsTakenRoutes(
       const prisma = provider();
       const ticket = await findAuthorizedTicket(prisma, req, number, "staff");
       if (!ticket) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
-      const { ticketVersion: _ticketVersion, ...result } = await listActions(prisma, { req, ticket, ticketNumber: number, actorId: actor(req) }, page, pageSize, { revisionsActionId: actionId });
+      const { ticketVersion: _ticketVersion, ...result } = await listActions(prisma, { ticket, ticketNumber: number, actorId: actor(req) }, page, pageSize, { revisionsActionId: actionId });
       res.status(200).json(result);
-    } catch (error) { sendError(res, error); }
+    } catch (error) { sendActionHttpError(req, res, error); }
   });
 
   app.post("/api/staff/tickets/:ticketNumber/actions", staffAuthorization, csrfMiddleware, async (req, res) => {
@@ -194,9 +187,9 @@ export function registerActionsTakenRoutes(
       const prisma = provider();
       const ticket = await findAuthorizedTicket(prisma, req, number, "staff");
       if (!ticket) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
-      const result = await createAction(prisma, { req, ticket, ticketNumber: number, actorId: actor(req) }, input);
+      const result = await createAction(prisma, { ticket, ticketNumber: number, actorId: actor(req) }, input);
       res.status(result.replay ? 200 : 201).json({ action: result.action, ticketVersion: result.ticketVersion });
-    } catch (error) { sendError(res, error); }
+    } catch (error) { sendActionHttpError(req, res, error); }
   });
 
   app.patch("/api/staff/tickets/:ticketNumber/actions/:actionId", staffAuthorization, csrfMiddleware, async (req, res) => {
@@ -207,9 +200,9 @@ export function registerActionsTakenRoutes(
       const prisma = provider();
       const ticket = await findAuthorizedTicket(prisma, req, number, "staff");
       if (!ticket) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
-      const result = await updateAction(prisma, { req, ticket, ticketNumber: number, actorId: actor(req) }, actionId, input);
+      const result = await updateAction(prisma, { ticket, ticketNumber: number, actorId: actor(req) }, actionId, input);
       res.status(200).json({ action: result.action, ticketVersion: result.ticketVersion });
-    } catch (error) { sendError(res, error); }
+    } catch (error) { sendActionHttpError(req, res, error); }
   });
 
   app.post("/api/staff/tickets/:ticketNumber/actions/:actionId/transitions", staffAuthorization, csrfMiddleware, async (req, res) => {
@@ -220,8 +213,8 @@ export function registerActionsTakenRoutes(
       const prisma = provider();
       const ticket = await findAuthorizedTicket(prisma, req, number, "staff");
       if (!ticket) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
-      const result = await transitionAction(prisma, { req, ticket, ticketNumber: number, actorId: actor(req) }, actionId, input);
+      const result = await transitionAction(prisma, { ticket, ticketNumber: number, actorId: actor(req) }, actionId, input);
       res.status(200).json(result);
-    } catch (error) { sendError(res, error); }
+    } catch (error) { sendActionHttpError(req, res, error); }
   });
 }

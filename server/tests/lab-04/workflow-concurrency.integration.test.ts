@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import type { Request } from "express";
 import { PrismaClient } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { seedLab3Data, seedLab4Data } from "../../src/data-foundation.js";
@@ -42,17 +41,17 @@ describe.sequential("L4-04 PostgreSQL Action concurrency", () => {
     expect(action).not.toBeNull();
     const beforeRevisionCount = await prisma.actionRevision.count({ where: { actionId: action!.id } });
     const ctx = {
-      req: { auth: { user: { id: Number.MAX_SAFE_INTEGER, role: "ADMIN" } } } as unknown as Request,
       ticket: ticket!,
       ticketNumber: ticket!.ticketNumber,
-      actorId: Number.MAX_SAFE_INTEGER,
+      // Stay within PostgreSQL INT4 while using an ID guaranteed not to exist.
+      actorId: 2_147_483_647,
     };
 
     await expect(updateAction(prisma, ctx, action!.id, {
       expectedTicketVersion: ticket!.workflowVersion,
       expectedVersion: action!.version,
       changes: { description: "This edit must roll back with its revision" },
-    })).rejects.toBeDefined();
+    })).rejects.toMatchObject({ code: "P2003" });
 
     const [afterAction, afterTicket, afterRevisionCount] = await Promise.all([
       prisma.actionTaken.findUnique({ where: { id: action!.id } }),
@@ -77,9 +76,7 @@ describe.sequential("L4-04 PostgreSQL Action concurrency", () => {
 
     const connectionA = new PrismaClient({ datasources: { db: { url } } });
     const connectionB = new PrismaClient({ datasources: { db: { url } } });
-    const req = { auth: { user: { id: actor!.id, role: "ADMIN" } } } as unknown as Request;
     const context = {
-      req,
       ticket: ticket!,
       ticketNumber: ticket!.ticketNumber,
       actorId: actor!.id,

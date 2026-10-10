@@ -3,6 +3,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { getPrisma } from "../prisma.js";
 import { createStaffAuthMiddleware } from "../authorization.js";
 import { ActionRuleError, isPositiveInteger } from "../lab-04/action-rules.js";
+import { sendActionHttpError } from "../http-errors.js";
 
 type Provider = () => PrismaClient;
 
@@ -12,14 +13,6 @@ function positiveQuery(raw: unknown, fallback: number, max = Number.MAX_SAFE_INT
   const parsed = Number(raw);
   if (!isPositiveInteger(parsed) || parsed > max) throw new ActionRuleError(400, "VALIDATION_ERROR", "Pagination query is outside the supported range.");
   return parsed;
-}
-
-function sendError(res: import("express").Response, error: unknown): void {
-  if (error instanceof ActionRuleError) {
-    res.status(error.status).json({ error: { code: error.code, message: error.message, ...(error.fieldErrors ? { fieldErrors: error.fieldErrors } : {}) } });
-    return;
-  }
-  res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Something went wrong." } });
 }
 
 export function registerStaffAssigneeRoutes(
@@ -51,7 +44,7 @@ export function registerStaffAssigneeRoutes(
       ]);
       res.status(200).json({ items, page, pageSize, total, totalPages: total === 0 ? 0 : Math.ceil(total / pageSize) });
     } catch (error) {
-      sendError(res, error);
+      sendActionHttpError(req, res, error);
     }
   });
 }

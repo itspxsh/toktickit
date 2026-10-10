@@ -1,4 +1,4 @@
-import express, { Request, Response, type NextFunction, type RequestHandler } from "express";
+import express, { Request, Response, type NextFunction } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { registerRequesterRoutes } from "./routes/requesters.js";
@@ -50,7 +50,6 @@ const authenticatedAndChanged = createPasswordChangedMiddleware(authenticated);
 const requesterAuthenticated = createRequesterAuthMiddleware();
 // /api/tickets is already protected by the shared session-derived requester
 // guard above; avoid doing the same session/requester lookup twice.
-const requesterGuardAlreadyApplied: RequestHandler = (_req, _res, next) => next();
 const staffAuthenticated = createStaffAuthMiddleware();
 const adminAuthenticated = createAdminAuthMiddleware();
 registerReferenceDataRoutes(app, undefined, authenticatedAndChanged);
@@ -64,7 +63,7 @@ registerAttachmentRoutes(app, undefined, undefined, requireCsrf);
 registerStaffQueueRoutes(app, undefined, staffAuthenticated);
 registerStaffTicketDetailRoutes(app, undefined, staffAuthenticated, requireCsrf);
 registerStaffAssigneeRoutes(app, undefined, staffAuthenticated);
-registerActionsTakenRoutes(app, undefined, requesterGuardAlreadyApplied, staffAuthenticated, requireCsrf);
+registerActionsTakenRoutes(app, undefined, requesterAuthenticated, staffAuthenticated, requireCsrf);
 registerAdminUserRoutes(app, undefined, adminAuthenticated, requireCsrf);
 
 export default app;

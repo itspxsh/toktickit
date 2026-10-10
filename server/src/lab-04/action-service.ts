@@ -1,11 +1,10 @@
 import { Prisma, type ActionRevisionKind, type ActionState, type PrismaClient } from "@prisma/client";
-import type { Request } from "express";
 import {
   ACTION_STATES,
   ActionRuleError,
   actionFingerprint,
-  assertVersions,
   canTransitionAction,
+  isPlainText,
   type ActionContent,
   validateActionContent,
 } from "./action-rules.js";
@@ -40,7 +39,7 @@ type ActionWithPeople = ActionRecord & {
   performedBy: { id: number; name: string; role: string; isActive: boolean } | null;
 };
 
-type RequestContext = { req: Request; ticket: TicketScope; ticketNumber: string; actorId: number };
+type RequestContext = { ticket: TicketScope; ticketNumber: string; actorId: number };
 
 function safeAction(row: ActionWithPeople): Record<string, unknown> {
   const person = (value: ActionWithPeople["createdBy"] | null) => value ? {
@@ -120,8 +119,17 @@ function assertParentEditable(ticket: TicketScope): void {
 }
 
 function assertExpectedActionVersion(action: ActionRecord, expected: unknown): void {
-  assertVersions(1, expected);
+  if (typeof expected !== "number" || !Number.isSafeInteger(expected) || expected <= 0) {
+    throw new ActionRuleError(400, "VALIDATION_ERROR", "expectedVersion must be a positive integer.");
+  }
   if (action.version !== expected) throw new ActionRuleError(409, "STALE_WRITE", "Action changed; refresh before retrying.");
+}
+
+function isIdempotencyUniqueViolation(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") return false;
+  const target = error.meta?.target;
+  if (Array.isArray(target)) return target.includes("clientRequestId");
+  return typeof target === "string" && /ActionTaken_ticketId_clientRequestId_key|clientRequestId/.test(target);
 }
 
 function contentOf(action: ActionRecord): ActionContent {
@@ -217,7 +225,34 @@ export async function createAction(
     await addRevision(tx, created as ActionRecord, ctx.actorId, "CREATE");
     const ticketVersion = await advanceTicketVersion(tx, ticket.id);
     return { action: safeAction(created as ActionWithPeople), ticketVersion, replay: false };
-  }, TRANSACTION_OPTIONS); } catch (error) { throw mapTransactionError(error) ?? error; }
+  }, TRANSACTION_OPTIONS); } catch (error) {
+    if (!isIdempotencyUniqueViolation(error)) throw mapTransactionError(error) ?? error;
+
+    // A competing request may have committed the same idempotency key after
+    // our first read. Re-check the active requester scope and replay identity
+    // under the parent lock before returning any Action data.
+    try {
+      return await prisma.$transaction(async (tx) => {
+        await lockTicket(tx, ctx.ticket.id);
+        const ticket = await tx.ticket.findFirst({
+          where: { id: ctx.ticket.id, ticketNumber: ctx.ticketNumber, requester: { isActive: true } },
+          select: { id: true, ticketNumber: true, workflowVersion: true, currentStatus: true, assignedStaffId: true },
+        });
+        if (!ticket) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
+        const raced = await tx.actionTaken.findUnique({
+          where: { ticketId_clientRequestId: { ticketId: ticket.id, clientRequestId: input.clientRequestId } },
+          select: { ...ACTION_SAFE_SELECT, ticketId: true, clientRequestId: true, payloadFingerprint: true, createdById: true, assigneeId: true, performedById: true },
+        });
+        if (!raced) throw mapTransactionError(error) ?? error;
+        if (raced.createdById !== ctx.actorId || raced.payloadFingerprint !== fingerprint) {
+          throw new ActionRuleError(409, "IDEMPOTENCY_CONFLICT", "This request key was already used for different work.");
+        }
+        return { action: safeAction(raced as ActionWithPeople), ticketVersion: ticket.workflowVersion, replay: true };
+      }, TRANSACTION_OPTIONS);
+    } catch (recheckError) {
+      throw mapTransactionError(recheckError) ?? recheckError;
+    }
+  }
 }
 
 export async function updateAction(
@@ -270,8 +305,7 @@ export async function transitionAction(
     if ((input.state === "COMPLETED" || input.state === "CANCELLED") && input.confirm !== true) {
       throw new ActionRuleError(409, "CONFIRMATION_REQUIRED", "This Action transition requires explicit confirmation.");
     }
-    let data: Prisma.ActionTakenUpdateManyMutationInput;
-    let completionData: Prisma.ActionTakenUpdateInput | undefined;
+    let data: Prisma.ActionTakenUncheckedUpdateManyInput;
     let kind: ActionRevisionKind;
     if (input.state === "IN_PROGRESS") {
       await assertActiveSupportUser(tx, action.assigneeId);
@@ -283,24 +317,18 @@ export async function transitionAction(
       validateActionContent(next, true);
       const completedAt = new Date();
       data = { ...next, state: "COMPLETED", completedAt, version: { increment: 1 } };
-      completionData = { ...next, state: "COMPLETED", performedBy: { connect: { id: ctx.actorId } }, completedAt, version: { increment: 1 } };
+      data = { ...next, state: "COMPLETED", performedById: ctx.actorId, completedAt, version: { increment: 1 } };
       kind = "COMPLETE";
     } else {
       const reason = input.reason?.trim() ?? "";
-      if (reason.length < 5 || reason.length > 250 || /[<>\u0000-\u001F\u007F]/.test(reason)) {
+      if (reason.length < 5 || reason.length > 250 || !isPlainText(reason)) {
         throw new ActionRuleError(400, "VALIDATION_ERROR", "Cancellation reason must contain 5-250 plain-text characters.", { reason: "Enter 5-250 plain-text characters." });
       }
       data = { state: "CANCELLED", cancellationReason: reason, cancelledAt: new Date(), version: { increment: 1 } };
       kind = "CANCEL";
     }
-    if (completionData) {
-      // Parent and Action rows are already locked in order, and both submitted
-      // versions were checked while those locks were held.
-      await tx.actionTaken.update({ where: { id: action.id }, data: completionData });
-    } else {
-      const changed = await tx.actionTaken.updateMany({ where: { id: action.id, ticketId: ticket.id, version: action.version }, data });
-      if (changed.count !== 1) throw new ActionRuleError(409, "STALE_WRITE", "Action changed; refresh before retrying.");
-    }
+    const changed = await tx.actionTaken.updateMany({ where: { id: action.id, ticketId: ticket.id, version: action.version }, data });
+    if (changed.count !== 1) throw new ActionRuleError(409, "STALE_WRITE", "Action changed; refresh before retrying.");
     const updated = await findAction(tx, ticket.id, action.id);
     await addRevision(tx, updated, ctx.actorId, kind);
     const ticketVersion = await advanceTicketVersion(tx, ticket.id);

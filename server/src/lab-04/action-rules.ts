@@ -23,7 +23,7 @@ export type ActionContent = {
 export const ACTION_STATES = ["PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
 
 export function isPlainText(value: unknown): value is string {
-  return typeof value === "string" && !/[<>\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value);
+  return typeof value === "string" && !/[<>\u0000-\u001F\u007F]/.test(value);
 }
 
 export function isPositiveInteger(value: unknown): value is number {
