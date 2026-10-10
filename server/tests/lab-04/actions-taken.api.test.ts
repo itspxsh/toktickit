@@ -442,10 +442,12 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     authenticatedAs("REQUESTER");
     db.requester.findUnique.mockResolvedValue({ id: 7, isActive: true });
     db.ticket.findFirst.mockResolvedValue({ id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 4, currentStatus: "OPEN", assignedStaffId: null });
-    db.actionTaken.findMany.mockResolvedValue([]);
+    db.actionTaken.findMany.mockResolvedValue([actionFixture({ state: "CANCELLED", cancellationReason: "Work superseded", cancelledAt: new Date("2026-10-10T01:00:00Z") })]);
+    db.actionTaken.count.mockResolvedValue(1);
     const response = await request(app).get("/api/tickets/TKT-2026-000051/actions").set("Cookie", cookie);
     expect(response.status).toBe(200);
-    expect(response.body).toMatchObject({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0, ticketVersion: 4 });
+    expect(response.body).toMatchObject({ items: [{ state: "CANCELLED", cancellationReason: "Work superseded" }], page: 1, pageSize: 20, total: 1, totalPages: 1, ticketVersion: 4 });
+    expect(db.actionTaken.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketId: 51 }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] }));
     expect(db.ticket.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ ticketNumber: "TKT-2026-000051", requesterId: 7, requester: { isActive: true } }) }));
     expect(JSON.stringify(response.body)).not.toMatch(/revision|internalNote|passwordHash|tokenHash/);
   });
@@ -632,6 +634,11 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ ticketVersion: 4, action: { id: 90, description: after.description, version: 2 } });
     expect(db.actionTaken.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 90, ticketId: 51, version: 1 }, data: expect.objectContaining({ version: { increment: 1 } }) }));
+    const updateData = db.actionTaken.updateMany.mock.calls[0]?.[0].data;
+    expect(updateData).not.toHaveProperty("createdById");
+    expect(updateData).not.toHaveProperty("createdAt");
+    expect(updateData).not.toHaveProperty("ticketId");
+    expect(updateData).not.toHaveProperty("clientRequestId");
     expect(db.actionRevision.create).toHaveBeenCalledTimes(1);
     expect(db.actionRevision.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ actionId: 90, version: 2, actorId: actor.id, kind: "EDIT" }) }));
     expect(db.ticket.update).toHaveBeenCalledTimes(1);

@@ -27,8 +27,8 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 | T-ACT-02 | 02,03 | Inactive/Requester/missing assignee and forged actor/time/state/parent rejected, zero writes. | actions-taken.api.test.ts |
 | T-ACT-03 | 03 | Description/result/follow-up/attachment-note upper bounds, boolean type, follow-up note requirements, merged patch validation; 400 field errors. | actions-taken.api.test.ts; actions.unit.test.ts |
 | T-ACT-04 | 04 | Start/complete/cancel permitted edges; invalid edge/terminal edits fail; complete performer=actor and required Result/follow-up; cancel reason/confirmation. | actions-taken.api.test.ts |
-| T-ACT-05 | 05 | Stable order under edits, one revision per effective mutation, original fields immutable, no delete route, no-op unchanged. | actions-taken.api.test.ts |
-| T-ACT-06 | 06,18 | Owned all-state Requester read, cross-owner/missing Ticket and child errors equal, no revisions/notes/secrets; requester writes403. | actions-taken.api.test.ts |
+| T-ACT-05 | 05 | Stable `createdAt`/`id` list ordering; server-derived immutable creation fields remain untouched on edit; one revision per effective mutation; no delete route; no-op unchanged. | actions-taken.api.test.ts |
+| T-ACT-06 | 06,18 | Owned Requester read includes terminal `CANCELLED` Actions; cross-owner/missing Ticket and child errors equal; no revisions/notes/secrets; requester writes 403. | actions-taken.api.test.ts |
 | T-ACT-07 | 09 | Same key/payload/actor200 replay once, different payload/actor409; replay after lost response precedes stale-version check. | actions-taken.api.test.ts |
 | T-ACT-08 | 05,09 | Forced revision insert failure rolls back Action/Ticket counters and all data in real PostgreSQL; parent/action predicates are asserted by API mutation tests. | workflow-concurrency.integration.test.ts; actions-taken.api.test.ts |
 | T-ACT-09 | 06 | Requester/Staff Action-list defaults and pageSize 1..100 boundary; Staff revision defaults and pageSize 1..100; invalid page or pageSize returns 400 before data access. | actions-taken.api.test.ts |
