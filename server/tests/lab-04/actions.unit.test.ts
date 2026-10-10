@@ -38,8 +38,10 @@ describe("L4-04 Action rules (T-UNIT-01 / T-UNIT-03)", () => {
     const a = actionFingerprint(77, { description: " Inspect gateway ", result: "", followUpRequired: false, followUpNote: "", attachmentNotes: "" });
     const b = actionFingerprint(77, { description: "Inspect gateway", result: "", followUpRequired: false, followUpNote: "", attachmentNotes: "" });
     const otherAssignee = actionFingerprint(78, { description: "Inspect gateway", result: "", followUpRequired: false, followUpNote: "", attachmentNotes: "" });
+    const otherContent = actionFingerprint(77, { description: "Inspect VPN gateway", result: "", followUpRequired: false, followUpNote: "", attachmentNotes: "" });
     expect(a).toBe(b);
     expect(a).not.toBe(otherAssignee);
+    expect(a).not.toBe(otherContent);
     expect(a).toMatch(/^[a-f0-9]{64}$/);
   });
 

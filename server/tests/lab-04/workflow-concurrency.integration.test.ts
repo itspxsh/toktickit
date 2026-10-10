@@ -32,6 +32,38 @@ describe.sequential("L4-04 PostgreSQL Action concurrency", () => {
     else process.env.LAB3_TEST_INITIAL_PASSWORD = previousPassword;
   });
 
+  it("T-ACT-08 rolls back Action and Ticket versions when revision insertion fails", async () => {
+    const ticket = await prisma.ticket.findUnique({
+      where: { clientRequestId: "lab4-seed-ticket-open" },
+      select: { id: true, ticketNumber: true, workflowVersion: true, currentStatus: true, assignedStaffId: true },
+    });
+    expect(ticket).not.toBeNull();
+    const action = await prisma.actionTaken.findFirst({ where: { ticketId: ticket!.id, state: "PLANNED" }, orderBy: { id: "asc" } });
+    expect(action).not.toBeNull();
+    const beforeRevisionCount = await prisma.actionRevision.count({ where: { actionId: action!.id } });
+    const ctx = {
+      req: { auth: { user: { id: Number.MAX_SAFE_INTEGER, role: "ADMIN" } } } as unknown as Request,
+      ticket: ticket!,
+      ticketNumber: ticket!.ticketNumber,
+      actorId: Number.MAX_SAFE_INTEGER,
+    };
+
+    await expect(updateAction(prisma, ctx, action!.id, {
+      expectedTicketVersion: ticket!.workflowVersion,
+      expectedVersion: action!.version,
+      changes: { description: "This edit must roll back with its revision" },
+    })).rejects.toBeDefined();
+
+    const [afterAction, afterTicket, afterRevisionCount] = await Promise.all([
+      prisma.actionTaken.findUnique({ where: { id: action!.id } }),
+      prisma.ticket.findUnique({ where: { id: ticket!.id }, select: { workflowVersion: true } }),
+      prisma.actionRevision.count({ where: { actionId: action!.id } }),
+    ]);
+    expect(afterAction).toMatchObject({ description: action!.description, version: action!.version });
+    expect(afterTicket?.workflowVersion).toBe(ticket!.workflowVersion);
+    expect(afterRevisionCount).toBe(beforeRevisionCount);
+  });
+
   it("T-RACE-01 serializes concurrent edits to one Action across independent PostgreSQL connections", async () => {
     const ticket = await prisma.ticket.findUnique({
       where: { clientRequestId: "lab4-seed-ticket-open" },
