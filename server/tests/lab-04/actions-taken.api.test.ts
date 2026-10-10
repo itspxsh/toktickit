@@ -218,17 +218,11 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(db.ticket.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 51 }, data: { workflowVersion: { increment: 1 } } }));
   });
 
-  it.each([
-    ["missing", null],
-    ["inactive", { id: 77, isActive: false, role: "IT_STAFF" }],
-    ["Requester", { id: 77, isActive: true, role: "REQUESTER" }],
-  ])("T-ACT-02 rejects a %s assignee without writing", async (_label, candidate) => {
+  it.each(["missing", "inactive", "Requester"])("T-ACT-02 rejects a %s assignee without writing", async () => {
     authenticatedAs("IT_STAFF");
     db.ticket.findFirst.mockResolvedValue({ id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null });
     db.ticket.findUnique.mockResolvedValue({ id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null });
-    // The real filtered query returns no row for absent, inactive, or
-    // wrong-role identities; record the attempted candidate only in the case label.
-    void candidate;
+    // The filtered query returns no row for absent, inactive, or wrong-role identities.
     db.user.findFirst.mockResolvedValue(null);
     const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
     const response = await request(app)
@@ -269,6 +263,53 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
     expect(response.body.error.fieldErrors).toHaveProperty("description");
+    expect(db.ticket.findFirst).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["result", "x".repeat(2_001)],
+    ["followUpNote", "x".repeat(2_001)],
+    ["attachmentNotes", "x".repeat(1_001)],
+  ])("T-ACT-03 enforces the %s maximum", async (field, value) => {
+    authenticatedAs("IT_STAFF");
+    const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const response = await request(app)
+      .post("/api/staff/tickets/TKT-2026-000051/actions")
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
+      .send({
+        clientRequestId: "6d0e5ea5-3b6e-4ac4-bd7b-3115e23bc232",
+        expectedTicketVersion: 3,
+        assigneeId: 77,
+        description: "Inspect gateway configuration",
+        followUpRequired: false,
+        [field]: value,
+      });
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.fieldErrors).toHaveProperty(field);
+    expect(db.ticket.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("T-ACT-03 rejects a non-boolean Follow-up Required value", async () => {
+    authenticatedAs("IT_STAFF");
+    const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const response = await request(app)
+      .post("/api/staff/tickets/TKT-2026-000051/actions")
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
+      .send({
+        clientRequestId: "6d0e5ea5-3b6e-4ac4-bd7b-3115e23bc232",
+        expectedTicketVersion: 3,
+        assigneeId: 77,
+        description: "Inspect gateway configuration",
+        followUpRequired: "yes",
+      });
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.body.error.fieldErrors).toHaveProperty("followUpRequired");
     expect(db.ticket.findFirst).not.toHaveBeenCalled();
   });
 
@@ -402,7 +443,7 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     db.requester.findUnique.mockResolvedValue({ id: 7, isActive: true });
     db.ticket.findFirst.mockResolvedValue({ id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 4, currentStatus: "OPEN", assignedStaffId: null });
     db.actionTaken.findMany.mockResolvedValue([]);
-    const response = await request(app).get("/api/tickets/TKT-2026-000051/actions?page=1&pageSize=20").set("Cookie", cookie);
+    const response = await request(app).get("/api/tickets/TKT-2026-000051/actions").set("Cookie", cookie);
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0, ticketVersion: 4 });
     expect(db.ticket.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ ticketNumber: "TKT-2026-000051", requesterId: 7, requester: { isActive: true } }) }));
@@ -462,6 +503,15 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(db.ticket.findFirst).not.toHaveBeenCalled();
 
     const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const wrongToken = await request(app)
+      .post("/api/staff/tickets/TKT-2026-000051/actions")
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", "not-the-session-token")
+      .send({});
+    expect(wrongToken.status).toBe(403);
+    expect(db.ticket.findFirst).not.toHaveBeenCalled();
+
     const foreignOrigin = await request(app)
       .post("/api/staff/tickets/TKT-2026-000051/actions")
       .set("Cookie", cookie)
@@ -471,6 +521,24 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(foreignOrigin.status).toBe(403);
     expect(db.ticket.findFirst).not.toHaveBeenCalled();
     expect(db.actionTaken.create).not.toHaveBeenCalled();
+  });
+
+  it("T-SEC-02 applies session role changes immediately on the next request", async () => {
+    const makeSession = (role: string) => ({
+      id: 9,
+      userId: actor.id,
+      tokenHash: hashSessionToken(token),
+      expiresAt: new Date(Date.now() + 60_000),
+      invalidatedAt: null,
+      user: { ...actor, role },
+    });
+    db.session.findUnique.mockResolvedValueOnce(makeSession("IT_STAFF")).mockResolvedValueOnce(makeSession("REQUESTER"));
+    const allowed = await request(app).get("/api/staff/assignees").set("Cookie", cookie);
+    const denied = await request(app).get("/api/staff/assignees").set("Cookie", cookie);
+    expect(allowed.status).toBe(200);
+    expect(denied.status).toBe(403);
+    expect(denied.body.error.code).toBe("FORBIDDEN");
+    expect(db.user.findMany).toHaveBeenCalledTimes(1);
   });
 
   it("T-SEC-03 rejects forged creator, performer, state, and parent fields before opening a write transaction", async () => {
@@ -521,6 +589,25 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
       .send({ expectedTicketVersion: 3, expectedVersion: 1, state: "COMPLETED", confirm: true, result: "Done" });
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("ACTION_TRANSITION_NOT_ALLOWED");
+    expect(db.actionTaken.updateMany).not.toHaveBeenCalled();
+    expect(db.actionRevision.create).not.toHaveBeenCalled();
+  });
+
+  it("T-ACT-04 rejects edits to terminal Actions", async () => {
+    authenticatedAs("IT_STAFF");
+    const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null };
+    db.ticket.findFirst.mockResolvedValue(ticket);
+    db.ticket.findUnique.mockResolvedValue(ticket);
+    db.actionTaken.findFirst.mockResolvedValue(actionFixture({ state: "COMPLETED", result: "Done", performedById: actor.id }));
+    const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const response = await request(app)
+      .patch("/api/staff/tickets/TKT-2026-000051/actions/90")
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
+      .send({ expectedTicketVersion: 3, expectedVersion: 1, description: "Revised description" });
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe("ACTION_NOT_EDITABLE");
     expect(db.actionTaken.updateMany).not.toHaveBeenCalled();
     expect(db.actionRevision.create).not.toHaveBeenCalled();
   });
@@ -764,6 +851,43 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(response.body).toMatchObject({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0, ticketVersion: 3 });
     expect(db.actionTaken.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketId: 51 }, skip: 0, take: 20 }));
     expect(db.actionTaken.count).toHaveBeenCalledWith({ where: { ticketId: 51 } });
+  });
+
+  it("T-ACT-09 enforces Requester Action pagination bounds and accepts pageSize 100", async () => {
+    authenticatedAs("REQUESTER");
+    db.requester.findUnique.mockResolvedValue({ id: 7, isActive: true });
+    db.ticket.findFirst.mockResolvedValue({ id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null });
+    db.actionTaken.findMany.mockResolvedValue([]);
+    db.actionTaken.count.mockResolvedValue(0);
+
+    const upper = await request(app)
+      .get("/api/tickets/TKT-2026-000051/actions?page=1&pageSize=100")
+      .set("Cookie", cookie);
+    expect(upper.status).toBe(200);
+    expect(upper.body).toMatchObject({ items: [], page: 1, pageSize: 100, total: 0, totalPages: 0 });
+    expect(db.actionTaken.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketId: 51 }, skip: 0, take: 100 }));
+
+    const invalid = await request(app)
+      .get("/api/tickets/TKT-2026-000051/actions?pageSize=101")
+      .set("Cookie", cookie);
+    expect(invalid.status).toBe(400);
+    expect(db.ticket.findFirst).toHaveBeenCalledTimes(1);
+  });
+
+  it("T-ACT-09 applies staff revision defaults and accepts the pageSize upper bound", async () => {
+    authenticatedAs("IT_STAFF");
+    const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null };
+    db.ticket.findFirst.mockResolvedValue(ticket);
+    db.actionTaken.findFirst.mockResolvedValue({ id: 90 });
+    db.actionRevision.findMany.mockResolvedValue([]);
+    db.actionRevision.count.mockResolvedValue(0);
+    const defaults = await request(app).get("/api/staff/tickets/TKT-2026-000051/actions/90/revisions").set("Cookie", cookie);
+    expect(defaults.status).toBe(200);
+    expect(defaults.body).toEqual({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+    const upper = await request(app).get("/api/staff/tickets/TKT-2026-000051/actions/90/revisions?page=1&pageSize=100").set("Cookie", cookie);
+    expect(upper.status).toBe(200);
+    expect(upper.body).toEqual({ items: [], page: 1, pageSize: 100, total: 0, totalPages: 0 });
+    expect(db.actionRevision.findMany).toHaveBeenLastCalledWith(expect.objectContaining({ where: { actionId: 90 }, skip: 0, take: 100 }));
   });
 
   it("T-ACT-05 exposes ordered staff-only revisions without adding Action or credential fields", async () => {
