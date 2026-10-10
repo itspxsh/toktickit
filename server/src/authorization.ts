@@ -35,6 +35,13 @@ export function createRequesterAuthMiddleware(
 ): RequestHandler {
   const sessionAuth = createPasswordChangedMiddleware(createAuthMiddleware(prismaProvider as never));
   return async (req: Request, res: Response, next: NextFunction) => {
+    // The app-level /api/tickets guard may already have resolved this request.
+    // These fields are server-populated; accepting them avoids duplicate DB reads
+    // while the registrar still uses this real guard when mounted independently.
+    if (req.auth && roleAllowed(req.auth.user.role, ["REQUESTER"]) && Number.isSafeInteger(req.requesterId) && (req.requesterId ?? 0) > 0) {
+      next();
+      return;
+    }
     await sessionAuth(req, res, () => undefined);
     if (!req.auth || res.headersSent) return;
     if (!roleAllowed(req.auth.user.role, ["REQUESTER"])) {

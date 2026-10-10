@@ -22,6 +22,8 @@ const ownedTicket = {
   description: "The battery drains faster than usual during normal use.",
   itPriority: null,
   currentStatus: "NEW",
+  resolvedAt: null,
+  workflowVersion: 1,
   createdAt,
   updatedAt: createdAt,
   attachments: [
@@ -93,6 +95,8 @@ describe("GET /api/tickets/:ticketNumber", () => {
         description: ownedTicket.description,
         itPriority: null,
         currentStatus: "NEW",
+        resolvedAt: null,
+        workflowVersion: 1,
         createdAt: createdAt.toISOString(),
         updatedAt: createdAt.toISOString(),
         attachments: [
