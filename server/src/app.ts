@@ -1,4 +1,4 @@
-import express, { Request, Response, type NextFunction } from "express";
+import express, { Request, Response, type NextFunction, type RequestHandler } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
 import { registerRequesterRoutes } from "./routes/requesters.js";
@@ -11,6 +11,8 @@ import { createAdminAuthMiddleware, createRequesterAuthMiddleware, createStaffAu
 import { registerStaffQueueRoutes } from "./routes/staff-queue.js";
 import { registerStaffTicketDetailRoutes } from "./routes/staff-ticket-detail.js";
 import { registerAdminUserRoutes } from "./routes/users-admin.js";
+import { registerActionsTakenRoutes } from "./routes/actions-taken.js";
+import { registerStaffAssigneeRoutes } from "./routes/staff-assignees.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -46,6 +48,9 @@ registerAuthRoutes(app);
 const authenticated = createAuthMiddleware();
 const authenticatedAndChanged = createPasswordChangedMiddleware(authenticated);
 const requesterAuthenticated = createRequesterAuthMiddleware();
+// /api/tickets is already protected by the shared session-derived requester
+// guard above; avoid doing the same session/requester lookup twice.
+const requesterGuardAlreadyApplied: RequestHandler = (_req, _res, next) => next();
 const staffAuthenticated = createStaffAuthMiddleware();
 const adminAuthenticated = createAdminAuthMiddleware();
 registerReferenceDataRoutes(app, undefined, authenticatedAndChanged);
@@ -58,6 +63,8 @@ registerTicketRoutes(app, undefined, undefined, requireCsrf);
 registerAttachmentRoutes(app, undefined, undefined, requireCsrf);
 registerStaffQueueRoutes(app, undefined, staffAuthenticated);
 registerStaffTicketDetailRoutes(app, undefined, staffAuthenticated, requireCsrf);
+registerStaffAssigneeRoutes(app, undefined, staffAuthenticated);
+registerActionsTakenRoutes(app, undefined, requesterGuardAlreadyApplied, staffAuthenticated, requireCsrf);
 registerAdminUserRoutes(app, undefined, adminAuthenticated, requireCsrf);
 
 export default app;
