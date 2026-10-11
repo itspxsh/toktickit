@@ -198,6 +198,8 @@ function serialiseTicket(row: Record<string, unknown>): Record<string, unknown> 
     description: row.description,
     itPriority: row.itPriority ?? null,
     currentStatus: row.currentStatus,
+    resolvedAt: row.resolvedAt ?? null,
+    workflowVersion: row.workflowVersion,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

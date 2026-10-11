@@ -5,10 +5,9 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 ## 1. Test file responsibilities
 
 * `server/tests/lab-04/actions.unit.test.ts`: field normalization, state/gate predicates, strict parsing and canonical fingerprint.
-* `server/tests/lab-04/actions-taken.api.test.ts`: create/read/edit/assignment/transitions/replays/rollback with asserted query predicates.
+* `server/tests/lab-04/actions-taken.api.test.ts`: create/read/edit/assignment/transitions/replays/real auth+CSRF wiring and query predicates.
 * `server/tests/lab-04/ticket-workflow.api.test.ts`: complete role/transition matrix, gate, explicit versioned existing writes.
 * `server/tests/lab-04/requester-dashboard.api.test.ts`, `staff-dashboard.api.test.ts`: scopes/formulas/windows/bounded responses/filters.
-* `server/tests/lab-04/authorization.api.test.ts`: **real** existing auth/CSRF middleware wired to new route registrars.
 * `server/tests/lab-04/migration.integration.test.ts`: real PostgreSQL upgrade/deploy/seed/recovery fixtures.
 * `server/tests/lab-04/workflow-concurrency.integration.test.ts`: real transactions and races using separate connections/barriers.
 * `server/tests/lab-04/dashboard.integration.test.ts`: independently calculated metrics and performance-smoke fixture.
@@ -25,14 +24,14 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 | T-UNIT-02 | 07,08 | Every from/to/role pair and resolution gate truth table, including zero/all-cancelled/follow-up. | actions.unit.test.ts |
 | T-UNIT-03 | 09,12 | Fingerprint deterministic across normalized payloads, ignores expected version, differs on content/assignee; query dates/URLs allow-list. | actions.unit.test.ts |
 | T-ACT-01 | 01,02 | Create correct parent/actor/time/PLANNED/version and different active support assignee; 201 safe shape. | actions-taken.api.test.ts |
-| T-ACT-02 | 02,03 | Inactive/Requester/missing assignee and forged actor/time/state/parent rejected, zero writes. | actions-taken.api.test.ts |
-| T-ACT-03 | 03 | All text limits, boolean types, follow-up true + omitted/short note, merged patch validation; 400 field errors. | actions-taken.api.test.ts |
-| T-ACT-04 | 04 | Start/complete/cancel permitted edges; invalid edge/terminal edits fail; complete performer=actor and required Result/follow-up; cancel reason/confirmation. | actions-taken.api.test.ts |
-| T-ACT-05 | 05 | Stable order under edits, one revision per effective mutation, original fields immutable, no delete route, no-op unchanged. | actions-taken.api.test.ts |
-| T-ACT-06 | 06,18 | Owned all-state Requester read, cross-owner/missing Ticket and child errors equal, no revisions/notes/secrets; requester writes403. | actions-taken.api.test.ts |
-| T-ACT-07 | 09 | Same key/payload/actor200 replay once, different payload/actor409; replay after lost response precedes stale-version check. | actions-taken.api.test.ts |
-| T-ACT-08 | 05,09 | Forced revision insert error rolls back Action/Ticket counters and all data; parent/action predicate assertions. | actions-taken.api.test.ts |
-| T-ACT-09 | 06 | Requester and Staff Action/revision pagination defaults, valid boundaries, and 400 for page<1 or pageSize outside 1..100. | actions-taken.api.test.ts |
+| T-ACT-02 | 02,03 | Create/reassignment reject inactive, Requester, missing, or invalid assignees; both candidate-query predicates are asserted; forged actor/time/state/parent rejected; zero writes. | actions-taken.api.test.ts |
+| T-ACT-03 | 03 | Description/result/follow-up/attachment-note upper bounds, boolean and UUID validation, control-character rejection, empty-patch rejection, follow-up note requirements, merged patch validation; 400 before data access. | actions-taken.api.test.ts; actions.unit.test.ts |
+| T-ACT-04 | 04 | Start/complete/cancel permitted edges; terminal parent/Action and invalid edges fail; complete requires confirmation, performer=actor, Result and no follow-up; cancel requires confirmation/reason. Completion uses parent/action/version guarded updateMany. | actions-taken.api.test.ts |
+| T-ACT-05 | 05 | Stable `createdAt`/`id` list ordering; server-derived immutable creation fields remain untouched on edit; one revision per effective mutation (EDIT for combined, ASSIGN for assignment-only); no delete route; no-op unchanged. | actions-taken.api.test.ts |
+| T-ACT-06 | 06,18 | Owned Requester read includes terminal `CANCELLED` Actions; cross-owner/missing Ticket and child errors equal; no revisions/notes/secrets; requester writes 403. | actions-taken.api.test.ts |
+| T-ACT-07 | 09 | Same key/payload/actor returns one 200 replay; different payload/actor (including a P2002 create race) returns 409; replay is re-authorized and precedes stale-version checks; Ticket and Action stale versions are independently rejected before writes. | actions-taken.api.test.ts |
+| T-ACT-08 | 05,09 | Forced invalid revision actor fails specifically with PostgreSQL FK error P2003 and rolls back Action content/version, Ticket workflowVersion, and revision count; parent/action predicates are asserted by API mutation tests. | workflow-concurrency.integration.test.ts; actions-taken.api.test.ts |
+| T-ACT-09 | 06 | Requester/Staff Action-list defaults, focusActionId page resolution, and pageSize 1..100 boundary; Staff revision defaults and pageSize 1..100; invalid/unknown query returns 400 before data access. | actions-taken.api.test.ts |
 | T-WF-01 | 07 | Parameterized 8x8x3 role matrix, invalid/malformed/unchanged state, Admin-only cancelled reopen. | ticket-workflow.api.test.ts |
 | T-WF-02 | 08 | Zero/all-cancelled/unfinished/follow-up fail; eligible work permits resolve/close; advisory flag does not bypass gate. | ticket-workflow.api.test.ts |
 | T-WF-03 | 07,09 | Version required for claim/assignment/priority/status, stale409, atomic unassigned claim; terminal writes blocked; query conditions asserted. | ticket-workflow.api.test.ts |
@@ -43,9 +42,9 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 | T-DASH-S-02 | 11,12 | My Actions counts child rows not distinct Tickets, supports page beyond first, ignores foreign assignee; active parent predicate. | staff-dashboard.api.test.ts |
 | T-DASH-S-03 | 10,11 | Empty scopes zeros/[], safe failures not fake zeros, authenticated role mismatch403. | staff-dashboard.api.test.ts |
 | T-QUERY-01 | 12 | Both list APIs all statuses/groups/time bounds/before/null priority/AND/pagination, exact authorization where/select/order asserted. | requester-dashboard.api.test.ts |
-| T-SEC-01 | 06,18 | Real middleware every new protected GET/write: anonymous/expired/inactive401, first-login403, wrong role403. | authorization.api.test.ts |
-| T-SEC-02 | 18 | Real write wiring rejects missing/wrong CSRF and foreign Origin independently before mutation; session role change immediate. | authorization.api.test.ts |
-| T-SEC-03 | 03,18 | Forged owner/performer/createdAt/state/role, text HTML payloads, safe errors and secret-free projections; validate strict bodies. | authorization.api.test.ts |
+| T-SEC-01 | 06,18 | Real middleware representative protected GET/write checks: registrar default is fail-closed; shared requester route guard performs one session/requester lookup; anonymous/expired/inactive401, first-login403, and Requester-vs-support role403. | actions-taken.api.test.ts |
+| T-SEC-02 | 18 | Real write wiring rejects missing/wrong CSRF and foreign Origin independently before mutation; session role change is effective on the next request. | actions-taken.api.test.ts |
+| T-SEC-03 | 03,18 | Forged creator/performer/state/parent and unknown query fields are rejected before data access; strict body allow-list, correlation-only unexpected-error logging, and secret-free response projections. Plain-text/control validation is in T-UNIT-01. | actions-taken.api.test.ts; actions.unit.test.ts |
 | T-REG-01 | 13,17 | Authenticated categories/diagnostic and anonymous401/public health; new Ticket itPriority=requestedPriority; active Admin Owner accepted. | previous-labs.api.test.ts |
 | T-REG-02 | 17 | Attachment post-removal unlink failure still success, removed file inaccessible; five-active capacity concurrency covered in T-RACE-04. | previous-labs.api.test.ts |
 
