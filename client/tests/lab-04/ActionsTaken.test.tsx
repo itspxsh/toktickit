@@ -130,24 +130,26 @@ describe("L4-05 Actions Taken UI", () => {
     expect(await screen.findByRole("heading", { name: "Actions Taken" })).toBeInTheDocument();
     expect(await screen.findByText(action.description)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Add action" }));
-    const description = screen.getByRole("textbox", { name: "Description" });
+    const form = screen.getByRole("button", { name: "Create action" }).closest("form");
+    expect(form).not.toBeNull();
+    const description = within(form as HTMLFormElement).getByRole("textbox", { name: "Description" });
     await user.type(description, " Review gateway logs ");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Assignee" }), "22");
-    await user.click(screen.getByRole("checkbox", { name: "Follow-up required" }));
-    expect(screen.getByRole("textbox", { name: "Follow-up note" })).toBeRequired();
-    await user.type(screen.getByRole("textbox", { name: "Follow-up note" }), "Check with requester tomorrow");
+    await user.selectOptions(within(form as HTMLFormElement).getByRole("combobox", { name: "Assignee" }), "22");
+    await user.click(within(form as HTMLFormElement).getByRole("checkbox", { name: "Follow-up required" }));
+    expect(within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" })).toBeRequired();
+    await user.type(within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" }), "Check with requester tomorrow");
     await user.click(screen.getByRole("button", { name: "Create action" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to save Action.");
     expect(description).toHaveValue(" Review gateway logs ");
-    expect(screen.getByRole("textbox", { name: "Follow-up note" })).toHaveValue("Check with requester tomorrow");
+    expect(within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" })).toHaveValue("Check with requester tomorrow");
     failCreate = false;
     await user.click(screen.getByRole("button", { name: "Create action" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining(`/api/staff/tickets/${ticketNumber}/actions`),
       expect.objectContaining({ method: "POST", credentials: "include" }),
     ));
-    expect(await screen.findByRole("status")).toHaveTextContent(/created|added/i);
+    expect(await screen.findByText("Action created.")).toBeInTheDocument();
     const createBodies = fetchMock.mock.calls
       .filter(([url, init]) => String(url).includes(`/api/staff/tickets/${ticketNumber}/actions`) && init?.method === "POST")
       .map(([, init]) => JSON.parse(String(init?.body)) as Record<string, unknown>);
@@ -167,16 +169,29 @@ describe("L4-05 Actions Taken UI", () => {
 
   it("T-UI-ACT-02 / AC-02,04: offers support lifecycle controls and confirms complete/cancel explicitly", async () => {
     const user = userEvent.setup();
+    const fetchMock = setupFetch();
     renderStaff();
 
     const section = await screen.findByRole("region", { name: "Actions Taken" });
     expect(within(section).getByText("Action Assignee")).toBeInTheDocument();
-    expect(within(section).getByText("Ticket Owner")).toBeInTheDocument();
+    expect(within(section).getByText(/Ticket Owner:/)).toBeInTheDocument();
     expect(within(section).getByRole("button", { name: "Edit action" })).toBeInTheDocument();
     expect(within(section).getByRole("button", { name: "Start action" })).toBeInTheDocument();
     expect(within(section).getByRole("button", { name: "Cancel action" })).toBeInTheDocument();
     await user.click(within(section).getByRole("button", { name: "Start action" }));
-    expect(await screen.findByRole("status")).toHaveTextContent(/started|in progress/i);
+    expect(await screen.findByText("Action started.")).toBeInTheDocument();
+    await user.click(within(section).getByRole("button", { name: "Cancel action" }));
+    const dialog = screen.getByRole("dialog", { name: "Cancel Action" });
+    const confirm = within(dialog).getByRole("button", { name: "Confirm cancellation" });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole("textbox", { name: "Cancellation reason" }), "No longer needed");
+    expect(confirm).toBeEnabled();
+    await user.click(confirm);
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(([url, init]) => String(url).includes("/transitions") && init?.method === "POST");
+      expect(call).toBeDefined();
+      expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({ state: "CANCELLED", confirm: true, reason: "No longer needed" });
+    });
   });
 
   it("T-UI-ACT-03 / AC-05,06: Requester sees current Actions read-only and never fetches revisions", async () => {
@@ -208,9 +223,11 @@ describe("L4-05 Actions Taken UI", () => {
 
     expect(await screen.findByRole("heading", { name: "Actions Taken" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Add action" }));
-    const description = screen.getByRole("textbox", { name: "Description" });
+    const form = screen.getByRole("button", { name: "Create action" }).closest("form");
+    expect(form).not.toBeNull();
+    const description = within(form as HTMLFormElement).getByRole("textbox", { name: "Description" });
     await user.type(description, "Preserve this draft");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Assignee" }), "22");
+    await user.selectOptions(within(form as HTMLFormElement).getByRole("combobox", { name: "Assignee" }), "22");
     await user.click(screen.getByRole("button", { name: "Create action" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Ticket changed; refresh before retrying.");
