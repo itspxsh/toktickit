@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   addInternalNote,
   addStaffPublicComment,
@@ -28,6 +28,7 @@ function displayStatus(value: string): string { return value.replaceAll("_", " "
 
 export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate }: StaffTicketDetailProps) {
   const [ticket, setTicket] = useState<StaffTicketDetailView | null>(null);
+  const loadedTicketNumber = useRef<string | null>(null);
   const [state, setState] = useState<"loading" | "success" | "error">("loading");
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
@@ -46,13 +47,17 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
   useEffect(() => {
     const controller = new AbortController();
     let ignore = false;
-    setState("loading"); setError("");
+    const refreshingCurrentTicket = loadedTicketNumber.current === ticketNumber;
+    if (!refreshingCurrentTicket) { setState("loading"); setTicket(null); }
+    setError("");
     fetchStaffTicketDetail(ticketNumber, controller.signal).then((value) => {
       if (ignore) return;
+      loadedTicketNumber.current = ticketNumber;
       setTicket(value); setPriority(value.itPriority ?? "LOW"); setStatus(value.currentStatus); setAssignee(value.assignedStaff ? String(value.assignedStaff.id) : ""); setState("success");
     }).catch((reason: unknown) => {
       if (ignore || (reason instanceof DOMException && reason.name === "AbortError")) return;
-      setState("error"); setError(reason instanceof Error ? reason.message : "Unable to load Ticket.");
+      if (!refreshingCurrentTicket) setState("error");
+      setError(reason instanceof Error ? reason.message : "Unable to load Ticket.");
     });
     return () => { ignore = true; controller.abort(); };
   }, [ticketNumber, reload]);
