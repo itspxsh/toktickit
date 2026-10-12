@@ -210,6 +210,35 @@ describe("L4-05 Actions Taken UI", () => {
     expect(fetchMock.mock.calls.some(([url, init]) => String(url).includes("/actions") && ["POST", "PATCH", "DELETE"].includes(init?.method ?? "GET"))).toBe(false);
   });
 
+  it("requires a result in the completion confirmation and hides controls for terminal Actions", async () => {
+    const user = userEvent.setup();
+    let currentAction = { ...action };
+    const fetchMock = setupFetch((url, init) => {
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions`) && init?.method === "GET") {
+        return jsonResponse({ ...actionPage, items: [currentAction] });
+      }
+      if (url.includes("/transitions") && init?.method === "POST") {
+        const body = JSON.parse(String(init.body)) as { state: string; result?: string };
+        currentAction = { ...currentAction, state: body.state as typeof currentAction.state, result: body.result ?? currentAction.result };
+        return jsonResponse({ action: currentAction, ticketVersion: 4 });
+      }
+      return undefined;
+    });
+    renderStaff();
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await user.click(within(section).getByRole("button", { name: "Start action" }));
+    await user.click(await within(section).findByRole("button", { name: "Complete action" }));
+    const dialog = screen.getByRole("alertdialog", { name: "Complete Action" });
+    const confirm = within(dialog).getByRole("button", { name: "Confirm completion" });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole("textbox", { name: "Result" }), "Gateway configuration corrected");
+    await user.click(confirm);
+    expect(await screen.findByText("Action completed.")).toBeInTheDocument();
+    await waitFor(() => expect(within(section).queryByRole("button", { name: /edit action|start action|complete action|cancel action/i })).not.toBeInTheDocument());
+    const bodies = fetchMock.mock.calls.filter(([url, init]) => String(url).includes("/transitions") && init?.method === "POST").map(([, init]) => JSON.parse(String(init?.body)));
+    expect(bodies).toContainEqual(expect.objectContaining({ state: "COMPLETED", confirm: true, result: "Gateway configuration corrected", followUpRequired: false }));
+  });
+
   it("T-UI-ACT-04 / AC-09,14: prevents duplicate writes and preserves a stale-write draft for explicit refresh", async () => {
     const user = userEvent.setup();
     const fetchMock = setupFetch((url, init) => {
