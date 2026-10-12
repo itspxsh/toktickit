@@ -183,7 +183,7 @@ describe("L4-05 Actions Taken UI", () => {
     expect(within(section).getByRole("button", { name: "Edit action" })).toBeInTheDocument();
     expect(within(section).getByRole("button", { name: "Start action" })).toBeInTheDocument();
     expect(within(section).getByRole("button", { name: "Cancel action" })).toBeInTheDocument();
-    await user.click(within(section).getByRole("button", { name: "Start action" }));
+    await user.click(await within(section).findByRole("button", { name: "Start action" }));
     expect(await screen.findByText("Action started.")).toBeInTheDocument();
     await user.click(within(section).getByRole("button", { name: "Cancel action" }));
     const dialog = screen.getByRole("alertdialog", { name: "Cancel Action" });
@@ -251,7 +251,8 @@ describe("L4-05 Actions Taken UI", () => {
 
   it("refreshes the parent Ticket summary after a successful Action mutation", async () => {
     const user = userEvent.setup();
-    const detailFetch = vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValue(staffTicket);
+    let finishRefresh: ((value: api.StaffTicketDetailView) => void) | undefined;
+    const detailFetch = vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValueOnce(staffTicket).mockImplementationOnce(() => new Promise((resolve) => { finishRefresh = resolve; }));
     setupFetch((url, init) => {
       if (url.includes("/transitions") && init?.method === "POST") return jsonResponse({ action: { ...action, state: "IN_PROGRESS" }, ticketVersion: 4 });
       return undefined;
@@ -259,9 +260,12 @@ describe("L4-05 Actions Taken UI", () => {
     render(<StaffTicketDetail ticketNumber={ticketNumber} />);
 
     const section = await screen.findByRole("region", { name: "Actions Taken" });
-    await user.click(within(section).getByRole("button", { name: "Start action" }));
+    await user.click(await within(section).findByRole("button", { name: "Start action" }));
 
     await waitFor(() => expect(detailFetch).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole("region", { name: "Actions Taken" })).toBeInTheDocument();
+    finishRefresh?.({ ...staffTicket, appearsResolved: true });
+    await waitFor(() => expect(document.getElementById("action-31")).toHaveFocus());
   });
 
   it("generates a UUID request key when randomUUID is unavailable", async () => {
