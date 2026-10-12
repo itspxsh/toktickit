@@ -13,6 +13,7 @@ import {
   StatusBadge,
 } from "./components/ui.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
+import { ActionsTaken } from "./actions-taken.tsx";
 import { useRequesterContext } from "./requester.tsx";
 
 export interface RequesterTicketDetailProps {
@@ -199,6 +200,8 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
           {ticket.appearsResolved ? "Mark problem unresolved" : "Problem appears resolved"}
         </button>
       </section>
+
+      <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} mode="requester" />
 
       <AttachmentSection
         ticketNumber={ticket.ticketNumber}

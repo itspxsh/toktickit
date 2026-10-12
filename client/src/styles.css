@@ -599,6 +599,111 @@ select[aria-readonly="true"] {
   white-space: normal;
 }
 
+.actions-taken__header,
+.actions-taken__item-header,
+.actions-taken__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+}
+
+.actions-taken__header > div > p {
+  margin: 4px 0;
+}
+
+.actions-taken__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actions-taken__item {
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+.actions-taken__item h3 {
+  margin: 0;
+}
+
+.actions-taken__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.actions-taken__details > div {
+  min-width: 0;
+}
+
+.actions-taken__details dt {
+  font-weight: 700;
+}
+
+.actions-taken__details dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.actions-taken__form {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0;
+}
+
+.actions-taken__form textarea {
+  width: 100%;
+  min-height: 76px;
+}
+
+.actions-taken__conflict {
+  padding: var(--space-1);
+  border-inline-start: 4px solid var(--color-warning);
+  background: var(--color-pale);
+}
+
+.actions-taken__revisions {
+  margin-top: var(--space-1);
+  padding: var(--space-1);
+  border-inline-start: 3px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.actions-taken__revisions h4 {
+  margin-top: 0;
+}
+
+.actions-taken__revisions ol {
+  display: grid;
+  gap: var(--space-1);
+  padding-left: 1.25rem;
+}
+
+.actions-taken__controls {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .actions-taken__header,
+  .actions-taken__item-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .actions-taken__item {
+    padding: 12px;
+  }
+}
+
 .attachment-upload-list {
   display: grid;
   gap: var(--space-1);
