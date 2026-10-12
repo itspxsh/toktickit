@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../../src/api.ts";
+import { ActionsTaken } from "../../src/actions-taken.tsx";
 import { RequesterProvider } from "../../src/requester.tsx";
 import { RequesterTicketDetail } from "../../src/requester-ticket-detail.tsx";
 import { StaffTicketDetail } from "../../src/staff-ticket-detail.tsx";
@@ -240,9 +241,40 @@ describe("L4-05 Actions Taken UI", () => {
     expect(bodies).toContainEqual(expect.objectContaining({ state: "COMPLETED", confirm: true, result: "Gateway configuration corrected", followUpRequired: false }));
   });
 
+  it("T-UI-ACT-02 / AC-04: hides an open create form when the parent Ticket becomes terminal", async () => {
+    const user = userEvent.setup();
+    const view = render(<ActionsTaken ticketNumber={ticketNumber} ticketStatus="IN_PROGRESS" mode="support" />);
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await user.click(within(section).getByRole("button", { name: "Add action" }));
+    expect(within(section).getByRole("button", { name: "Create action" })).toBeInTheDocument();
+
+    view.rerender(<ActionsTaken ticketNumber={ticketNumber} ticketStatus="RESOLVED" mode="support" />);
+
+    expect(within(section).queryByRole("button", { name: "Create action" })).not.toBeInTheDocument();
+    expect(within(section).queryByRole("button", { name: "Add action" })).not.toBeInTheDocument();
+  });
+
+  it("T-UI-ACT-02 / AC-04: dismisses a pending transition confirmation when the parent Ticket becomes terminal", async () => {
+    const user = userEvent.setup();
+    const fetchMock = setupFetch();
+    const view = render(<ActionsTaken ticketNumber={ticketNumber} ticketStatus="IN_PROGRESS" mode="support" />);
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await user.click(within(section).getByRole("button", { name: "Cancel action" }));
+    expect(screen.getByRole("alertdialog", { name: "Cancel Action" })).toBeInTheDocument();
+
+    view.rerender(<ActionsTaken ticketNumber={ticketNumber} ticketStatus="CANCELLED" mode="support" />);
+
+    expect(screen.queryByRole("alertdialog", { name: "Cancel Action" })).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url, init]) => String(url).includes("/transitions") && init?.method === "POST")).toBe(false);
+  });
+
   it("T-UI-ACT-03 exposes paginated revision history only in support mode", async () => {
     const user = userEvent.setup();
     const fetchMock = setupFetch((url) => {
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions?page=`)) {
+        const requestedPage = Number(new URL(url).searchParams.get("page"));
+        return jsonResponse({ ...actionPage, page: requestedPage, total: 21, totalPages: 2 });
+      }
       if (url.includes("/actions/31/revisions")) return jsonResponse({
         items: [{ version: 1, kind: "CREATE", actor: action.createdBy, createdAt: action.createdAt, snapshot: { description: action.description } }],
         page: 1, pageSize: 20, total: 21, totalPages: 2,
@@ -251,6 +283,12 @@ describe("L4-05 Actions Taken UI", () => {
     });
     renderStaff();
     const section = await screen.findByRole("region", { name: "Actions Taken" });
+    expect(within(section).getByText("Page 1 of 2")).toBeInTheDocument();
+    await user.click(within(section).getByRole("button", { name: "Next" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining(`/api/staff/tickets/${ticketNumber}/actions?page=2&pageSize=20`),
+      expect.objectContaining({ credentials: "include" }),
+    ));
     await user.click(within(section).getByRole("button", { name: "View Action history" }));
     expect(await within(section).findByText(/Version 1: CREATE/)).toBeInTheDocument();
     expect(within(section).getAllByText("Check VPN gateway configuration").length).toBeGreaterThanOrEqual(2);
