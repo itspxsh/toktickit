@@ -40,7 +40,13 @@ function safeError(error: unknown): string {
 }
 
 function newRequestId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `action-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  if (!globalThis.crypto?.getRandomValues) throw new Error("This browser cannot securely create an Action request ID.");
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export interface ActionsTakenProps {
@@ -48,10 +54,11 @@ export interface ActionsTakenProps {
   mode: Mode;
   ticketStatus?: string;
   ticketOwner?: { id: number; name: string } | null;
+  onTicketChanged?: () => void;
 }
 
 /** Current Ticket Actions. Requester mode is deliberately read-only; the API remains the authorization boundary. */
-export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: ActionsTakenProps) {
+export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, onTicketChanged }: ActionsTakenProps) {
   const support = mode === "support";
   const terminalTicket = Boolean(ticketStatus && TERMINAL_TICKETS.has(ticketStatus));
   const [page, setPage] = useState(1);
@@ -72,8 +79,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: 
   const [pendingTransition, setPendingTransition] = useState<PendingTransition>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [completeResult, setCompleteResult] = useState("");
-  const [completeFollowUp, setCompleteFollowUp] = useState(false);
-  const [completeFollowUpNote, setCompleteFollowUpNote] = useState("");
+  const [confirmFollowUpResolved, setConfirmFollowUpResolved] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [focusActionId, setFocusActionId] = useState<number | null>(null);
   const [historyActionId, setHistoryActionId] = useState<number | null>(null);
@@ -151,6 +157,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: 
 
   async function refreshAfterWrite(message: string) {
     setNotice(message); setError(""); setConflict(false); setReload((value) => value + 1);
+    onTicketChanged?.();
   }
 
   async function createAction(event: FormEvent<HTMLFormElement>) {
@@ -162,10 +169,10 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: 
       followUpNote: draft.followUpNote.trim(), attachmentNotes: draft.attachmentNotes.trim(),
     };
     const signature = JSON.stringify(normalized);
-    if (!requestKey.current || requestKey.current.signature !== signature) requestKey.current = { signature, id: newRequestId() };
-    const payload: CreateActionPayload = { clientRequestId: requestKey.current.id, expectedTicketVersion: data.ticketVersion, ...normalized };
     setSaving(true); setError(""); setNotice("");
     try {
+      if (!requestKey.current || requestKey.current.signature !== signature) requestKey.current = { signature, id: newRequestId() };
+      const payload: CreateActionPayload = { clientRequestId: requestKey.current.id, expectedTicketVersion: data.ticketVersion, ...normalized };
       const result = await createStaffAction(ticketNumber, payload);
       requestKey.current = null; setDraft(emptyDraft); setFormOpen(false);
       const targetPage = Math.ceil((data.total + 1) / data.pageSize);
@@ -201,12 +208,12 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: 
     const payload = state === "IN_PROGRESS"
       ? { expectedTicketVersion: data.ticketVersion, expectedVersion: action.version, state }
       : state === "COMPLETED"
-        ? { expectedTicketVersion: data.ticketVersion, expectedVersion: action.version, state, confirm: true as const, result: completeResult.trim(), followUpRequired: completeFollowUp, followUpNote: completeFollowUpNote.trim() }
+        ? { expectedTicketVersion: data.ticketVersion, expectedVersion: action.version, state, confirm: true as const, result: completeResult.trim(), followUpRequired: false, followUpNote: "" }
         : { expectedTicketVersion: data.ticketVersion, expectedVersion: action.version, state, confirm: true as const, reason: cancelReason.trim() };
     setSaving(true); setError(""); setNotice("");
     try {
       await transitionStaffAction(ticketNumber, action.id, payload);
-      setPendingTransition(null); setCancelReason(""); setCompleteResult(""); setCompleteFollowUp(false); setCompleteFollowUpNote("");
+      setPendingTransition(null); setCancelReason(""); setCompleteResult(""); setConfirmFollowUpResolved(false);
       setFocusActionId(action.id);
       await refreshAfterWrite(state === "IN_PROGRESS" ? "Action started." : state === "COMPLETED" ? "Action completed." : "Action cancelled.");
     } catch (reason) {
@@ -233,8 +240,8 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: 
       </FormField>
       <FormField id={`action-result-${suffix}`} label="Result"><textarea id={`action-result-${suffix}`} value={current.result} maxLength={2000} onChange={(event) => setFormField("result", event.target.value, editing)} /></FormField>
       <FormField id={`action-follow-up-${suffix}`} label="Follow-up required"><input id={`action-follow-up-${suffix}`} type="checkbox" checked={current.followUpRequired} onChange={(event) => setFormField("followUpRequired", event.target.checked, editing)} /></FormField>
-      {current.followUpRequired && <FormField id={`action-follow-up-note-${suffix}`} label="Follow-up note" required><textarea id={`action-follow-up-note-${suffix}`} value={current.followUpNote} required maxLength={2000} onChange={(event) => setFormField("followUpNote", event.target.value, editing)} /></FormField>}
-      <FormField id={`action-attachment-notes-${suffix}`} label="Attachment notes" hint="Describe a file already attached to this Ticket; this does not upload a file."><textarea id={`action-attachment-notes-${suffix}`} value={current.attachmentNotes} maxLength={2000} onChange={(event) => setFormField("attachmentNotes", event.target.value, editing)} /></FormField>
+      {current.followUpRequired && <FormField id={`action-follow-up-note-${suffix}`} label="Follow-up note" hint="Enter 5–2,000 characters." required><textarea id={`action-follow-up-note-${suffix}`} value={current.followUpNote} required minLength={5} maxLength={2000} onChange={(event) => setFormField("followUpNote", event.target.value, editing)} /></FormField>}
+      <FormField id={`action-attachment-notes-${suffix}`} label="Attachment notes" hint="Describe a file already attached to this Ticket; this does not upload a file. Maximum 1,000 characters."><textarea id={`action-attachment-notes-${suffix}`} value={current.attachmentNotes} maxLength={1000} onChange={(event) => setFormField("attachmentNotes", event.target.value, editing)} /></FormField>
       <div className="form-actions"><button className="button" type="submit" disabled={saving || assigneesLoading || activeAssignees.length === 0}>{saving ? "Saving…" : editing ? "Save action" : "Create action"}</button>{editing ? <button className="button button--secondary" type="button" onClick={() => setEditingId(null)}>Discard changes</button> : <button className="button button--secondary" type="button" onClick={() => { setFormOpen(false); setDraft(emptyDraft); requestKey.current = null; }}>Cancel</button>}</div>
     </form>;
   }
@@ -264,7 +271,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: 
             <button className="button button--tertiary" type="button" disabled={saving} onClick={() => beginEdit(item)}>Edit action</button>
             {!item.assignee.isActive && <p role="status">Reassign this Action to an active support user before starting or completing it.</p>}
             {item.state === "PLANNED" && <button className="button button--secondary" type="button" disabled={saving || !item.assignee.isActive} onClick={() => void transition(item, "IN_PROGRESS")}>Start action</button>}
-            {item.state === "IN_PROGRESS" && <button className="button button--secondary" type="button" disabled={saving || !item.assignee.isActive} onClick={() => { setCompleteResult(item.result); setCompleteFollowUp(item.followUpRequired); setCompleteFollowUpNote(item.followUpNote); setPendingTransition({ action: item, state: "COMPLETED" }); }}>Complete action</button>}
+            {item.state === "IN_PROGRESS" && <button className="button button--secondary" type="button" disabled={saving || !item.assignee.isActive} onClick={() => { setCompleteResult(item.result); setConfirmFollowUpResolved(false); setPendingTransition({ action: item, state: "COMPLETED" }); }}>Complete action</button>}
             <button className="button button--tertiary" type="button" disabled={saving} onClick={() => { setCancelReason(""); setPendingTransition({ action: item, state: "CANCELLED" }); }}>Cancel action</button>
           </div>}
           {support && <div className="actions-taken__history">
@@ -291,16 +298,18 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner }: 
     <ConfirmationDialog
       open={Boolean(pendingTransition)}
       title={pendingTransition?.state === "COMPLETED" ? "Complete Action" : "Cancel Action"}
-      message={pendingTransition?.state === "COMPLETED" ? "Confirm the work is complete. The result and follow-up details will be recorded." : "Cancel this Action? The reason is visible to the Requester."}
+      message={pendingTransition?.state === "COMPLETED" ? "Confirm the work is complete. Any required follow-up must be completed before this Action can be closed." : "Cancel this Action? The reason is visible to the Requester."}
       confirmLabel={pendingTransition?.state === "COMPLETED" ? "Confirm completion" : "Confirm cancellation"}
-      confirmDisabled={saving || (pendingTransition?.state === "COMPLETED" ? !completeResult.trim() || (completeFollowUp && !completeFollowUpNote.trim()) : cancelReason.trim().length < 5 || cancelReason.trim().length > 250)}
+      confirmDisabled={saving || (pendingTransition?.state === "COMPLETED" ? !completeResult.trim() || (pendingTransition.action.followUpRequired && !confirmFollowUpResolved) : cancelReason.trim().length < 5 || cancelReason.trim().length > 250)}
       onCancel={() => setPendingTransition(null)}
       onConfirm={() => pendingTransition && void transition(pendingTransition.action, pendingTransition.state)}
     >
       {pendingTransition?.state === "COMPLETED" ? <>
-        <FormField id="complete-action-result" label="Result" required><textarea id="complete-action-result" required value={completeResult} maxLength={2000} onChange={(event) => setCompleteResult(event.target.value)} /></FormField>
-        <FormField id="complete-follow-up" label="Follow-up required"><input id="complete-follow-up" type="checkbox" checked={completeFollowUp} onChange={(event) => setCompleteFollowUp(event.target.checked)} /></FormField>
-        {completeFollowUp && <FormField id="complete-follow-up-note" label="Follow-up note" required><textarea id="complete-follow-up-note" required value={completeFollowUpNote} maxLength={2000} onChange={(event) => setCompleteFollowUpNote(event.target.value)} /></FormField>}
+        <FormField id="complete-action-result" label="Result" hint="Enter 1–2,000 characters." required><textarea id="complete-action-result" required minLength={1} maxLength={2000} value={completeResult} onChange={(event) => setCompleteResult(event.target.value)} /></FormField>
+        {pendingTransition.action.followUpRequired && <>
+          <p>Previous follow-up: {pendingTransition.action.followUpNote}</p>
+          <FormField id="complete-follow-up-resolved" label="I confirm the required follow-up is complete" required><input id="complete-follow-up-resolved" type="checkbox" checked={confirmFollowUpResolved} onChange={(event) => setConfirmFollowUpResolved(event.target.checked)} /></FormField>
+        </>}
       </> : pendingTransition && <FormField id="cancel-action-reason" label="Cancellation reason" hint="Enter 5–250 characters." required><textarea id="cancel-action-reason" required minLength={5} maxLength={250} value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} /></FormField>}
     </ConfirmationDialog>
   </section>;
