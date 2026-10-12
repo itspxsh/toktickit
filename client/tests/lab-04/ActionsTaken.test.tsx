@@ -253,7 +253,7 @@ describe("L4-05 Actions Taken UI", () => {
     const section = await screen.findByRole("region", { name: "Actions Taken" });
     await user.click(within(section).getByRole("button", { name: "View Action history" }));
     expect(await within(section).findByText(/Version 1: CREATE/)).toBeInTheDocument();
-    expect(within(section).getByText("Check VPN gateway configuration")).toBeInTheDocument();
+    expect(within(section).getAllByText("Check VPN gateway configuration").length).toBeGreaterThanOrEqual(2);
     expect(within(section).getByText("Page 1 of 2")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining(`/api/staff/tickets/${ticketNumber}/actions/31/revisions?page=1&pageSize=20`),
