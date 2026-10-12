@@ -134,12 +134,15 @@ describe("L4-05 Actions Taken UI", () => {
     const form = screen.getByRole("button", { name: "Create action" }).closest("form");
     expect(form).not.toBeNull();
     const description = within(form as HTMLFormElement).getByRole("textbox", { name: "Description" });
+    expect(within(form as HTMLFormElement).getByRole("textbox", { name: "Attachment notes" })).toHaveAttribute("maxLength", "1000");
     await user.type(description, " Review gateway logs ");
     await within(form as HTMLFormElement).findByRole("option", { name: /Action Assignee/ });
     await user.selectOptions(within(form as HTMLFormElement).getByRole("combobox", { name: /Assignee/ }), "22");
     await user.click(within(form as HTMLFormElement).getByRole("checkbox", { name: "Follow-up required" }));
-    expect(within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" })).toBeRequired();
-    await user.type(within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" }), "Check with requester tomorrow");
+    const followUpNote = within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" });
+    expect(followUpNote).toBeRequired();
+    expect(followUpNote).toHaveAttribute("minLength", "5");
+    await user.type(followUpNote, "Check with requester tomorrow");
     await user.click(screen.getByRole("button", { name: "Create action" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to save Action.");
@@ -212,9 +215,9 @@ describe("L4-05 Actions Taken UI", () => {
     expect(fetchMock.mock.calls.some(([url, init]) => String(url).includes("/actions") && ["POST", "PATCH", "DELETE"].includes(init?.method ?? "GET"))).toBe(false);
   });
 
-  it("requires a result in the completion confirmation and hides controls for terminal Actions", async () => {
+  it("requires a result and explicit follow-up resolution before completion", async () => {
     const user = userEvent.setup();
-    let currentAction = { ...action };
+    let currentAction = { ...action, state: "IN_PROGRESS", followUpRequired: true, followUpNote: "Confirm service recovery with requester" };
     const fetchMock = setupFetch((url, init) => {
       if (url.includes(`/api/staff/tickets/${ticketNumber}/actions`) && (!init?.method || init.method === "GET")) {
         return jsonResponse({ ...actionPage, items: [currentAction] });
@@ -228,17 +231,56 @@ describe("L4-05 Actions Taken UI", () => {
     });
     renderStaff();
     const section = await screen.findByRole("region", { name: "Actions Taken" });
-    await user.click(within(section).getByRole("button", { name: "Start action" }));
     await user.click(await within(section).findByRole("button", { name: "Complete action" }));
     const dialog = screen.getByRole("alertdialog", { name: "Complete Action" });
     const confirm = within(dialog).getByRole("button", { name: "Confirm completion" });
     expect(confirm).toBeDisabled();
+    expect(within(dialog).getByText(/Previous follow-up: Confirm service recovery with requester/)).toBeInTheDocument();
+    const followUpResolved = within(dialog).getByRole("checkbox", { name: "I confirm the required follow-up is complete" });
+    expect(followUpResolved).not.toBeChecked();
     await user.type(within(dialog).getByRole("textbox", { name: "Result" }), "Gateway configuration corrected");
+    expect(confirm).toBeDisabled();
+    await user.click(followUpResolved);
+    expect(confirm).toBeEnabled();
     await user.click(confirm);
     expect(await screen.findByText("Action completed.")).toBeInTheDocument();
     await waitFor(() => expect(within(section).queryByRole("button", { name: /edit action|start action|complete action|cancel action/i })).not.toBeInTheDocument());
     const bodies = fetchMock.mock.calls.filter(([url, init]) => String(url).includes("/transitions") && init?.method === "POST").map(([, init]) => JSON.parse(String(init?.body)));
-    expect(bodies).toContainEqual(expect.objectContaining({ state: "COMPLETED", confirm: true, result: "Gateway configuration corrected", followUpRequired: false }));
+    expect(bodies).toContainEqual(expect.objectContaining({ state: "COMPLETED", confirm: true, result: "Gateway configuration corrected", followUpRequired: false, followUpNote: "" }));
+  });
+
+  it("refreshes the parent Ticket summary after a successful Action mutation", async () => {
+    const user = userEvent.setup();
+    const detailFetch = vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValue(staffTicket);
+    setupFetch((url, init) => {
+      if (url.includes("/transitions") && init?.method === "POST") return jsonResponse({ action: { ...action, state: "IN_PROGRESS" }, ticketVersion: 4 });
+      return undefined;
+    });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await user.click(within(section).getByRole("button", { name: "Start action" }));
+
+    await waitFor(() => expect(detailFetch).toHaveBeenCalledTimes(2));
+  });
+
+  it("generates a UUID request key when randomUUID is unavailable", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(globalThis.crypto, "randomUUID").mockImplementation(() => undefined as never);
+    const fetchMock = setupFetch((url, init) => {
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions`) && init?.method === "POST") return jsonResponse({ action, ticketVersion: 4 }, 201);
+      return undefined;
+    });
+    renderStaff();
+    await user.click(await screen.findByRole("button", { name: "Add action" }));
+    const form = screen.getByRole("button", { name: "Create action" }).closest("form") as HTMLFormElement;
+    await user.type(within(form).getByRole("textbox", { name: "Description" }), "Create a valid UUID request key");
+    await within(form).findByRole("option", { name: /Action Assignee/ });
+    await user.selectOptions(await within(form).findByRole("combobox", { name: /Assignee/ }), "22");
+    await user.click(within(form).getByRole("button", { name: "Create action" }));
+
+    const createCall = fetchMock.mock.calls.find(([url, init]) => String(url).includes(`/api/staff/tickets/${ticketNumber}/actions`) && init?.method === "POST");
+    expect(JSON.parse(String(createCall?.[1]?.body)).clientRequestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   });
 
   it("T-UI-ACT-02 / AC-04: hides an open create form when the parent Ticket becomes terminal", async () => {
