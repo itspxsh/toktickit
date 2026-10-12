@@ -181,7 +181,7 @@ describe("L4-05 Actions Taken UI", () => {
     await user.click(within(section).getByRole("button", { name: "Start action" }));
     expect(await screen.findByText("Action started.")).toBeInTheDocument();
     await user.click(within(section).getByRole("button", { name: "Cancel action" }));
-    const dialog = screen.getByRole("dialog", { name: "Cancel Action" });
+    const dialog = screen.getByRole("alertdialog", { name: "Cancel Action" });
     const confirm = within(dialog).getByRole("button", { name: "Confirm cancellation" });
     expect(confirm).toBeDisabled();
     await user.type(within(dialog).getByRole("textbox", { name: "Cancellation reason" }), "No longer needed");
