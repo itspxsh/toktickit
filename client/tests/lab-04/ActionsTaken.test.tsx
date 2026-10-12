@@ -266,7 +266,8 @@ describe("L4-05 Actions Taken UI", () => {
 
   it("generates a UUID request key when randomUUID is unavailable", async () => {
     const user = userEvent.setup();
-    vi.spyOn(globalThis.crypto, "randomUUID").mockImplementation(() => undefined as never);
+    const secureRandom = globalThis.crypto.getRandomValues.bind(globalThis.crypto);
+    vi.stubGlobal("crypto", { getRandomValues: secureRandom });
     const fetchMock = setupFetch((url, init) => {
       if (url.includes(`/api/staff/tickets/${ticketNumber}/actions`) && init?.method === "POST") return jsonResponse({ action, ticketVersion: 4 }, 201);
       return undefined;
