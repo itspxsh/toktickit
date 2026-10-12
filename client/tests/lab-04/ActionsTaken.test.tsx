@@ -134,7 +134,8 @@ describe("L4-05 Actions Taken UI", () => {
     expect(form).not.toBeNull();
     const description = within(form as HTMLFormElement).getByRole("textbox", { name: "Description" });
     await user.type(description, " Review gateway logs ");
-    await user.selectOptions(within(form as HTMLFormElement).getByRole("combobox", { name: "Assignee" }), "22");
+    await within(form as HTMLFormElement).findByRole("option", { name: /Action Assignee/ });
+    await user.selectOptions(within(form as HTMLFormElement).getByRole("combobox", { name: /Assignee/ }), "22");
     await user.click(within(form as HTMLFormElement).getByRole("checkbox", { name: "Follow-up required" }));
     expect(within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" })).toBeRequired();
     await user.type(within(form as HTMLFormElement).getByRole("textbox", { name: "Follow-up note" }), "Check with requester tomorrow");
@@ -214,7 +215,7 @@ describe("L4-05 Actions Taken UI", () => {
     const user = userEvent.setup();
     let currentAction = { ...action };
     const fetchMock = setupFetch((url, init) => {
-      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions`) && init?.method === "GET") {
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions`) && (!init?.method || init.method === "GET")) {
         return jsonResponse({ ...actionPage, items: [currentAction] });
       }
       if (url.includes("/transitions") && init?.method === "POST") {
@@ -255,7 +256,8 @@ describe("L4-05 Actions Taken UI", () => {
     expect(form).not.toBeNull();
     const description = within(form as HTMLFormElement).getByRole("textbox", { name: "Description" });
     await user.type(description, "Preserve this draft");
-    await user.selectOptions(within(form as HTMLFormElement).getByRole("combobox", { name: "Assignee" }), "22");
+    await within(form as HTMLFormElement).findByRole("option", { name: /Action Assignee/ });
+    await user.selectOptions(within(form as HTMLFormElement).getByRole("combobox", { name: /Assignee/ }), "22");
     await user.click(screen.getByRole("button", { name: "Create action" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Ticket changed; refresh before retrying.");
