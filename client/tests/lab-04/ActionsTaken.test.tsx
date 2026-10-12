@@ -188,9 +188,8 @@ describe("L4-05 Actions Taken UI", () => {
     expect(confirm).toBeEnabled();
     await user.click(confirm);
     await waitFor(() => {
-      const call = fetchMock.mock.calls.find(([url, init]) => String(url).includes("/transitions") && init?.method === "POST");
-      expect(call).toBeDefined();
-      expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({ state: "CANCELLED", confirm: true, reason: "No longer needed" });
+      const calls = fetchMock.mock.calls.filter(([url, init]) => String(url).includes("/transitions") && init?.method === "POST");
+      expect(calls.map(([, init]) => JSON.parse(String(init?.body)))).toContainEqual(expect.objectContaining({ state: "CANCELLED", confirm: true, reason: "No longer needed" }));
     });
   });
 
