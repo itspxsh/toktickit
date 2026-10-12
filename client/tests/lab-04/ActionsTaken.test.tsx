@@ -245,20 +245,25 @@ describe("L4-05 Actions Taken UI", () => {
     const fetchMock = setupFetch((url) => {
       if (url.includes("/actions/31/revisions")) return jsonResponse({
         items: [{ version: 1, kind: "CREATE", actor: action.createdBy, createdAt: action.createdAt, snapshot: { description: action.description } }],
-        page: 1, pageSize: 1, total: 2, totalPages: 2,
+        page: 1, pageSize: 20, total: 21, totalPages: 2,
       });
       return undefined;
     });
     renderStaff();
     const section = await screen.findByRole("region", { name: "Actions Taken" });
     await user.click(within(section).getByRole("button", { name: "View Action history" }));
-    expect(await within(section).findByText("CREATE" )).toBeInTheDocument();
+    expect(await within(section).findByText(/Version 1: CREATE/)).toBeInTheDocument();
     expect(within(section).getByText("Check VPN gateway configuration")).toBeInTheDocument();
     expect(within(section).getByText("Page 1 of 2")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining(`/api/staff/tickets/${ticketNumber}/actions/31/revisions?page=1&pageSize=1`),
+      expect.stringContaining(`/api/staff/tickets/${ticketNumber}/actions/31/revisions?page=1&pageSize=20`),
       expect.objectContaining({ credentials: "include" }),
     );
+    await user.click(within(section).getByRole("button", { name: "Next history" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining(`/api/staff/tickets/${ticketNumber}/actions/31/revisions?page=2&pageSize=20`),
+      expect.objectContaining({ credentials: "include" }),
+    ));
   });
 
   it("T-UI-ACT-04 / AC-09,14: prevents duplicate writes and preserves a stale-write draft for explicit refresh", async () => {
