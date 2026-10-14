@@ -126,7 +126,11 @@ describe("staff ticket detail and workflow", () => {
     expect(missingAssignmentVersion.status).toBe(400);
     expect(missingAssignmentVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
     const missingAssignmentVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ assignedStaffId: 99, unexpected: true });
+    expect(missingAssignmentVersionWithUnknownField.status).toBe(400);
     expect(missingAssignmentVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const invalidAssignmentVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ expectedTicketVersion: "3", assignedStaffId: 99, unexpected: true });
+    expect(invalidAssignmentVersionWithUnknownField.status).toBe(400);
+    expect(invalidAssignmentVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
     const invalidAssignment = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ expectedTicketVersion: 3, assignedStaffId: 99 });
     expect(invalidAssignment.status).toBe(400);
     expect(invalidAssignment.body.error.code).toBe("VALIDATION_ERROR");
@@ -142,9 +146,17 @@ describe("staff ticket detail and workflow", () => {
     expect(priority.status).toBe(400);
 
     const missingPriorityVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "HIGH", unexpected: true });
+    expect(missingPriorityVersionWithUnknownField.status).toBe(400);
     expect(missingPriorityVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const invalidPriorityVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ expectedTicketVersion: 0, itPriority: "HIGH", unexpected: true });
+    expect(invalidPriorityVersionWithUnknownField.status).toBe(400);
+    expect(invalidPriorityVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
     const missingStatusVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "IN_PROGRESS", unexpected: true });
+    expect(missingStatusVersionWithUnknownField.status).toBe(400);
     expect(missingStatusVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const invalidStatusVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: "bad", currentStatus: "IN_PROGRESS", unexpected: true });
+    expect(invalidStatusVersionWithUnknownField.status).toBe(400);
+    expect(invalidStatusVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
 
     const reopened = createTestApp({ ticket: { ...ticket, currentStatus: "CANCELLED" } });
     const forbiddenReopen = await request(reopened.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: 3, currentStatus: "REOPENED" });
