@@ -35,7 +35,7 @@ const requesterTicket: api.TicketDetailView = {
   requestedPriority: "MEDIUM",
   description: "Cannot connect",
   itPriority: "HIGH",
-  currentStatus: "IN_PROGRESS",
+  currentStatus: "NEW",
   appearsResolved: false,
   createdAt: "2026-10-10T07:00:00.000Z",
   updatedAt: "2026-10-10T07:01:00.000Z",
