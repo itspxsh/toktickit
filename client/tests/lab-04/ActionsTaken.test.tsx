@@ -237,10 +237,10 @@ describe("L4-05 Actions Taken UI", () => {
     expect(confirm).toBeDisabled();
     expect(within(dialog).getByText(/Previous follow-up: Confirm service recovery with requester/)).toBeInTheDocument();
     expect(within(dialog).getByText(/Record how the required follow-up was verified/i)).toBeInTheDocument();
-    expect(within(dialog).getByText(/completion clears it from the active Action; the previous note remains in Action history/i)).toBeInTheDocument();
-    const followUpResolved = within(dialog).getByRole("checkbox", { name: "I confirm the required follow-up is complete" });
+    expect(within(dialog).getByText(/completion clears it from the active Action while the previous note remains in Action history/i)).toBeInTheDocument();
+    const followUpResolved = within(dialog).getByRole("checkbox", { name: "I verified the required follow-up is complete" });
     expect(followUpResolved).not.toBeChecked();
-    await user.type(within(dialog).getByRole("textbox", { name: "Result" }), "Gateway configuration corrected");
+    await user.type(within(dialog).getByRole("textbox", { name: "Result" }), "Gateway configuration corrected; requester confirmed service recovery");
     expect(confirm).toBeDisabled();
     await user.click(followUpResolved);
     expect(confirm).toBeEnabled();
@@ -248,7 +248,7 @@ describe("L4-05 Actions Taken UI", () => {
     expect(await screen.findByText("Action completed.")).toBeInTheDocument();
     await waitFor(() => expect(within(section).queryByRole("button", { name: /edit action|start action|complete action|cancel action/i })).not.toBeInTheDocument());
     const bodies = fetchMock.mock.calls.filter(([url, init]) => String(url).includes("/transitions") && init?.method === "POST").map(([, init]) => JSON.parse(String(init?.body)));
-    expect(bodies).toContainEqual(expect.objectContaining({ state: "COMPLETED", confirm: true, result: "Gateway configuration corrected", followUpRequired: false, followUpNote: "" }));
+    expect(bodies).toContainEqual(expect.objectContaining({ state: "COMPLETED", confirm: true, result: "Gateway configuration corrected; requester confirmed service recovery", followUpRequired: false, followUpNote: "" }));
   });
 
   it("treats a replayed create as recovery and does not page-jump", async () => {
@@ -269,7 +269,7 @@ describe("L4-05 Actions Taken UI", () => {
     await user.selectOptions(within(form).getByRole("combobox", { name: /Assignee/ }), "22");
     await user.click(within(form).getByRole("button", { name: "Create action" }));
 
-    expect(await screen.findByText("Recovered the existing Action." )).toBeInTheDocument();
+    expect(await screen.findByText("Recovered the existing Action.")).toBeInTheDocument();
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes(`/actions?page=2&pageSize=20`))).toBe(false);
     expect(within(section).queryByRole("button", { name: "Next" })).toBeInTheDocument();
   });
@@ -296,6 +296,7 @@ describe("L4-05 Actions Taken UI", () => {
 
     await user.click(within(section).getByRole("button", { name: "Edit action" }));
     expect(within(section).getAllByRole("button", { name: /save action|create action/i })).toHaveLength(1);
+    expect(within(section).getByRole("button", { name: "Add action" })).toBeDisabled();
   });
 
   it("refreshes the parent Ticket summary after a successful Action mutation", async () => {
