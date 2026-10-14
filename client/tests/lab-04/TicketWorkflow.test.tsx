@@ -96,4 +96,24 @@ describe("L4-06 Ticket workflow UI (T-UI-WF-01..02)", () => {
       expect(JSON.parse(String(call?.[1]?.body))).toEqual({ expectedTicketVersion: 8, assignedStaffId: 77 });
     });
   });
+
+  it("sends the current Ticket version for claim and priority writes", async () => {
+    const user = userEvent.setup();
+    const fetchMock = setupFetch((url, init) => {
+      if (url.endsWith("/claim") && init?.method === "POST") return response({ assignedStaff: { id: 41, name: "Alex Support" }, ticketVersion: 9 });
+      if (url.endsWith("/priority") && init?.method === "PATCH") return response({ itPriority: "LOW", ticketVersion: 9 });
+      return undefined;
+    });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    await user.click(await screen.findByRole("button", { name: "Claim ticket" }));
+    await screen.findByText("Ticket claimed.");
+    await user.selectOptions(screen.getByRole("combobox", { name: "IT Priority" }), "LOW");
+    await user.click(screen.getByRole("button", { name: "Save priority" }));
+    await waitFor(() => {
+      const claim = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith("/claim") && init?.method === "POST");
+      const priority = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith("/priority") && init?.method === "PATCH");
+      expect(JSON.parse(String(claim?.[1]?.body))).toEqual({ expectedTicketVersion: 8 });
+      expect(JSON.parse(String(priority?.[1]?.body))).toEqual({ expectedTicketVersion: 8, itPriority: "LOW" });
+    });
+  });
 });
