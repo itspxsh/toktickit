@@ -79,6 +79,25 @@ describe("L4-06 Ticket workflow UI (T-UI-WF-01..02)", () => {
     });
   });
 
+  it("submits canonical status values when the visible labels contain spaces", async () => {
+    const user = userEvent.setup();
+    const fetchMock = setupFetch((url, init) => {
+      if (url.endsWith("/status") && init?.method === "PATCH") {
+        return response({ currentStatus: "IN_PROGRESS", ticketVersion: 9, allowedTransitions: ["WAITING_FOR_REQUESTER"], resolutionGate: { canResolve: false, blockers: ["UNFINISHED_ACTIONS"] }, noOp: false });
+      }
+      return undefined;
+    });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    const select = await screen.findByRole("combobox", { name: "Status" });
+    expect(within(select).getByRole("option", { name: "IN PROGRESS" })).toHaveValue("IN_PROGRESS");
+    await user.selectOptions(select, "IN_PROGRESS");
+    await user.click(screen.getByRole("button", { name: "Save status" }));
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith("/status") && init?.method === "PATCH");
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({ expectedTicketVersion: 8, currentStatus: "IN_PROGRESS" });
+    });
+  });
+
   it("sends the selected assignee instead of claiming an unassigned Ticket", async () => {
     const user = userEvent.setup();
     const fetchMock = setupFetch((url, init) => {
