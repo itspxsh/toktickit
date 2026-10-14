@@ -7,6 +7,7 @@ export class ActionRuleError extends Error {
     readonly code: string,
     message: string,
     readonly fieldErrors?: Record<string, string>,
+    readonly details?: Record<string, unknown>,
   ) {
     super(message);
   }

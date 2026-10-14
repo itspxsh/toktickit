@@ -203,6 +203,11 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
 
       <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} mode="requester" />
 
+      <section className="ticket-detail__group" aria-labelledby="requester-status-history-title">
+        <h2 id="requester-status-history-title">Ticket status history</h2>
+        {ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{event.fromStatus.replaceAll("_", " ")} → {event.toStatus.replaceAll("_", " ")} · {event.createdAt}</li>)}</ol> : <p>No status changes recorded.</p>}
+      </section>
+
       <AttachmentSection
         ticketNumber={ticket.ticketNumber}
         requesterId={requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined}

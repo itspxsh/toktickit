@@ -96,7 +96,7 @@ describe.sequential("L4-06 PostgreSQL assignment/deactivation race", () => {
     await expect(assignment).rejects.toMatchObject({
       status: 400,
       code: "VALIDATION_ERROR",
-      fieldErrors: { assigneeId: "Choose an active support user." },
+      fieldErrors: { assignedStaffId: "Choose an active IT Staff or Administrator." },
     });
     const [afterTicket, afterCandidate] = await Promise.all([
       prisma.ticket.findUnique({ where: { id: ticket.id }, select: { assignedStaffId: true, workflowVersion: true } }),

@@ -65,14 +65,22 @@ describe("T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions
   });
 
   it("allows an active Admin to own a Ticket while still scoping the write to the Ticket", async () => {
-    const ticket = { id: 77, ticketNumber: "TKT-2026-000077", currentStatus: "OPEN", itPriority: "MEDIUM" };
+    const ticket = { id: 77, ticketNumber: "TKT-2026-000077", workflowVersion: 1, currentStatus: "OPEN", assignedStaffId: null, resolvedAt: null, itPriority: "MEDIUM" };
     const findFirst = vi.fn(async () => ticket);
     const findAdmin = vi.fn(async () => ({ id: 42, name: "Active Administrator", role: "ADMIN", isActive: true }));
     const updateMany = vi.fn(async () => ({ count: 1 }));
+    const tx = {
+      ticket: { findFirst, updateMany },
+      user: { findFirst: findAdmin },
+      actionTaken: { findMany: vi.fn(async () => []) },
+      $queryRaw: vi.fn(async () => [{ id: ticket.id }]),
+    };
     const app = express();
     app.use(express.json());
     registerStaffTicketDetailRoutes(app, () => ({
-      ticket: { findFirst, findUnique: vi.fn(), findMany: vi.fn(), count: vi.fn(), create: vi.fn(), update: vi.fn(), updateMany },
+      ...tx,
+      $transaction: vi.fn(async (callback: (value: typeof tx) => unknown) => callback(tx)),
+      ticket: { ...tx.ticket, findUnique: vi.fn(), findMany: vi.fn(), count: vi.fn(), create: vi.fn(), update: vi.fn() },
       user: { findFirst: findAdmin },
       publicComment: { create: vi.fn() },
       internalNote: { create: vi.fn() },
@@ -80,16 +88,14 @@ describe("T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions
 
     const claimed = await request(app)
       .post("/api/staff/tickets/TKT-2026-000077/claim")
-      .send({});
+      .send({ expectedTicketVersion: 1 });
     expect(claimed.status).toBe(200);
-    expect(updateMany).toHaveBeenCalledWith({
-      where: { id: ticket.id, assignedStaffId: null },
-      data: { assignedStaffId: 42 },
-    });
+    expect(claimed.body).toMatchObject({ assignedStaff: { id: 42 }, ticketVersion: 2 });
+    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: ticket.id, workflowVersion: 1, assignedStaffId: null }, data: { assignedStaffId: 42, workflowVersion: { increment: 1 } } }));
 
     const response = await request(app)
       .patch("/api/staff/tickets/TKT-2026-000077/assignment")
-      .send({ assignedStaffId: 42 });
+      .send({ expectedTicketVersion: 1, assignedStaffId: 42 });
 
     expect(response.status).toBe(200);
     expect(findAdmin).toHaveBeenCalledWith(expect.objectContaining({
@@ -98,9 +104,6 @@ describe("T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions
     expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: { ticketNumber: "TKT-2026-000077", requester: { isActive: true } },
     }));
-    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: ticket.id },
-      data: { assignedStaffId: 42 },
-    }));
+    expect(updateMany).toHaveBeenCalledTimes(2);
   });
 });

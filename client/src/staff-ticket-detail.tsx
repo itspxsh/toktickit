@@ -71,7 +71,8 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
   if (state === "loading") return <section className="card stack"><p className="eyebrow">IT Staff workspace</p><h1>Staff Ticket Detail</h1><LoadingState label="Loading Staff Ticket Detail…" /></section>;
   if (state === "error" || !ticket) return <section className="card stack"><p className="eyebrow">IT Staff workspace</p><h1>Staff Ticket Detail</h1><ErrorState onRetry={() => setReload((value) => value + 1)}>{error || "Unable to load Ticket."}</ErrorState></section>;
 
-  const assignmentOptions = [...staffOptions.filter((person) => person.role === "IT_STAFF")];
+  const assignmentOptions = [...staffOptions.filter((person) => person.role === "IT_STAFF" || person.role === "ADMIN")];
+  const resolutionGate = ticket.resolutionGate ?? { canResolve: true, blockers: [] };
   if (ticket.assignedStaff && !assignmentOptions.some((person) => person.id === ticket.assignedStaff?.id)) {
     assignmentOptions.unshift({ ...ticket.assignedStaff, role: "IT_STAFF" });
   }
@@ -89,21 +90,34 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
       </div><FormField id="staff-ticket-description" label="Description"><textarea id="staff-ticket-description" value={ticket.description} readOnly aria-readonly="true" /></FormField></fieldset>
 
       <fieldset className="ticket-detail__group"><legend>Workflow</legend><div className="ticket-detail__grid">
-        <FormField id="staff-ticket-assignment" label="Assign to active IT Staff"><select id="staff-ticket-assignment" value={assignee} onChange={(event) => setAssignee(event.target.value)}><option value="">Unassigned</option>{assignmentOptions.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select></FormField>
-        <button type="button" className="button button--secondary" onClick={() => assignee ? void run(() => assignStaffTicket(ticket.ticketNumber, Number(assignee)), "Assignment updated.") : void run(() => claimStaffTicket(ticket.ticketNumber), "Ticket claimed.")}>{assignee ? "Save assignment" : "Claim ticket"}</button>
+        <FormField id="staff-ticket-assignment" label="Assign to active support user"><select id="staff-ticket-assignment" value={assignee} onChange={(event) => setAssignee(event.target.value)}><option value="">Unassigned</option>{assignmentOptions.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select></FormField>
+        {assignee || ticket.assignedStaff ? <button type="button" className="button button--secondary" onClick={() => void run(() => assignStaffTicket(ticket.ticketNumber, ticket.workflowVersion, assignee ? Number(assignee) : null), "Assignment updated.")}>Save assignment</button> : <button type="button" className="button button--secondary" onClick={() => void run(() => claimStaffTicket(ticket.ticketNumber, ticket.workflowVersion), "Ticket claimed.")}>Claim ticket</button>}
         <FormField id="staff-ticket-priority" label="IT Priority"><select id="staff-ticket-priority" value={priority} onChange={(event) => setPriority(event.target.value as StaffTicketPriority)}>{PRIORITIES.map((value) => <option key={value}>{value}</option>)}</select></FormField>
-        <button type="button" className="button button--secondary" onClick={() => void run(() => updateStaffPriority(ticket.ticketNumber, priority), "Priority updated.")}>Save priority</button>
-        <FormField id="staff-ticket-status" label="Status"><select id="staff-ticket-status" value={status} onChange={(event) => setStatus(event.target.value as StaffTicketStatus)}>{STATUSES.map((value) => <option key={value}>{displayStatus(value)}</option>)}</select></FormField>
-        <button type="button" className="button button--secondary" aria-label="Save status" onClick={() => (status === "CLOSED" || status === "CANCELLED") ? setDialogOpen(true) : void run(() => updateStaffStatus(ticket.ticketNumber, status), "Status updated.")}>Save status</button>
-      </div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">Current Status</span><StatusBadge label={displayStatus(ticket.currentStatus)} /></div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">IT Priority</span><PriorityBadge label={ticket.itPriority ?? "Not assigned"} /></div></fieldset>
+        <button type="button" className="button button--secondary" onClick={() => void run(() => updateStaffPriority(ticket.ticketNumber, ticket.workflowVersion, priority), "Priority updated.")}>Save priority</button>
+        <FormField id="staff-ticket-status" label="Status"><select id="staff-ticket-status" value={status} onChange={(event) => setStatus(event.target.value as StaffTicketStatus)}>{STATUSES.filter((value) => value === ticket.currentStatus || (ticket.allowedTransitions ?? []).includes(value)).map((value) => <option key={value} value={value}>{displayStatus(value)}</option>)}</select></FormField>
+        <button type="button" className="button button--secondary" aria-label="Save status" disabled={status === ticket.currentStatus} onClick={() => needsConfirmation(ticket.currentStatus, status) ? setDialogOpen(true) : void run(() => updateStaffStatus(ticket.ticketNumber, ticket.workflowVersion, status), "Status updated.")}>Save status</button>
+      </div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">Current Status</span><StatusBadge label={displayStatus(ticket.currentStatus)} /></div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">IT Priority</span><PriorityBadge label={ticket.itPriority ?? "Not assigned"} /></div><section aria-label="Resolution gate"><h3>Resolution requirements</h3>{resolutionGate.canResolve ? <p>All Action work is complete and no follow-up is pending.</p> : <ul>{resolutionGate.blockers.map((blocker) => <li key={blocker}>{resolutionBlockerLabel(blocker)}</li>)}</ul>}</section></fieldset>
+
+      <section className="ticket-detail__group" aria-labelledby="staff-status-history-title"><h2 id="staff-status-history-title">Ticket status history</h2>{ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{displayStatus(event.fromStatus)} → {displayStatus(event.toStatus)} · {event.actor?.name ?? "Support user"} · {event.createdAt}</li>)}</ol> : <p>No status changes recorded.</p>}</section>
 
       <section className="ticket-detail__group" aria-labelledby="attachments-title"><h2 id="attachments-title">Attachments</h2>{ticket.attachments.length ? <ul>{ticket.attachments.map((item) => <li key={item.id}><span>{item.originalName}</span> <span>({item.mimeType}, {item.sizeBytes} bytes, {item.status})</span></li>)}</ul> : <p>No attachments.</p>}</section>
       <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} ticketOwner={ticket.assignedStaff} mode="support" onTicketChanged={() => setReload((value) => value + 1)} />
       <section className="ticket-detail__group" aria-labelledby="public-comments-title"><h2 id="public-comments-title">Public Comments</h2><ul>{ticket.publicComments.map((item) => <li key={item.id}><strong>{item.author.name}</strong>: {item.body}</li>)}</ul><FormField id="staff-public-comment" label="Public comment" hint="Plain text, 1–2,000 characters."><textarea id="staff-public-comment" value={comment} onChange={(event) => setComment(event.target.value)} /></FormField><button type="button" className="button" disabled={!comment.trim()} onClick={() => void run(() => addStaffPublicComment(ticket.ticketNumber, comment.trim()).then(() => setComment("")), "Comment added.")}>Add public comment</button></section>
       <section className="ticket-detail__group" aria-labelledby="internal-notes-title"><h2 id="internal-notes-title">Internal Notes</h2><ul>{ticket.internalNotes.map((item) => <li key={item.id}><strong>{item.author.name}</strong>: {item.body}</li>)}</ul><FormField id="staff-internal-note" label="Internal note" hint="Visible only to IT Staff and Admin."><textarea id="staff-internal-note" value={note} onChange={(event) => setNote(event.target.value)} /></FormField><button type="button" className="button" disabled={!note.trim()} onClick={() => void run(() => addInternalNote(ticket.ticketNumber, note.trim()).then(() => setNote("")), "Internal note added.")}>Add internal note</button></section>
-      <ConfirmationDialog open={dialogOpen} title="Confirm status change" message={`Change ${ticket.ticketNumber} to ${displayStatus(status)}?`} confirmLabel="Confirm status" onCancel={() => setDialogOpen(false)} onConfirm={() => { setDialogOpen(false); void run(() => updateStaffStatus(ticket.ticketNumber, status, true), "Status updated."); }} />
+      <ConfirmationDialog open={dialogOpen} title="Confirm status change" message={`Change ${ticket.ticketNumber} to ${displayStatus(status)}?`} confirmLabel="Confirm status" onCancel={() => setDialogOpen(false)} onConfirm={() => { setDialogOpen(false); void run(() => updateStaffStatus(ticket.ticketNumber, ticket.workflowVersion, status, true), "Status updated."); }} />
     </section>
   );
+}
+
+function needsConfirmation(from: StaffTicketStatus, to: StaffTicketStatus): boolean {
+  return to === "RESOLVED" || to === "CANCELLED" || (from === "RESOLVED" && to === "CLOSED");
+}
+
+function resolutionBlockerLabel(value: string): string {
+  if (value === "ZERO_COMPLETED") return "Complete at least one Action with a non-empty Result.";
+  if (value === "UNFINISHED_ACTIONS") return "Finish or cancel all planned and in-progress Actions.";
+  if (value === "FOLLOW_UP_REQUIRED") return "Resolve all required follow-up before closing this Ticket.";
+  return "Ticket work does not yet satisfy the resolution requirements.";
 }
 
 export default StaffTicketDetail;

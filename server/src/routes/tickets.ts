@@ -55,6 +55,10 @@ const TICKET_DETAIL_INCLUDE = {
       { id: "asc" },
     ],
   },
+  statusEvents: {
+    select: { id: true, fromStatus: true, toStatus: true, createdAt: true, actor: { select: { id: true, name: true, role: true } } },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  },
 };
 
 const TICKET_LIST_SELECT = {
@@ -207,8 +211,14 @@ function serialiseTicket(row: Record<string, unknown>): Record<string, unknown> 
 
 function serialiseTicketDetail(row: Record<string, unknown>): Record<string, unknown> {
   const attachments = Array.isArray(row.attachments) ? row.attachments : [];
+  const statusEvents = Array.isArray(row.statusEvents) ? row.statusEvents : [];
   return {
     ...serialiseTicket(row),
+    statusEvents: statusEvents.map((entry) => {
+      const event = entry as Record<string, unknown>;
+      const actor = event.actor as Record<string, unknown> | undefined;
+      return { id: event.id, fromStatus: event.fromStatus, toStatus: event.toStatus, createdAt: event.createdAt, actor: actor ? { id: actor.id, name: actor.name, role: actor.role } : null };
+    }),
     attachments: attachments.map((attachment) => {
       const value = attachment as Record<string, unknown>;
       return {
