@@ -74,6 +74,45 @@ export interface StaffTicketDetailView {
   internalNotes: StaffComment[];
 }
 
+export type ActionState = "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+export interface ActionPerson { id: number; name: string; role: AuthRole; isActive: boolean }
+export interface ActionView {
+  id: number; description: string; result: string; attachmentNotes: string;
+  followUpRequired: boolean; followUpNote: string; state: ActionState;
+  createdBy: ActionPerson; assignee: ActionPerson; performedBy: ActionPerson | null;
+  createdAt: string; updatedAt: string; completedAt: string | null;
+  cancelledAt: string | null; cancellationReason: string | null; version: number;
+}
+export interface ActionPage {
+  items: ActionView[]; page: number; pageSize: number; total: number; totalPages: number; ticketVersion: number;
+}
+export interface AssigneePage {
+  items: ActionPerson[]; page: number; pageSize: number; total: number; totalPages: number;
+}
+export interface ActionContent {
+  description: string; result: string; followUpRequired: boolean;
+  followUpNote: string; attachmentNotes: string;
+}
+export interface CreateActionPayload extends ActionContent {
+  clientRequestId: string; expectedTicketVersion: number; assigneeId: number;
+}
+export interface EditActionPayload extends Partial<ActionContent> {
+  expectedTicketVersion: number; expectedVersion: number; assigneeId?: number;
+}
+export interface ActionTransitionPayload {
+  expectedTicketVersion: number; expectedVersion: number; state: "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  confirm?: true; result?: string; followUpRequired?: boolean; followUpNote?: string; reason?: string;
+}
+export interface ActionWriteResult { action: ActionView; ticketVersion: number }
+export interface CreateActionWriteResult extends ActionWriteResult { responseStatus: number }
+export interface ActionRevisionView {
+  version: number; kind: string; actor: ActionPerson; createdAt: string;
+  snapshot: Record<string, string | number | boolean | null>;
+}
+export interface ActionRevisionPage {
+  items: ActionRevisionView[]; page: number; pageSize: number; total: number; totalPages: number;
+}
+
 export type AdminUserRole = "REQUESTER" | "IT_STAFF" | "ADMIN";
 export interface AdminUser {
   id: number;
@@ -466,7 +505,7 @@ function readApiError(body: unknown, fallback: string): { message: string; field
   };
 }
 
-async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+async function staffMutationWithStatus<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<{ data: T; status: number }> {
   const csrfResponse = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
   const csrfBody: unknown = await csrfResponse.json().catch(() => null);
   if (!csrfResponse.ok || !csrfBody || typeof csrfBody !== "object" || typeof (csrfBody as { csrfToken?: unknown }).csrfToken !== "string") {
@@ -483,7 +522,11 @@ async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: un
     const error = readApiError(payload, "Unable to update Ticket.");
     throw new ApiError(error.message, response.status, error.fieldErrors);
   }
-  return payload as T;
+  return { data: payload as T, status: response.status };
+}
+
+async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+  return (await staffMutationWithStatus<T>(path, method, body)).data;
 }
 
 async function adminMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
@@ -545,6 +588,71 @@ export async function fetchStaffTicketDetail(ticketNumber: string, signal?: Abor
   }
   if (!body || typeof body !== "object" || !("ticket" in body)) throw new Error("Unable to load Ticket.");
   return (body as { ticket: StaffTicketDetailView }).ticket;
+}
+
+async function fetchActionPage(path: string, signal?: AbortSignal): Promise<ActionPage> {
+  const response = await fetch(`${API_URL}${path}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load Actions Taken.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !Array.isArray((body as { items?: unknown }).items)) {
+    throw new Error("Unable to load Actions Taken.");
+  }
+  return body as ActionPage;
+}
+
+export function fetchStaffTicketActions(ticketNumber: string, page = 1, pageSize = 20, signal?: AbortSignal): Promise<ActionPage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return fetchActionPage(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions?${query}`, signal);
+}
+
+export function fetchRequesterTicketActions(ticketNumber: string, page = 1, pageSize = 20, signal?: AbortSignal): Promise<ActionPage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return fetchActionPage(`/api/tickets/${encodeURIComponent(ticketNumber)}/actions?${query}`, signal);
+}
+
+export async function fetchStaffActionRevisions(ticketNumber: string, actionId: number, page = 1, pageSize = 20, signal?: AbortSignal): Promise<ActionRevisionPage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  const response = await fetch(`${API_URL}/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions/${actionId}/revisions?${query}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load Action history.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !Array.isArray((body as { items?: unknown }).items)) {
+    throw new Error("Unable to load Action history.");
+  }
+  return body as ActionRevisionPage;
+}
+
+export async function fetchStaffAssignees(q = "", page = 1, pageSize = 20, signal?: AbortSignal): Promise<AssigneePage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (q.trim()) query.set("q", q.trim());
+  const response = await fetch(`${API_URL}/api/staff/assignees?${query}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load active support assignees.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !Array.isArray((body as { items?: unknown }).items)) {
+    throw new Error("Unable to load active support assignees.");
+  }
+  return body as AssigneePage;
+}
+
+export async function createStaffAction(ticketNumber: string, payload: CreateActionPayload): Promise<CreateActionWriteResult> {
+  const result = await staffMutationWithStatus<ActionWriteResult>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions`, "POST", payload);
+  return { ...result.data, responseStatus: result.status };
+}
+
+export function updateStaffAction(ticketNumber: string, actionId: number, payload: EditActionPayload): Promise<ActionWriteResult> {
+  return staffMutation(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions/${actionId}`, "PATCH", payload);
+}
+
+export function transitionStaffAction(ticketNumber: string, actionId: number, payload: ActionTransitionPayload): Promise<ActionWriteResult> {
+  return staffMutation(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions/${actionId}/transitions`, "POST", payload);
 }
 
 export function claimStaffTicket(ticketNumber: string) {

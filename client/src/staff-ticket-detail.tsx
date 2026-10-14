@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   addInternalNote,
   addStaffPublicComment,
@@ -13,6 +13,7 @@ import {
   type StaffTicketStatus,
 } from "./api.ts";
 import { ConfirmationDialog, ErrorState, FormField, LoadingState, PriorityBadge, StatusBadge } from "./components/ui.tsx";
+import { ActionsTaken } from "./actions-taken.tsx";
 
 const STATUSES: StaffTicketStatus[] = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
 const PRIORITIES: StaffTicketPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
@@ -27,6 +28,7 @@ function displayStatus(value: string): string { return value.replaceAll("_", " "
 
 export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate }: StaffTicketDetailProps) {
   const [ticket, setTicket] = useState<StaffTicketDetailView | null>(null);
+  const loadedTicketNumber = useRef<string | null>(null);
   const [state, setState] = useState<"loading" | "success" | "error">("loading");
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
@@ -45,13 +47,17 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
   useEffect(() => {
     const controller = new AbortController();
     let ignore = false;
-    setState("loading"); setError("");
+    const refreshingCurrentTicket = loadedTicketNumber.current === ticketNumber;
+    if (!refreshingCurrentTicket) { setState("loading"); setTicket(null); }
+    setError("");
     fetchStaffTicketDetail(ticketNumber, controller.signal).then((value) => {
       if (ignore) return;
+      loadedTicketNumber.current = ticketNumber;
       setTicket(value); setPriority(value.itPriority ?? "LOW"); setStatus(value.currentStatus); setAssignee(value.assignedStaff ? String(value.assignedStaff.id) : ""); setState("success");
     }).catch((reason: unknown) => {
       if (ignore || (reason instanceof DOMException && reason.name === "AbortError")) return;
-      setState("error"); setError(reason instanceof Error ? reason.message : "Unable to load Ticket.");
+      if (!refreshingCurrentTicket) setState("error");
+      setError(reason instanceof Error ? reason.message : "Unable to load Ticket.");
     });
     return () => { ignore = true; controller.abort(); };
   }, [ticketNumber, reload]);
@@ -92,6 +98,7 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
       </div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">Current Status</span><StatusBadge label={displayStatus(ticket.currentStatus)} /></div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">IT Priority</span><PriorityBadge label={ticket.itPriority ?? "Not assigned"} /></div></fieldset>
 
       <section className="ticket-detail__group" aria-labelledby="attachments-title"><h2 id="attachments-title">Attachments</h2>{ticket.attachments.length ? <ul>{ticket.attachments.map((item) => <li key={item.id}><span>{item.originalName}</span> <span>({item.mimeType}, {item.sizeBytes} bytes, {item.status})</span></li>)}</ul> : <p>No attachments.</p>}</section>
+      <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} ticketOwner={ticket.assignedStaff} mode="support" onTicketChanged={() => setReload((value) => value + 1)} />
       <section className="ticket-detail__group" aria-labelledby="public-comments-title"><h2 id="public-comments-title">Public Comments</h2><ul>{ticket.publicComments.map((item) => <li key={item.id}><strong>{item.author.name}</strong>: {item.body}</li>)}</ul><FormField id="staff-public-comment" label="Public comment" hint="Plain text, 1–2,000 characters."><textarea id="staff-public-comment" value={comment} onChange={(event) => setComment(event.target.value)} /></FormField><button type="button" className="button" disabled={!comment.trim()} onClick={() => void run(() => addStaffPublicComment(ticket.ticketNumber, comment.trim()).then(() => setComment("")), "Comment added.")}>Add public comment</button></section>
       <section className="ticket-detail__group" aria-labelledby="internal-notes-title"><h2 id="internal-notes-title">Internal Notes</h2><ul>{ticket.internalNotes.map((item) => <li key={item.id}><strong>{item.author.name}</strong>: {item.body}</li>)}</ul><FormField id="staff-internal-note" label="Internal note" hint="Visible only to IT Staff and Admin."><textarea id="staff-internal-note" value={note} onChange={(event) => setNote(event.target.value)} /></FormField><button type="button" className="button" disabled={!note.trim()} onClick={() => void run(() => addInternalNote(ticket.ticketNumber, note.trim()).then(() => setNote("")), "Internal note added.")}>Add internal note</button></section>
       <ConfirmationDialog open={dialogOpen} title="Confirm status change" message={`Change ${ticket.ticketNumber} to ${displayStatus(status)}?`} confirmLabel="Confirm status" onCancel={() => setDialogOpen(false)} onConfirm={() => { setDialogOpen(false); void run(() => updateStaffStatus(ticket.ticketNumber, status, true), "Status updated."); }} />

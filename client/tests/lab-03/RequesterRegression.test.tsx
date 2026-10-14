@@ -7,8 +7,12 @@ import { RequesterProvider } from "../../src/requester.tsx";
 describe("L3-08 authenticated requester continuity", () => {
   it("T-UI-06 / AC-04 exposes a non-formal appears-resolved action", async () => {
     const user = userEvent.setup();
-    const fetchMock = vi.fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({ data: {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const path = String(input);
+      if (path.includes("/api/auth/csrf")) return new Response(JSON.stringify({ csrfToken: "csrf-1" }), { status: 200 });
+      if (path.includes("/api/tickets/TKT-0001/resolution-indication")) return new Response(JSON.stringify({ ticketNumber: "TKT-0001", appearsResolved: true }), { status: 200 });
+      if (path.includes("/api/tickets/TKT-0001/actions")) return new Response(JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0, ticketVersion: 1 }), { status: 200 });
+      if (path.includes("/api/tickets/TKT-0001")) return new Response(JSON.stringify({ data: {
         id: 1,
         ticketNumber: "TKT-0001",
         ticketDate: "2026-09-18",
@@ -24,9 +28,9 @@ describe("L3-08 authenticated requester continuity", () => {
         createdAt: "2026-09-18T00:00:00.000Z",
         updatedAt: "2026-09-18T00:00:00.000Z",
         attachments: [],
-      } }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ csrfToken: "csrf-1" }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ ticketNumber: "TKT-0001", appearsResolved: true }), { status: 200 }));
+      } }), { status: 200 });
+      return new Response(JSON.stringify({}), { status: 200 });
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     render(
