@@ -94,7 +94,7 @@ describe("L4-06 Ticket workflow UI (T-UI-WF-01..02)", () => {
     await user.click(screen.getByRole("button", { name: "Save status" }));
     await waitFor(() => {
       const call = fetchMock.mock.calls.find(([url, init]) => String(url).endsWith("/status") && init?.method === "PATCH");
-      expect(JSON.parse(String(call?.[1]?.body))).toEqual({ expectedTicketVersion: 8, currentStatus: "IN_PROGRESS" });
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({ expectedTicketVersion: 8, currentStatus: "IN_PROGRESS", confirm: false });
     });
   });
 
