@@ -72,13 +72,15 @@ describe("L4-06 Ticket workflow UI (T-UI-WF-01..02)", () => {
     };
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(requesterView);
     render(<RequesterProvider mode="authenticated"><RequesterTicketDetail ticketNumber={ticketNumber} /></RequesterProvider>);
-    expect(await screen.findByText(/NEW → OPEN · Admin Reviewer · 15\/10\/2026, 07:00/)).toBeInTheDocument();
+    const history = await screen.findByRole("region", { name: "Ticket status history" });
+    expect(within(history).getByRole("listitem")).toHaveTextContent(/NEW → OPEN · Admin Reviewer · 15\/10\/2026, 07:00/);
     expect(screen.queryByText(/2026-10-15T00:00:00/)).not.toBeInTheDocument();
     cleanup();
 
     vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValueOnce(detail);
     render(<StaffTicketDetail ticketNumber={ticketNumber} />);
-    expect(await screen.findByText(/NEW → OPEN · Alex Support · 15\/10\/2026, 07:00/)).toBeInTheDocument();
+    const staffHistory = await screen.findByRole("region", { name: "Ticket status history" });
+    expect(within(staffHistory).getByRole("listitem")).toHaveTextContent(/NEW → OPEN · Alex Support · 15\/10\/2026, 07:00/);
   });
 
   it("shows only the server-approved Cancelled destinations for Staff and Admin", async () => {
