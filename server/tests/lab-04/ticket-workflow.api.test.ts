@@ -60,6 +60,7 @@ describe("L4-06 Ticket workflow API (T-WF-01..04)", () => {
 
   it("T-WF-03 claims atomically from the authenticated actor and increments workflowVersion", async () => {
     const app = createTestApp();
+    db.user.findFirst.mockResolvedValue({ id: actor.id, name: actor.name });
     const response = await request(app).post(`/api/staff/tickets/${ticket.ticketNumber}/claim`).send({ expectedTicketVersion: 3 });
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ assignedStaff: { id: 41 }, ticketVersion: 4 });
@@ -103,5 +104,30 @@ describe("L4-06 Ticket workflow API (T-WF-01..04)", () => {
     expect(response.body).toMatchObject({ currentStatus: "RESOLVED", ticketVersion: 4, noOp: false });
     expect(db.ticketStatusEvent.create).toHaveBeenCalledWith({ data: { ticketId: ticket.id, fromStatus: "OPEN", toStatus: "RESOLVED", actorId: actor.id } });
     expect(db.ticket.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ currentStatus: "RESOLVED", workflowVersion: { increment: 1 }, resolvedAt: expect.any(Date) }) }));
+  });
+
+  it("retains a resolved timestamp on close, clears it on reopen, and never emits an event for a no-op", async () => {
+    const app = createTestApp("ADMIN");
+    const resolvedAt = new Date("2026-10-01T12:00:00Z");
+    db.ticket.findFirst.mockResolvedValue({ ...ticket, currentStatus: "RESOLVED", resolvedAt });
+    const noOp = await request(app).patch(`/api/staff/tickets/${ticket.ticketNumber}/status`)
+      .send({ expectedTicketVersion: 3, currentStatus: "RESOLVED" });
+    expect(noOp.status).toBe(200);
+    expect(noOp.body.noOp).toBe(true);
+    expect(db.ticket.updateMany).not.toHaveBeenCalled();
+    expect(db.ticketStatusEvent.create).not.toHaveBeenCalled();
+
+    const close = await request(app).patch(`/api/staff/tickets/${ticket.ticketNumber}/status`)
+      .send({ expectedTicketVersion: 3, currentStatus: "CLOSED", confirm: true });
+    expect(close.status).toBe(200);
+    const closeWrite = db.ticket.updateMany.mock.calls[0]?.[0] as { data: Record<string, unknown> };
+    expect(closeWrite.data).not.toHaveProperty("resolvedAt");
+
+    vi.clearAllMocks();
+    const reopen = await request(app).patch(`/api/staff/tickets/${ticket.ticketNumber}/status`)
+      .send({ expectedTicketVersion: 3, currentStatus: "REOPENED" });
+    expect(reopen.status).toBe(200);
+    expect(db.ticket.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ currentStatus: "REOPENED", resolvedAt: null }) }));
+    expect(db.ticketStatusEvent.create).toHaveBeenCalledWith({ data: { ticketId: ticket.id, fromStatus: "RESOLVED", toStatus: "REOPENED", actorId: actor.id } });
   });
 });
