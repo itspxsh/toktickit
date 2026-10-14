@@ -236,6 +236,8 @@ describe("L4-05 Actions Taken UI", () => {
     const confirm = within(dialog).getByRole("button", { name: "Confirm completion" });
     expect(confirm).toBeDisabled();
     expect(within(dialog).getByText(/Previous follow-up: Confirm service recovery with requester/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Record how the required follow-up was verified/i)).toBeInTheDocument();
+    expect(within(dialog).getByText(/completion clears it from the active Action; the previous note remains in Action history/i)).toBeInTheDocument();
     const followUpResolved = within(dialog).getByRole("checkbox", { name: "I confirm the required follow-up is complete" });
     expect(followUpResolved).not.toBeChecked();
     await user.type(within(dialog).getByRole("textbox", { name: "Result" }), "Gateway configuration corrected");
@@ -247,6 +249,53 @@ describe("L4-05 Actions Taken UI", () => {
     await waitFor(() => expect(within(section).queryByRole("button", { name: /edit action|start action|complete action|cancel action/i })).not.toBeInTheDocument());
     const bodies = fetchMock.mock.calls.filter(([url, init]) => String(url).includes("/transitions") && init?.method === "POST").map(([, init]) => JSON.parse(String(init?.body)));
     expect(bodies).toContainEqual(expect.objectContaining({ state: "COMPLETED", confirm: true, result: "Gateway configuration corrected", followUpRequired: false, followUpNote: "" }));
+  });
+
+  it("treats a replayed create as recovery and does not page-jump", async () => {
+    const user = userEvent.setup();
+    const replayPage = { ...actionPage, items: [], total: 20, totalPages: 2 };
+    const fetchMock = setupFetch((url, init) => {
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions?`) && (!init?.method || init.method === "GET")) return jsonResponse(replayPage);
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions`) && init?.method === "POST") return jsonResponse({ action, ticketVersion: 4 }, 200);
+      return undefined;
+    });
+    renderStaff();
+
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await user.click(within(section).getByRole("button", { name: "Add action" }));
+    const form = within(section).getByRole("button", { name: "Create action" }).closest("form") as HTMLFormElement;
+    await user.type(within(form).getByRole("textbox", { name: "Description" }), "Recover a previously submitted Action");
+    await within(form).findByRole("option", { name: /Action Assignee/ });
+    await user.selectOptions(within(form).getByRole("combobox", { name: /Assignee/ }), "22");
+    await user.click(within(form).getByRole("button", { name: "Create action" }));
+
+    expect(await screen.findByText("Recovered the existing Action." )).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes(`/actions?page=2&pageSize=20`))).toBe(false);
+    expect(within(section).queryByRole("button", { name: "Next" })).toBeInTheDocument();
+  });
+
+  it("keeps the selected assignee valid during an empty search and closes create before editing", async () => {
+    const user = userEvent.setup();
+    const fetchMock = setupFetch((url, init) => {
+      if (url.includes("/api/staff/assignees?") && new URL(url).searchParams.get("q") === "no-match") {
+        return jsonResponse({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+      }
+      return undefined;
+    });
+    renderStaff();
+
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await user.click(within(section).getByRole("button", { name: "Add action" }));
+    const createForm = within(section).getByRole("button", { name: "Create action" }).closest("form") as HTMLFormElement;
+    await within(createForm).findByRole("option", { name: /Action Assignee/ });
+    await user.selectOptions(within(createForm).getByRole("combobox", { name: /Assignee/ }), "22");
+    await user.type(within(createForm).getByRole("textbox", { name: "Search assignees" }), "no-match");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("q=no-match"), expect.anything()));
+    expect(within(createForm).getByRole("combobox", { name: /Assignee/ })).toHaveValue("22");
+    expect(within(createForm).getByRole("button", { name: "Create action" })).toBeEnabled();
+
+    await user.click(within(section).getByRole("button", { name: "Edit action" }));
+    expect(within(section).getAllByRole("button", { name: /save action|create action/i })).toHaveLength(1);
   });
 
   it("refreshes the parent Ticket summary after a successful Action mutation", async () => {
