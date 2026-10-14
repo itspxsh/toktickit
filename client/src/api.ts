@@ -31,7 +31,7 @@ export interface TicketView {
   requestedPriority: RequestedPriority;
   description: string;
   itPriority: string | null;
-  currentStatus: StaffTicketStatus;
+  currentStatus: "NEW";
   appearsResolved?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -104,6 +104,7 @@ export interface ActionTransitionPayload {
   confirm?: true; result?: string; followUpRequired?: boolean; followUpNote?: string; reason?: string;
 }
 export interface ActionWriteResult { action: ActionView; ticketVersion: number }
+export interface CreateActionWriteResult extends ActionWriteResult { responseStatus: number }
 export interface ActionRevisionView {
   version: number; kind: string; actor: ActionPerson; createdAt: string;
   snapshot: Record<string, string | number | boolean | null>;
@@ -504,7 +505,7 @@ function readApiError(body: unknown, fallback: string): { message: string; field
   };
 }
 
-async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+async function staffMutationWithStatus<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<{ data: T; status: number }> {
   const csrfResponse = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
   const csrfBody: unknown = await csrfResponse.json().catch(() => null);
   if (!csrfResponse.ok || !csrfBody || typeof csrfBody !== "object" || typeof (csrfBody as { csrfToken?: unknown }).csrfToken !== "string") {
@@ -521,7 +522,11 @@ async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: un
     const error = readApiError(payload, "Unable to update Ticket.");
     throw new ApiError(error.message, response.status, error.fieldErrors);
   }
-  return payload as T;
+  return { data: payload as T, status: response.status };
+}
+
+async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+  return (await staffMutationWithStatus<T>(path, method, body)).data;
 }
 
 async function adminMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
@@ -637,8 +642,9 @@ export async function fetchStaffAssignees(q = "", page = 1, pageSize = 20, signa
   return body as AssigneePage;
 }
 
-export function createStaffAction(ticketNumber: string, payload: CreateActionPayload): Promise<ActionWriteResult> {
-  return staffMutation(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions`, "POST", payload);
+export async function createStaffAction(ticketNumber: string, payload: CreateActionPayload): Promise<CreateActionWriteResult> {
+  const result = await staffMutationWithStatus<ActionWriteResult>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions`, "POST", payload);
+  return { ...result.data, responseStatus: result.status };
 }
 
 export function updateStaffAction(ticketNumber: string, actionId: number, payload: EditActionPayload): Promise<ActionWriteResult> {

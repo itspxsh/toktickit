@@ -64,6 +64,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
   const [page, setPage] = useState(1);
   const [data, setData] = useState<ActionPage | null>(null);
   const [assignees, setAssignees] = useState<AssigneePage | null>(null);
+  const [selectedAssignee, setSelectedAssignee] = useState<AssigneePage["items"][number] | null>(null);
   const [assigneeQuery, setAssigneeQuery] = useState("");
   const [assigneePage, setAssigneePage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -151,6 +152,10 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
   const activeAssignees = useMemo(() => assignees?.items.filter((person) => person.isActive && (person.role === "IT_STAFF" || person.role === "ADMIN")) ?? [], [assignees]);
 
   function setFormField<K extends keyof Draft>(key: K, value: Draft[K], editing = false) {
+    if (key === "assigneeId") {
+      const selected = activeAssignees.find((person) => String(person.id) === String(value));
+      setSelectedAssignee(selected ?? null);
+    }
     if (editing) setEditDraft((current) => ({ ...current, [key]: value }));
     else setDraft((current) => ({ ...current, [key]: value }));
   }
@@ -175,10 +180,14 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
       const payload: CreateActionPayload = { clientRequestId: requestKey.current.id, expectedTicketVersion: data.ticketVersion, ...normalized };
       const result = await createStaffAction(ticketNumber, payload);
       requestKey.current = null; setDraft(emptyDraft); setFormOpen(false);
-      const targetPage = Math.ceil((data.total + 1) / data.pageSize);
-      if (targetPage !== page) setPage(targetPage);
-      setFocusActionId(result.action.id);
-      await refreshAfterWrite("Action created.");
+      const created = result.responseStatus === 201;
+      if (created) {
+        const targetPage = Math.ceil((data.total + 1) / data.pageSize);
+        if (targetPage !== page) setPage(targetPage);
+        setFocusActionId(result.action.id);
+      }
+      setSelectedAssignee(null);
+      await refreshAfterWrite(created ? "Action created." : "Recovered the existing Action.");
     } catch (reason) {
       if (reason instanceof ApiError && reason.status === 409) setConflict(true);
       setError(safeError(reason));
@@ -196,7 +205,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
         attachmentNotes: editDraft.attachmentNotes.trim(),
         ...(Number(editDraft.assigneeId) !== action.assignee.id ? { assigneeId: Number(editDraft.assigneeId) } : {}),
       });
-      setEditingId(null); setFocusActionId(action.id); await refreshAfterWrite("Action updated.");
+      setEditingId(null); setSelectedAssignee(null); setFocusActionId(action.id); await refreshAfterWrite("Action updated.");
     } catch (reason) {
       if (reason instanceof ApiError && reason.status === 409) setConflict(true);
       setError(safeError(reason));
@@ -223,26 +232,34 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
   }
 
   function beginEdit(action: ActionView) {
+    setFormOpen(false);
     setEditingId(action.id);
+    setSelectedAssignee(action.assignee);
     setEditDraft({ description: action.description, assigneeId: String(action.assignee.id), result: action.result, followUpRequired: action.followUpRequired, followUpNote: action.followUpNote, attachmentNotes: action.attachmentNotes });
   }
 
   function actionForm(current: Draft, editing: boolean, action?: ActionView) {
     const suffix = editing ? String(action?.id) : "new";
     const options = [...activeAssignees];
+    const selected = selectedAssignee?.id === Number(current.assigneeId) ? selectedAssignee : null;
+    if (selected && !options.some((person) => person.id === selected.id)) options.unshift(selected);
     if (action && !options.some((person) => person.id === action.assignee.id)) options.unshift(action.assignee);
+    const validAssigneeSelected = Boolean(current.assigneeId && options.some((person) =>
+      String(person.id) === current.assigneeId && (person.isActive || (editing && person.id === action?.assignee.id)),
+    ));
     return <form className="actions-taken__form" onSubmit={(event) => { event.preventDefault(); if (editing && action) void saveEdit(action); else void createAction(event); }}>
       <FormField id={`action-description-${suffix}`} label="Description" required><textarea id={`action-description-${suffix}`} value={current.description} required maxLength={2000} onChange={(event) => setFormField("description", event.target.value, editing)} /></FormField>
       <FormField id={`action-assignee-${suffix}`} label="Assignee" required hint={assigneesLoading ? "Loading active support users…" : "Choose an active IT Staff or Administrator."}>
         <input id={`action-assignee-search-${suffix}`} aria-label="Search assignees" value={assigneeQuery} onChange={(event) => { setAssigneeQuery(event.target.value); setAssigneePage(1); }} placeholder="Search active support users" />
         <select id={`action-assignee-${suffix}`} value={current.assigneeId} required disabled={assigneesLoading} onChange={(event) => setFormField("assigneeId", event.target.value, editing)}><option value="">Choose an assignee</option>{options.map((person) => <option key={person.id} value={person.id}>{person.name} ({person.role === "ADMIN" ? "Administrator" : "IT Staff"}){!person.isActive ? " — Inactive" : ""}</option>)}</select>
+        {!assigneesLoading && assignees?.total === 0 && !validAssigneeSelected && <p role="status">No active support users match this search. Clear the search or choose another assignee.</p>}
         {assignees && assignees.totalPages > 1 && <nav className="pagination" aria-label="Assignee pagination"><button className="button button--tertiary" type="button" disabled={assigneePage <= 1 || assigneesLoading} onClick={() => setAssigneePage((value) => value - 1)}>Previous assignees</button><span aria-current="page">Page {assigneePage} of {assignees.totalPages}</span><button className="button button--tertiary" type="button" disabled={assigneePage >= assignees.totalPages || assigneesLoading} onClick={() => setAssigneePage((value) => value + 1)}>Next assignees</button></nav>}
       </FormField>
       <FormField id={`action-result-${suffix}`} label="Result"><textarea id={`action-result-${suffix}`} value={current.result} maxLength={2000} onChange={(event) => setFormField("result", event.target.value, editing)} /></FormField>
       <FormField id={`action-follow-up-${suffix}`} label="Follow-up required"><input id={`action-follow-up-${suffix}`} type="checkbox" checked={current.followUpRequired} onChange={(event) => setFormField("followUpRequired", event.target.checked, editing)} /></FormField>
       {current.followUpRequired && <FormField id={`action-follow-up-note-${suffix}`} label="Follow-up note" hint="Enter 5–2,000 characters." required><textarea id={`action-follow-up-note-${suffix}`} value={current.followUpNote} required minLength={5} maxLength={2000} onChange={(event) => setFormField("followUpNote", event.target.value, editing)} /></FormField>}
       <FormField id={`action-attachment-notes-${suffix}`} label="Attachment notes" hint="Describe a file already attached to this Ticket; this does not upload a file. Maximum 1,000 characters."><textarea id={`action-attachment-notes-${suffix}`} value={current.attachmentNotes} maxLength={1000} onChange={(event) => setFormField("attachmentNotes", event.target.value, editing)} /></FormField>
-      <div className="form-actions"><button className="button" type="submit" disabled={saving || assigneesLoading || activeAssignees.length === 0}>{saving ? "Saving…" : editing ? "Save action" : "Create action"}</button>{editing ? <button className="button button--secondary" type="button" onClick={() => setEditingId(null)}>Discard changes</button> : <button className="button button--secondary" type="button" onClick={() => { setFormOpen(false); setDraft(emptyDraft); requestKey.current = null; }}>Cancel</button>}</div>
+      <div className="form-actions"><button className="button" type="submit" disabled={saving || assigneesLoading || !validAssigneeSelected}>{saving ? "Saving…" : editing ? "Save action" : "Create action"}</button>{editing ? <button className="button button--secondary" type="button" onClick={() => { setEditingId(null); setSelectedAssignee(null); }}>Discard changes</button> : <button className="button button--secondary" type="button" onClick={() => { setFormOpen(false); setDraft(emptyDraft); setSelectedAssignee(null); requestKey.current = null; }}>Cancel</button>}</div>
     </form>;
   }
 
@@ -252,7 +269,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
     {error && <p role="alert">{error}</p>}
     {conflict && <div className="actions-taken__conflict" role="status"><p>This Ticket changed elsewhere. Your draft is preserved; reload the current Actions before retrying.</p><button className="button button--secondary" type="button" onClick={() => setReload((value) => value + 1)}>Refresh Actions</button></div>}
     {support && terminalTicket && <p role="status">This Ticket is {ticketStatus}; Actions are read-only until the Ticket is reopened.</p>}
-    {support && !terminalTicket && <button className="button button--secondary" type="button" disabled={saving} onClick={() => { setFormOpen((open) => !open); setError(""); }}>{formOpen ? "Close action form" : "Add action"}</button>}
+    {support && !terminalTicket && <button className="button button--secondary" type="button" disabled={saving || editingId !== null} onClick={() => { setFormOpen((open) => !open); setError(""); if (!formOpen) setSelectedAssignee(null); }}>{formOpen ? "Close action form" : "Add action"}</button>}
     {support && !terminalTicket && formOpen && actionForm(draft, false)}
     {loading ? <LoadingState label="Loading Actions Taken…" /> : data ? <>
       {data.items.length === 0 ? <p>No Actions have been recorded for this Ticket.</p> : <ol className="actions-taken__list">{data.items.map((item) => <li id={`action-${item.id}`} tabIndex={-1} className="actions-taken__item" key={item.id}>
@@ -298,17 +315,17 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
     <ConfirmationDialog
       open={Boolean(pendingTransition)}
       title={pendingTransition?.state === "COMPLETED" ? "Complete Action" : "Cancel Action"}
-      message={pendingTransition?.state === "COMPLETED" ? "Confirm the work is complete. Any required follow-up must be completed before this Action can be closed." : "Cancel this Action? The reason is visible to the Requester."}
+      message={pendingTransition?.state === "COMPLETED" ? "Confirm the work is complete. Record the outcome of any required follow-up in Result; completion clears it from the active Action while the previous note remains in Action history." : "Cancel this Action? The reason is visible to the Requester."}
       confirmLabel={pendingTransition?.state === "COMPLETED" ? "Confirm completion" : "Confirm cancellation"}
       confirmDisabled={saving || (pendingTransition?.state === "COMPLETED" ? !completeResult.trim() || (pendingTransition.action.followUpRequired && !confirmFollowUpResolved) : cancelReason.trim().length < 5 || cancelReason.trim().length > 250)}
       onCancel={() => setPendingTransition(null)}
       onConfirm={() => pendingTransition && void transition(pendingTransition.action, pendingTransition.state)}
     >
       {pendingTransition?.state === "COMPLETED" ? <>
-        <FormField id="complete-action-result" label="Result" hint="Enter 1–2,000 characters." required><textarea id="complete-action-result" required minLength={1} maxLength={2000} value={completeResult} onChange={(event) => setCompleteResult(event.target.value)} /></FormField>
+        <FormField id="complete-action-result" label="Result" hint={pendingTransition.action.followUpRequired ? "Record how the required follow-up was verified; enter 1–2,000 characters." : "Enter 1–2,000 characters."} required><textarea id="complete-action-result" required minLength={1} maxLength={2000} value={completeResult} onChange={(event) => setCompleteResult(event.target.value)} /></FormField>
         {pendingTransition.action.followUpRequired && <>
           <p>Previous follow-up: {pendingTransition.action.followUpNote}</p>
-          <FormField id="complete-follow-up-resolved" label="I confirm the required follow-up is complete" required><input id="complete-follow-up-resolved" type="checkbox" checked={confirmFollowUpResolved} onChange={(event) => setConfirmFollowUpResolved(event.target.checked)} /></FormField>
+          <FormField id="complete-follow-up-resolved" label="I verified the required follow-up is complete" required><input id="complete-follow-up-resolved" type="checkbox" checked={confirmFollowUpResolved} onChange={(event) => setConfirmFollowUpResolved(event.target.checked)} /></FormField>
         </>}
       </> : pendingTransition && <FormField id="cancel-action-reason" label="Cancellation reason" hint="Enter 5–250 characters." required><textarea id="cancel-action-reason" required minLength={5} maxLength={250} value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} /></FormField>}
     </ConfirmationDialog>
