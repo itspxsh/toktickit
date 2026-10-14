@@ -125,6 +125,8 @@ describe("staff ticket detail and workflow", () => {
     const missingAssignmentVersion = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ assignedStaffId: 99 });
     expect(missingAssignmentVersion.status).toBe(400);
     expect(missingAssignmentVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const missingAssignmentVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ assignedStaffId: 99, unexpected: true });
+    expect(missingAssignmentVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
     const invalidAssignment = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ expectedTicketVersion: 3, assignedStaffId: 99 });
     expect(invalidAssignment.status).toBe(400);
     expect(invalidAssignment.body.error.code).toBe("VALIDATION_ERROR");
@@ -138,6 +140,11 @@ describe("staff ticket detail and workflow", () => {
 
     const priority = await request(createTestApp().app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ expectedTicketVersion: 3, itPriority: "URGENT", authorUserId: 999, updatedAt: "forged" });
     expect(priority.status).toBe(400);
+
+    const missingPriorityVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "HIGH", unexpected: true });
+    expect(missingPriorityVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const missingStatusVersionWithUnknownField = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "IN_PROGRESS", unexpected: true });
+    expect(missingStatusVersionWithUnknownField.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
 
     const reopened = createTestApp({ ticket: { ...ticket, currentStatus: "CANCELLED" } });
     const forbiddenReopen = await request(reopened.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: 3, currentStatus: "REOPENED" });
