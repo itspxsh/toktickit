@@ -200,16 +200,18 @@ export function registerStaffTicketDetailRoutes(
   app.patch("/api/staff/tickets/:ticketNumber/assignment", authorizationMiddleware, csrfMiddleware, async (req, res) => {
     const number = ticketNumber(req, res);
     if (!number) return;
-    const body = workflowBody(req.body, ["expectedTicketVersion", "assignedStaffId"]);
+    const rawBody = bodyObject(req.body);
+    const expectedTicketVersion = rawBody?.expectedTicketVersion;
+    if (!positiveVersion(expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
+    const body = workflowBody(rawBody, ["expectedTicketVersion", "assignedStaffId"]);
     if (!body) return validation(res, "VALIDATION_ERROR", "Request contains invalid workflow fields.");
-    if (!positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
     if (!(body.assignedStaffId === null || (typeof body.assignedStaffId === "number" && Number.isSafeInteger(body.assignedStaffId) && body.assignedStaffId > 0))) {
       return validation(res, "VALIDATION_ERROR", "assignedStaffId must be a positive integer or null.", { assignedStaffId: "Choose an active IT Staff or Administrator." });
     }
     try {
       const current = actor(req);
       if (!current) return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
-      const result = await assignTicket(prismaProvider() as unknown as PrismaClient, req, { ticketNumber: number, assignedStaffId: body.assignedStaffId as number | null, role: current.role, expectedTicketVersion: body.expectedTicketVersion });
+      const result = await assignTicket(prismaProvider() as unknown as PrismaClient, req, { ticketNumber: number, assignedStaffId: body.assignedStaffId as number | null, role: current.role, expectedTicketVersion });
       res.status(200).json({ assignedStaff: result.assignedStaff, ticketVersion: result.workflow.ticketVersion });
     } catch (error) {
       sendWorkflowError(res, error);
@@ -219,14 +221,16 @@ export function registerStaffTicketDetailRoutes(
   app.patch("/api/staff/tickets/:ticketNumber/priority", authorizationMiddleware, csrfMiddleware, async (req, res) => {
     const number = ticketNumber(req, res);
     if (!number) return;
-    const body = workflowBody(req.body, ["expectedTicketVersion", "itPriority"]);
+    const rawBody = bodyObject(req.body);
+    const expectedTicketVersion = rawBody?.expectedTicketVersion;
+    if (!positiveVersion(expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
+    const body = workflowBody(rawBody, ["expectedTicketVersion", "itPriority"]);
     if (!body) return validation(res, "VALIDATION_ERROR", "Request contains invalid workflow fields.");
-    if (!positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
     if (typeof body.itPriority !== "string" || !PRIORITIES.has(body.itPriority)) return validation(res, "INVALID_IT_PRIORITY", "itPriority must be LOW, MEDIUM, HIGH, or URGENT.");
     try {
       const current = actor(req);
       if (!current) return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
-      const result = await updateTicketPriority(prismaProvider() as unknown as PrismaClient, req, { ticketNumber: number, itPriority: body.itPriority as ItPriority, role: current.role, expectedTicketVersion: body.expectedTicketVersion });
+      const result = await updateTicketPriority(prismaProvider() as unknown as PrismaClient, req, { ticketNumber: number, itPriority: body.itPriority as ItPriority, role: current.role, expectedTicketVersion });
       res.status(200).json({ itPriority: result.itPriority, ticketVersion: result.workflow.ticketVersion });
     } catch (error) {
       sendWorkflowError(res, error);
@@ -236,14 +240,16 @@ export function registerStaffTicketDetailRoutes(
   app.patch("/api/staff/tickets/:ticketNumber/status", authorizationMiddleware, csrfMiddleware, async (req, res) => {
     const number = ticketNumber(req, res);
     if (!number) return;
-    const body = workflowBody(req.body, ["expectedTicketVersion", "currentStatus", "confirm"]);
+    const rawBody = bodyObject(req.body);
+    const expectedTicketVersion = rawBody?.expectedTicketVersion;
+    if (!positiveVersion(expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
+    const body = workflowBody(rawBody, ["expectedTicketVersion", "currentStatus", "confirm"]);
     if (!body) return validation(res, "VALIDATION_ERROR", "Request contains invalid workflow fields.");
-    if (!positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
     if (typeof body.currentStatus !== "string" || !STATUSES.has(body.currentStatus) || ("confirm" in body && typeof body.confirm !== "boolean")) return validation(res, "INVALID_STATUS_TRANSITION", "A valid currentStatus is required.");
     try {
       const current = actor(req);
       if (!current) return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
-      const result = await updateTicketStatus(prismaProvider() as unknown as PrismaClient, req, { ticketNumber: number, currentStatus: body.currentStatus as CurrentStatus, confirm: body.confirm as boolean | undefined, role: current.role, actorId: current.id, expectedTicketVersion: body.expectedTicketVersion });
+      const result = await updateTicketStatus(prismaProvider() as unknown as PrismaClient, req, { ticketNumber: number, currentStatus: body.currentStatus as CurrentStatus, confirm: body.confirm as boolean | undefined, role: current.role, actorId: current.id, expectedTicketVersion });
       res.status(200).json(result);
     } catch (error) {
       sendWorkflowError(res, error);
