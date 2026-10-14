@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { CurrentStatus } from "@prisma/client";
 import {
   ActionRuleError,
   actionFingerprint,
@@ -59,7 +60,7 @@ describe("L4-04 Action rules (T-UNIT-01 / T-UNIT-03)", () => {
 
 describe("L4-06 Ticket workflow rules (T-UNIT-02)", () => {
   it("exposes only the approved transition destinations for each support role", () => {
-    const matrix = {
+    const matrix: Record<CurrentStatus, CurrentStatus[]> = {
       NEW: ["OPEN", "IN_PROGRESS", "CANCELLED"],
       OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
       IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
@@ -70,7 +71,8 @@ describe("L4-06 Ticket workflow rules (T-UNIT-02)", () => {
       CANCELLED: ["REOPENED"],
     } as const;
 
-    for (const [from, destinations] of Object.entries(matrix)) {
+    for (const from of Object.keys(matrix) as CurrentStatus[]) {
+      const destinations = matrix[from];
       expect(allowedTicketTransitions(from, "IT_STAFF")).toEqual(
         from === "CANCELLED" ? [] : [...destinations],
       );
