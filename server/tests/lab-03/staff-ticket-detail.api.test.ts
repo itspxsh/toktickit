@@ -104,7 +104,8 @@ describe("staff ticket detail and workflow", () => {
   });
 
   it("T-STAFF-03 / AC-06 claims atomically and does not overwrite an existing owner", async () => {
-    const { app: available, calls: availableCalls } = createTestApp({ claimCount: 1 });
+    const unassigned = { ...ticket, assignedStaffId: null, assignedStaff: null };
+    const { app: available, calls: availableCalls } = createTestApp({ ticket: unassigned, claimCount: 1 });
     const missingVersion = await request(available).post("/api/staff/tickets/TKT-2026-000004/claim").send({});
     expect(missingVersion.status).toBe(400);
     expect(missingVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
@@ -113,7 +114,7 @@ describe("staff ticket detail and workflow", () => {
     expect(availableCalls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { isActive: true } } }));
     expect(availableCalls.ticketUpdateMany).toHaveBeenCalledWith({ where: { id: ticket.id, workflowVersion: 3, assignedStaffId: null }, data: { assignedStaffId: 21, workflowVersion: { increment: 1 } } });
 
-    const occupied = createTestApp({ claimCount: 0 });
+    const occupied = createTestApp({ ticket: unassigned, claimCount: 0 });
     const conflict = await request(occupied.app).post("/api/staff/tickets/TKT-2026-000004/claim").send({ expectedTicketVersion: 3 });
     expect(conflict.status).toBe(409);
     expect(conflict.body.error.code).toBe("TICKET_ALREADY_ASSIGNED");
@@ -130,7 +131,8 @@ describe("staff ticket detail and workflow", () => {
     expect(invalidAssignment.body.error.fieldErrors).toHaveProperty("assignedStaffId");
     expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: { in: ["IT_STAFF", "ADMIN"] }, isActive: true } }));
 
-    const transition = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: 3, currentStatus: "CLOSED", confirm: false });
+    const resolved = createTestApp({ ticket: { ...ticket, currentStatus: "RESOLVED" } });
+    const transition = await request(resolved.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: 3, currentStatus: "CLOSED", confirm: false });
     expect(transition.status).toBe(409);
     expect(transition.body.error.code).toBe("CONFIRMATION_REQUIRED");
 
