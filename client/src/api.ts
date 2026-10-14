@@ -80,7 +80,7 @@ export interface StaffTicketDetailView {
   statusEvents: TicketStatusEventView[];
   appearsResolved: boolean;
   requester: { id: number; name: string; email: string };
-  assignedStaff: { id: number; name: string } | null;
+  assignedStaff: { id: number; name: string; role?: AuthRole } | null;
   attachments: TicketAttachmentView[];
   publicComments: StaffComment[];
   internalNotes: StaffComment[];

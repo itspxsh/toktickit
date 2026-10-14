@@ -29,7 +29,7 @@ export type ResolutionBlocker = "ZERO_COMPLETED" | "UNFINISHED_ACTIONS" | "FOLLO
 
 export function resolutionBlockers(actions: readonly ResolutionAction[]): ResolutionBlocker[] {
   const blockers: ResolutionBlocker[] = [];
-  if (!actions.some((action) => action.state === "COMPLETED" && action.result.trim().length > 0)) {
+  if (!actions.some((action) => action.state === "COMPLETED" && typeof action.result === "string" && action.result.trim().length > 0)) {
     blockers.push("ZERO_COMPLETED");
   }
   if (actions.some((action) => action.state === "PLANNED" || action.state === "IN_PROGRESS")) {
@@ -135,7 +135,7 @@ export async function claimTicket(
       const owner = await lockActiveSupportUser(tx, input.actorId, input.role);
       if (!owner) throw new ActionRuleError(403, "FORBIDDEN", "You are not allowed to perform this action.");
       const changed = await tx.ticket.updateMany({ where: { id: ticket.id, workflowVersion: ticket.workflowVersion, assignedStaffId: null }, data: { assignedStaffId: owner.id, workflowVersion: { increment: 1 } } });
-      if (changed.count !== 1) throw new ActionRuleError(409, "STALE_WRITE", "Ticket work changed; refresh before retrying.");
+      if (changed.count !== 1) throw new ActionRuleError(409, "TICKET_ALREADY_ASSIGNED", "Ticket is already assigned.");
       const updated = { ...ticket, assignedStaffId: owner.id, workflowVersion: ticket.workflowVersion + 1 };
       return { assignedStaff: owner, workflow: await workflowResponse(tx, updated, input.role) };
     });
@@ -258,7 +258,9 @@ export async function advanceTicketVersion(tx: Prisma.TransactionClient, ticketI
 
 export function mapTransactionError(error: unknown): ActionRuleError | null {
   if (error instanceof ActionRuleError) return error;
-  if (error instanceof Prisma.PrismaClientKnownRequestError && ["P2034", "P2002"].includes(error.code)) {
+  // Unique-key conflicts are operation-specific (Action creation maps its idempotency key explicitly).
+  // Only Prisma serialization conflicts are safely equivalent to a stale workflow version here.
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034") {
     return new ActionRuleError(409, "STALE_WRITE", "Work changed concurrently; refresh and retry.");
   }
   return null;

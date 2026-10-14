@@ -26,6 +26,21 @@ export interface StaffTicketDetailProps {
 
 function displayStatus(value: string): string { return value.replaceAll("_", " "); }
 
+function formatStatusEventTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok", day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(date);
+}
+
+function formatSupportRole(role?: string): string | null {
+  if (role === "ADMIN") return "Administrator";
+  if (role === "IT_STAFF") return "IT Staff";
+  return null;
+}
+
 export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate }: StaffTicketDetailProps) {
   const [ticket, setTicket] = useState<StaffTicketDetailView | null>(null);
   const loadedTicketNumber = useRef<string | null>(null);
@@ -74,7 +89,7 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
   const assignmentOptions = [...staffOptions.filter((person) => person.role === "IT_STAFF" || person.role === "ADMIN")];
   const resolutionGate = ticket.resolutionGate ?? { canResolve: true, blockers: [] };
   if (ticket.assignedStaff && !assignmentOptions.some((person) => person.id === ticket.assignedStaff?.id)) {
-    assignmentOptions.unshift({ ...ticket.assignedStaff, role: "IT_STAFF" });
+    assignmentOptions.unshift(ticket.assignedStaff);
   }
 
   return (
@@ -90,7 +105,7 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
       </div><FormField id="staff-ticket-description" label="Description"><textarea id="staff-ticket-description" value={ticket.description} readOnly aria-readonly="true" /></FormField></fieldset>
 
       <fieldset className="ticket-detail__group"><legend>Workflow</legend><div className="ticket-detail__grid">
-        <FormField id="staff-ticket-assignment" label="Assign to active support user"><select id="staff-ticket-assignment" value={assignee} onChange={(event) => setAssignee(event.target.value)}><option value="">Unassigned</option>{assignmentOptions.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select></FormField>
+        <FormField id="staff-ticket-assignment" label="Assign to active support user"><select id="staff-ticket-assignment" value={assignee} onChange={(event) => setAssignee(event.target.value)}><option value="">Unassigned</option>{assignmentOptions.map((person) => <option key={person.id} value={person.id}>{person.name}{formatSupportRole(person.role) ? ` (${formatSupportRole(person.role)})` : ""}</option>)}</select></FormField>
         {assignee || ticket.assignedStaff ? <button type="button" className="button button--secondary" onClick={() => void run(() => assignStaffTicket(ticket.ticketNumber, ticket.workflowVersion, assignee ? Number(assignee) : null), "Assignment updated.")}>Save assignment</button> : <button type="button" className="button button--secondary" onClick={() => void run(() => claimStaffTicket(ticket.ticketNumber, ticket.workflowVersion), "Ticket claimed.")}>Claim ticket</button>}
         <FormField id="staff-ticket-priority" label="IT Priority"><select id="staff-ticket-priority" value={priority} onChange={(event) => setPriority(event.target.value as StaffTicketPriority)}>{PRIORITIES.map((value) => <option key={value}>{value}</option>)}</select></FormField>
         <button type="button" className="button button--secondary" onClick={() => void run(() => updateStaffPriority(ticket.ticketNumber, ticket.workflowVersion, priority), "Priority updated.")}>Save priority</button>
@@ -98,7 +113,7 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate 
         <button type="button" className="button button--secondary" aria-label="Save status" disabled={status === ticket.currentStatus} onClick={() => needsConfirmation(ticket.currentStatus, status) ? setDialogOpen(true) : void run(() => updateStaffStatus(ticket.ticketNumber, ticket.workflowVersion, status), "Status updated.")}>Save status</button>
       </div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">Current Status</span><StatusBadge label={displayStatus(ticket.currentStatus)} /></div><div className="ticket-detail__badge-field"><span className="ticket-detail__label">IT Priority</span><PriorityBadge label={ticket.itPriority ?? "Not assigned"} /></div><section aria-label="Resolution gate"><h3>Resolution requirements</h3>{resolutionGate.canResolve ? <p>All Action work is complete and no follow-up is pending.</p> : <ul>{resolutionGate.blockers.map((blocker) => <li key={blocker}>{resolutionBlockerLabel(blocker)}</li>)}</ul>}</section></fieldset>
 
-      <section className="ticket-detail__group" aria-labelledby="staff-status-history-title"><h2 id="staff-status-history-title">Ticket status history</h2>{ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{displayStatus(event.fromStatus)} → {displayStatus(event.toStatus)} · {event.actor?.name ?? "Support user"} · {event.createdAt}</li>)}</ol> : <p>No status changes recorded.</p>}</section>
+      <section className="ticket-detail__group" aria-labelledby="staff-status-history-title"><h2 id="staff-status-history-title">Ticket status history</h2>{ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{displayStatus(event.fromStatus)} → {displayStatus(event.toStatus)} · {event.actor?.name ?? "Support user"} · <time dateTime={event.createdAt} title={event.createdAt}>{formatStatusEventTime(event.createdAt)}</time></li>)}</ol> : <p>No status changes recorded.</p>}</section>
 
       <section className="ticket-detail__group" aria-labelledby="attachments-title"><h2 id="attachments-title">Attachments</h2>{ticket.attachments.length ? <ul>{ticket.attachments.map((item) => <li key={item.id}><span>{item.originalName}</span> <span>({item.mimeType}, {item.sizeBytes} bytes, {item.status})</span></li>)}</ul> : <p>No attachments.</p>}</section>
       <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} ticketOwner={ticket.assignedStaff} mode="support" onTicketChanged={() => setReload((value) => value + 1)} />

@@ -39,7 +39,7 @@ const DETAIL_SELECT = {
   workflowVersion: true,
   updatedAt: true,
   requester: { select: { id: true, name: true, email: true } },
-  assignedStaff: { select: { id: true, name: true } },
+  assignedStaff: { select: { id: true, name: true, role: true } },
   attachments: {
     select: { id: true, originalName: true, mimeType: true, sizeBytes: true, status: true, removedAt: true, removalReason: true, createdAt: true },
     where: { status: "ACTIVE" },
@@ -77,8 +77,8 @@ function notFound(res: Response): void {
   res.status(404).json({ error: { code: "TICKET_NOT_FOUND", message: "Ticket was not found." } });
 }
 
-function validation(res: Response, code: string, message: string): void {
-  res.status(400).json({ error: { code, message } });
+function validation(res: Response, code: string, message: string, fieldErrors?: Record<string, string>): void {
+  res.status(400).json({ error: { code, message, ...(fieldErrors ? { fieldErrors } : {}) } });
 }
 
 function conflict(res: Response, code: string, message: string): void {
@@ -106,7 +106,7 @@ function serialiseDetail(row: any): Record<string, unknown> {
     workflowVersion: row.workflowVersion,
     appearsResolved: row.requesterResolvedAt !== null && row.requesterResolvedAt !== undefined,
     requester: row.requester ? { id: row.requester.id, name: row.requester.name, email: row.requester.email } : null,
-    assignedStaff: row.assignedStaff ? { id: row.assignedStaff.id, name: row.assignedStaff.name } : null,
+    assignedStaff: row.assignedStaff ? { id: row.assignedStaff.id, name: row.assignedStaff.name, role: row.assignedStaff.role } : null,
     attachments: Array.isArray(row.attachments) ? row.attachments.map((item: any) => ({
       id: item.id, originalName: item.originalName, mimeType: item.mimeType, sizeBytes: item.sizeBytes,
       status: item.status, removedAt: item.removedAt ?? null, removalReason: item.removalReason ?? null, createdAt: item.createdAt,
@@ -188,7 +188,7 @@ export function registerStaffTicketDetailRoutes(
     const current = actor(req);
     if (!current) return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
     const body = workflowBody(req.body, ["expectedTicketVersion"]);
-    if (!body || !positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.");
+    if (!body || !positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
     try {
       const result = await claimTicket(prismaProvider() as unknown as PrismaClient, req, { ticketNumber: number, actorId: current.id, role: current.role, expectedTicketVersion: body.expectedTicketVersion });
       res.status(200).json({ assignedStaff: result.assignedStaff, ticketVersion: result.workflow.ticketVersion });
@@ -201,8 +201,10 @@ export function registerStaffTicketDetailRoutes(
     const number = ticketNumber(req, res);
     if (!number) return;
     const body = workflowBody(req.body, ["expectedTicketVersion", "assignedStaffId"]);
-    if (!body || !positiveVersion(body.expectedTicketVersion) || !(body.assignedStaffId === null || (typeof body.assignedStaffId === "number" && Number.isSafeInteger(body.assignedStaffId) && body.assignedStaffId > 0))) {
-      return validation(res, "INVALID_ASSIGNMENT", "assignedStaffId must be a positive integer.");
+    if (!body) return validation(res, "VALIDATION_ERROR", "Request contains invalid workflow fields.");
+    if (!positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
+    if (!(body.assignedStaffId === null || (typeof body.assignedStaffId === "number" && Number.isSafeInteger(body.assignedStaffId) && body.assignedStaffId > 0))) {
+      return validation(res, "VALIDATION_ERROR", "assignedStaffId must be a positive integer or null.", { assignedStaffId: "Choose an active IT Staff or Administrator." });
     }
     try {
       const current = actor(req);
@@ -218,7 +220,9 @@ export function registerStaffTicketDetailRoutes(
     const number = ticketNumber(req, res);
     if (!number) return;
     const body = workflowBody(req.body, ["expectedTicketVersion", "itPriority"]);
-    if (!body || !positiveVersion(body.expectedTicketVersion) || typeof body.itPriority !== "string" || !PRIORITIES.has(body.itPriority)) return validation(res, "INVALID_IT_PRIORITY", "itPriority must be LOW, MEDIUM, HIGH, or URGENT and expectedTicketVersion is required.");
+    if (!body) return validation(res, "VALIDATION_ERROR", "Request contains invalid workflow fields.");
+    if (!positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
+    if (typeof body.itPriority !== "string" || !PRIORITIES.has(body.itPriority)) return validation(res, "INVALID_IT_PRIORITY", "itPriority must be LOW, MEDIUM, HIGH, or URGENT.");
     try {
       const current = actor(req);
       if (!current) return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
@@ -233,7 +237,9 @@ export function registerStaffTicketDetailRoutes(
     const number = ticketNumber(req, res);
     if (!number) return;
     const body = workflowBody(req.body, ["expectedTicketVersion", "currentStatus", "confirm"]);
-    if (!body || !positiveVersion(body.expectedTicketVersion) || typeof body.currentStatus !== "string" || !STATUSES.has(body.currentStatus) || ("confirm" in body && typeof body.confirm !== "boolean")) return validation(res, "INVALID_STATUS_TRANSITION", "A valid currentStatus and expectedTicketVersion are required.");
+    if (!body) return validation(res, "VALIDATION_ERROR", "Request contains invalid workflow fields.");
+    if (!positiveVersion(body.expectedTicketVersion)) return validation(res, "VALIDATION_ERROR", "expectedTicketVersion must be a positive integer.", { expectedTicketVersion: "Expected Ticket version must be a positive integer." });
+    if (typeof body.currentStatus !== "string" || !STATUSES.has(body.currentStatus) || ("confirm" in body && typeof body.confirm !== "boolean")) return validation(res, "INVALID_STATUS_TRANSITION", "A valid currentStatus is required.");
     try {
       const current = actor(req);
       if (!current) return res.status(403).json({ error: { code: "FORBIDDEN", message: "You are not allowed to perform this action." } });
