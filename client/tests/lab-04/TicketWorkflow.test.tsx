@@ -68,11 +68,11 @@ describe("L4-06 Ticket workflow UI (T-UI-WF-01..02)", () => {
       relatedSystem: { id: 1, name: "VPN" }, summary: "VPN access", requestedPriority: "MEDIUM",
       description: "Cannot connect to VPN.", itPriority: "HIGH", currentStatus: "OPEN",
       appearsResolved: false, createdAt: "2026-10-15T00:00:00.000Z", updatedAt: "2026-10-15T00:00:00.000Z",
-      attachments: [], statusEvents: [{ id: 1, fromStatus: "NEW", toStatus: "OPEN", createdAt: "2026-10-15T00:00:00.000Z", actor: null }],
+      attachments: [], statusEvents: [{ id: 1, fromStatus: "NEW", toStatus: "OPEN", createdAt: "2026-10-15T00:00:00.000Z", actor: { id: 9, name: "Admin Reviewer", role: "ADMIN" } }],
     };
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(requesterView);
     render(<RequesterProvider mode="authenticated"><RequesterTicketDetail ticketNumber={ticketNumber} /></RequesterProvider>);
-    expect(await screen.findByText(/15\/10\/2026, 07:00/)).toBeInTheDocument();
+    expect(await screen.findByText(/NEW → OPEN · Admin Reviewer · 15\/10\/2026, 07:00/)).toBeInTheDocument();
     expect(screen.queryByText(/2026-10-15T00:00:00/)).not.toBeInTheDocument();
     cleanup();
 
