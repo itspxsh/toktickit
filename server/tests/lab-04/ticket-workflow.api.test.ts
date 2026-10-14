@@ -87,6 +87,7 @@ describe("L4-06 Ticket workflow API (T-WF-01..04)", () => {
       .send({ expectedTicketVersion: 3, currentStatus: "RESOLVED", confirm: true });
     expect(blocked.status).toBe(409);
     expect(blocked.body.error.code).toBe("RESOLUTION_REQUIREMENTS_NOT_MET");
+    expect(blocked.body.error.details).toEqual({ blockers: ["ZERO_COMPLETED"] });
     expect(db.ticket.updateMany).not.toHaveBeenCalled();
 
     db.actionTaken.findMany.mockResolvedValue([{ state: "COMPLETED", result: "Verified service recovery", followUpRequired: false }]);
