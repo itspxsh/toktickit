@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Prisma } from "@prisma/client";
 import type { CurrentStatus } from "@prisma/client";
 import {
   ActionRuleError,
@@ -10,6 +11,7 @@ import {
 } from "../../src/lab-04/action-rules.js";
 import {
   allowedTicketTransitions,
+  mapTransactionError,
   resolutionBlockers,
   ticketTransitionRequiresConfirmation,
 } from "../../src/lab-04/workflow-service.js";
@@ -106,5 +108,19 @@ describe("L4-06 Ticket workflow rules (T-UNIT-02)", () => {
       { state: "COMPLETED", result: "Verified service recovery", followUpRequired: false },
       { state: "CANCELLED", result: "", followUpRequired: true },
     ])).toEqual([]);
+    expect(resolutionBlockers([
+      { state: "COMPLETED", result: null as unknown as string, followUpRequired: false },
+    ])).toEqual(["ZERO_COMPLETED"]);
+  });
+
+  it("does not misreport unrelated unique conflicts as stale workflow writes", () => {
+    const uniqueConflict = new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+      code: "P2002", clientVersion: "5.22.0", meta: { target: ["ticketId", "clientRequestId"] },
+    });
+    const serializationConflict = new Prisma.PrismaClientKnownRequestError("Transaction conflict", {
+      code: "P2034", clientVersion: "5.22.0",
+    });
+    expect(mapTransactionError(uniqueConflict)).toBeNull();
+    expect(mapTransactionError(serializationConflict)).toMatchObject({ status: 409, code: "STALE_WRITE" });
   });
 });

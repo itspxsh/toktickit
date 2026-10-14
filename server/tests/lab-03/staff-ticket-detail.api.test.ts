@@ -22,6 +22,8 @@ const ticket = {
   requestedPriority: "MEDIUM",
   itPriority: "HIGH",
   currentStatus: "IN_PROGRESS",
+  workflowVersion: 3,
+  resolvedAt: null,
   requesterResolvedAt: null,
   requester: { id: 12, name: "Example Requester", email: "requester@example.test" },
   assignedStaff: { id: 21, name: "Support One" },
@@ -46,19 +48,25 @@ function createTestApp(overrides: Record<string, any> = {}) {
     commentCreate: vi.fn(async ({ data }: any) => ({ id: 14, body: data.body, createdAt: new Date("2026-09-15T08:00:00.000Z"), author: { id: data.authorUserId, name: "Support One", role: "IT_STAFF" } })),
     noteCreate: vi.fn(async ({ data }: any) => ({ id: 15, body: data.body, createdAt: new Date("2026-09-15T08:01:00.000Z"), author: { id: data.authorUserId, name: "Support One", role: "IT_STAFF" } })),
   };
-  const app = express();
-  app.use(express.json());
-  registerRequesterWorkflowRoutes(app, () => ({
-    ticket: { findFirst: calls.ticketFindFirst, update: calls.ticketUpdate, create: vi.fn() },
+  const transaction = {
+    ticket: { findFirst: calls.ticketFindFirst, updateMany: calls.ticketUpdateMany },
+    user: { findFirst: calls.userFindFirst },
+    actionTaken: { findMany: vi.fn(async () => []) },
+    ticketStatusEvent: { create: vi.fn(async () => ({ id: 1 })) },
+    $queryRaw: vi.fn(async () => []),
+  };
+  const prisma = {
+    ticket: { findFirst: calls.ticketFindFirst, update: calls.ticketUpdate, updateMany: calls.ticketUpdateMany, create: vi.fn() },
     requester: { findUnique: vi.fn() },
     publicComment: { create: calls.commentCreate },
-  }) as never, staffAuth, ((_req, _res, next) => next()) as RequestHandler);
-  registerStaffTicketDetailRoutes(app, () => ({
-    ticket: { findFirst: calls.ticketFindFirst, update: calls.ticketUpdate, updateMany: calls.ticketUpdateMany },
     user: { findFirst: calls.userFindFirst },
-    publicComment: { create: calls.commentCreate },
     internalNote: { create: calls.noteCreate },
-  }) as never, overrides.auth ?? staffAuth, ((_req, _res, next) => next()) as RequestHandler);
+    $transaction: vi.fn(async (callback: (tx: typeof transaction) => unknown) => callback(transaction)),
+  };
+  const app = express();
+  app.use(express.json());
+  registerRequesterWorkflowRoutes(app, () => prisma as never, staffAuth, ((_req, _res, next) => next()) as RequestHandler);
+  registerStaffTicketDetailRoutes(app, () => prisma as never, overrides.auth ?? staffAuth, ((_req, _res, next) => next()) as RequestHandler);
   return { app, calls };
 }
 
@@ -84,39 +92,60 @@ describe("staff ticket detail and workflow", () => {
     expect(foreign.body.error.code).toBe("TICKET_NOT_FOUND");
   });
 
-  it("T-DETAIL-03 rejects a legacy unversioned priority write", async () => {
+  it("T-DETAIL-03 / AC-14 requires a version and updates priority through the locked Ticket", async () => {
     const { app, calls } = createTestApp();
-    const response = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "URGENT" });
-    expect(response.status).toBe(400);
-    expect(calls.ticketUpdate).not.toHaveBeenCalled();
+    const missingVersion = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "URGENT" });
+    expect(missingVersion.status).toBe(400);
+    expect(missingVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const response = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ expectedTicketVersion: 3, itPriority: "URGENT" });
+    expect(response.status).toBe(200);
+    expect(calls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { isActive: true } } }));
+    expect(calls.ticketUpdateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: ticket.id, workflowVersion: 3 }, data: { itPriority: "URGENT", workflowVersion: { increment: 1 } } }));
   });
 
-  it("T-STAFF-03 rejects a legacy unversioned claim", async () => {
+  it("T-STAFF-03 / AC-06 claims atomically and does not overwrite an existing owner", async () => {
     const { app: available, calls: availableCalls } = createTestApp({ claimCount: 1 });
-    const claimed = await request(available).post("/api/staff/tickets/TKT-2026-000004/claim").send({});
-    expect(claimed.status).toBe(400);
-    expect(availableCalls.ticketUpdateMany).not.toHaveBeenCalled();
+    const missingVersion = await request(available).post("/api/staff/tickets/TKT-2026-000004/claim").send({});
+    expect(missingVersion.status).toBe(400);
+    expect(missingVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const claimed = await request(available).post("/api/staff/tickets/TKT-2026-000004/claim").send({ expectedTicketVersion: 3 });
+    expect(claimed.status).toBe(200);
+    expect(availableCalls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { isActive: true } } }));
+    expect(availableCalls.ticketUpdateMany).toHaveBeenCalledWith({ where: { id: ticket.id, workflowVersion: 3, assignedStaffId: null }, data: { assignedStaffId: 21, workflowVersion: { increment: 1 } } });
+
+    const occupied = createTestApp({ claimCount: 0 });
+    const conflict = await request(occupied.app).post("/api/staff/tickets/TKT-2026-000004/claim").send({ expectedTicketVersion: 3 });
+    expect(conflict.status).toBe(409);
+    expect(conflict.body.error.code).toBe("TICKET_ALREADY_ASSIGNED");
   });
 
-  it("T-STAFF-04 rejects legacy unversioned assignment and status writes", async () => {
+  it("T-STAFF-04 / AC-06 validates assignment and protects versioned workflow transitions", async () => {
     const { app, calls } = createTestApp({ staff: null });
-    const invalidAssignment = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ assignedStaffId: 99 });
+    const missingAssignmentVersion = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ assignedStaffId: 99 });
+    expect(missingAssignmentVersion.status).toBe(400);
+    expect(missingAssignmentVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
+    const invalidAssignment = await request(app).patch("/api/staff/tickets/TKT-2026-000004/assignment").send({ expectedTicketVersion: 3, assignedStaffId: 99 });
     expect(invalidAssignment.status).toBe(400);
+    expect(invalidAssignment.body.error.code).toBe("VALIDATION_ERROR");
+    expect(invalidAssignment.body.error.fieldErrors).toHaveProperty("assignedStaffId");
+    expect(calls.userFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 99, role: { in: ["IT_STAFF", "ADMIN"] }, isActive: true } }));
 
-    const transition = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "CLOSED", confirm: false });
-    expect(transition.status).toBe(400);
+    const transition = await request(app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: 3, currentStatus: "CLOSED", confirm: false });
+    expect(transition.status).toBe(409);
+    expect(transition.body.error.code).toBe("CONFIRMATION_REQUIRED");
 
-    const priority = await request(createTestApp().app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ itPriority: "URGENT", authorUserId: 999, updatedAt: "forged" });
+    const priority = await request(createTestApp().app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ expectedTicketVersion: 3, itPriority: "URGENT", authorUserId: 999, updatedAt: "forged" });
     expect(priority.status).toBe(400);
 
     const reopened = createTestApp({ ticket: { ...ticket, currentStatus: "CANCELLED" } });
-    const forbiddenReopen = await request(reopened.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "REOPENED" });
-    expect(forbiddenReopen.status).toBe(400);
+    const forbiddenReopen = await request(reopened.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: 3, currentStatus: "REOPENED" });
+    expect(forbiddenReopen.status).toBe(403);
+    expect(forbiddenReopen.body.error.code).toBe("FORBIDDEN");
 
     const adminReopen = createTestApp({ ticket: { ...ticket, currentStatus: "CANCELLED" }, auth: adminAuth });
-    const allowedReopen = await request(adminReopen.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ currentStatus: "REOPENED" });
-    expect(allowedReopen.status).toBe(400);
-    expect(calls.ticketUpdateMany).not.toHaveBeenCalled();
+    const allowedReopen = await request(adminReopen.app).patch("/api/staff/tickets/TKT-2026-000004/status").send({ expectedTicketVersion: 3, currentStatus: "REOPENED" });
+    expect(allowedReopen.status).toBe(200);
+    expect(adminReopen.calls.ticketUpdateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: ticket.id, workflowVersion: 3, currentStatus: "CANCELLED" }, data: expect.objectContaining({ currentStatus: "REOPENED", resolvedAt: null }) }));
   });
 
   it("T-COMMENT-02..05 / AC-08..09 attributes append-only comments and notes on the server", async () => {

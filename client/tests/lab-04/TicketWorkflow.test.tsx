@@ -1,8 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../../src/api.ts";
 import { StaffTicketDetail } from "../../src/staff-ticket-detail.tsx";
+import { RequesterTicketDetail } from "../../src/requester-ticket-detail.tsx";
+import { RequesterProvider } from "../../src/requester.tsx";
 
 const ticketNumber = "TKT-2026-000051";
 const detail: api.StaffTicketDetailView = {
@@ -57,6 +59,78 @@ describe("L4-06 Ticket workflow UI (T-UI-WF-01..02)", () => {
     ]);
     expect(screen.getByText("Finish or cancel all planned and in-progress Actions.")).toBeInTheDocument();
     expect(screen.getByText(/NEW → OPEN · Alex Support/)).toBeInTheDocument();
+  });
+
+  it("formats requester and staff status history timestamps in Bangkok time", async () => {
+    const requesterView: api.TicketDetailView = {
+      id: 51, ticketNumber, ticketDate: "2026-10-15T00:00:00.000Z",
+      requester: { id: 7, name: "Requester" }, category: { id: 1, name: "Network" },
+      relatedSystem: { id: 1, name: "VPN" }, summary: "VPN access", requestedPriority: "MEDIUM",
+      description: "Cannot connect to VPN.", itPriority: "HIGH", currentStatus: "OPEN",
+      appearsResolved: false, createdAt: "2026-10-15T00:00:00.000Z", updatedAt: "2026-10-15T00:00:00.000Z",
+      attachments: [], statusEvents: [{ id: 1, fromStatus: "NEW", toStatus: "OPEN", createdAt: "2026-10-15T00:00:00.000Z", actor: null }],
+    };
+    vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(requesterView);
+    render(<RequesterProvider mode="authenticated"><RequesterTicketDetail ticketNumber={ticketNumber} /></RequesterProvider>);
+    expect(await screen.findByText(/15\/10\/2026, 07:00/)).toBeInTheDocument();
+    expect(screen.queryByText(/2026-10-15T00:00:00/)).not.toBeInTheDocument();
+    cleanup();
+
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValueOnce(detail);
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    expect(await screen.findByText(/NEW → OPEN · Alex Support · 15\/10\/2026, 07:00/)).toBeInTheDocument();
+  });
+
+  it("shows only the server-approved Cancelled destinations for Staff and Admin", async () => {
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValueOnce({
+      ...detail, currentStatus: "CANCELLED", allowedTransitions: [],
+    });
+    const staffView = render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    const staffStatus = await screen.findByRole("combobox", { name: "Status" });
+    expect([...staffStatus.querySelectorAll("option")].map((option) => option.value)).toEqual(["CANCELLED"]);
+    staffView.unmount();
+
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValueOnce({
+      ...detail, currentStatus: "CANCELLED", allowedTransitions: ["REOPENED"],
+    });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    const adminStatus = await screen.findByRole("combobox", { name: "Status" });
+    expect([...adminStatus.querySelectorAll("option")].map((option) => option.value)).toEqual(["REOPENED", "CANCELLED"]);
+  });
+
+  it("requires confirmation before closing a resolved Ticket", async () => {
+    const user = userEvent.setup();
+    const fetchMock = setupFetch();
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValue({ ...detail, currentStatus: "RESOLVED", allowedTransitions: ["CLOSED"] });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Status" }), "CLOSED");
+    await user.click(screen.getByRole("button", { name: "Save status" }));
+    expect(screen.getByRole("alertdialog", { name: "Confirm status change" })).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url, init]) => String(url).endsWith("/status") && init?.method === "PATCH")).toBe(false);
+  });
+
+  it("preserves an edited priority draft when a version conflict is returned", async () => {
+    const user = userEvent.setup();
+    const fetchMock = setupFetch((url, init) => url.endsWith("/priority") && init?.method === "PATCH"
+      ? response({ error: { code: "STALE_WRITE", message: "Ticket work changed; refresh before retrying." } }, 409)
+      : undefined);
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    const priority = await screen.findByRole("combobox", { name: "IT Priority" });
+    await user.selectOptions(priority, "URGENT");
+    await user.click(screen.getByRole("button", { name: "Save priority" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Ticket work changed; refresh before retrying.");
+    expect(priority).toHaveValue("URGENT");
+    expect(fetchMock.mock.calls.some(([url, init]) => String(url).endsWith("/priority") && init?.method === "PATCH")).toBe(true);
+  });
+
+  it("keeps the real Admin role on a selected existing owner", async () => {
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValueOnce({
+      ...detail,
+      assignedStaff: { id: 8, name: "Administrator Owner", role: "ADMIN" } as api.StaffTicketDetailView["assignedStaff"],
+    });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+    const assignment = await screen.findByRole("combobox", { name: "Assign to active support user" });
+    expect(assignment).toHaveDisplayValue("Administrator Owner (Administrator)");
   });
 
   it("confirms resolution and sends the current Ticket workflow version", async () => {
