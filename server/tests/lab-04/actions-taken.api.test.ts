@@ -237,6 +237,60 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
     expect(db.ticket.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 51 }, data: { workflowVersion: { increment: 1 } } }));
   });
 
+  it.each([
+    ["create", "POST", "/api/staff/tickets/TKT-2026-000051/actions", {
+      clientRequestId: "6d0e5ea5-3b6e-4ac4-bd7b-3115e23bc232",
+      expectedTicketVersion: 3,
+      assigneeId: 77,
+      description: "Inspect gateway configuration",
+      followUpRequired: false,
+    }],
+    ["edit", "PATCH", "/api/staff/tickets/TKT-2026-000051/actions/90", {
+      expectedTicketVersion: 3,
+      expectedVersion: 1,
+      description: "Revise gateway configuration",
+    }],
+    ["transition", "POST", "/api/staff/tickets/TKT-2026-000051/actions/90/transitions", {
+      expectedTicketVersion: 3,
+      expectedVersion: 1,
+      state: "IN_PROGRESS",
+    }],
+  ])("T-DASH-S-04 rechecks active requester scope after the parent lock before Action %s", async (_operation, method, path, body) => {
+    authenticatedAs("IT_STAFF");
+    const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null };
+    // The route-level authorization succeeds. The locked transaction read
+    // then observes the owner becoming inactive and must hide the Ticket.
+    db.ticket.findFirst.mockResolvedValueOnce(ticket).mockResolvedValueOnce(null);
+    db.ticket.findUnique.mockResolvedValue(ticket);
+    db.user.findFirst.mockResolvedValue({ id: 77 });
+    db.actionTaken.findUnique.mockResolvedValue(null);
+    db.actionTaken.findFirst.mockResolvedValue(actionFixture());
+    db.actionTaken.create.mockResolvedValue(actionFixture());
+    db.actionTaken.updateMany.mockResolvedValue({ count: 1 });
+    db.ticket.update.mockResolvedValue({ workflowVersion: 4 });
+    const csrf = await request(app).get("/api/auth/csrf").set("Cookie", cookie);
+    const mutation = method === "PATCH" ? request(app).patch(path) : request(app).post(path);
+    const response = await mutation
+      .set("Cookie", cookie)
+      .set("Origin", "http://localhost:3000")
+      .set("X-CSRF-Token", csrf.body.csrfToken)
+      .send(body);
+
+    expect(response.status).toBe(404);
+    expect(response.body.error.code).toBe("TICKET_NOT_FOUND");
+    expect(db.ticket.findFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        id: ticket.id,
+        ticketNumber: ticket.ticketNumber,
+        requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+      },
+    }));
+    expect(db.actionTaken.create).not.toHaveBeenCalled();
+    expect(db.actionTaken.updateMany).not.toHaveBeenCalled();
+    expect(db.actionRevision.create).not.toHaveBeenCalled();
+    expect(db.ticket.update).not.toHaveBeenCalled();
+  });
+
   it("T-ACT-02 filters assignee lookup to active IT Staff/Admin before accepting an assignee", async () => {
     authenticatedAs("IT_STAFF");
     db.ticket.findFirst.mockResolvedValue({ id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 3, currentStatus: "OPEN", assignedStaffId: null });
