@@ -163,6 +163,23 @@ describe("L4-07 Staff dashboard API (T-DASH-S-01..03)", () => {
     expect(db.actionTaken.findMany.mock.calls[0]?.[0].select).not.toHaveProperty("result");
   });
 
+  it("applies before-only, terminal status, null-priority and actor assignment filters identically to rows and count (T-QUERY-01)", async () => {
+    const before = new Date(Date.now() - 10_000).toISOString();
+
+    const response = await request(app).get(`/api/staff/tickets?status=CANCELLED&itPriority=UNPRIORITIZED&assignment=mine&before=${encodeURIComponent(before)}&sort=statusAsc&page=2&pageSize=7&legacyUnknown=ignored`);
+
+    expect(response.status).toBe(200);
+    const expectedWhere = {
+      requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+      currentStatus: "CANCELLED",
+      itPriority: null,
+      assignedStaffId: 41,
+      updatedAt: { lt: new Date(before) },
+    };
+    expect(db.ticket.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere, skip: 7, take: 7 }));
+    expect(db.ticket.count).toHaveBeenCalledWith({ where: expectedWhere });
+  });
+
   it("returns a safe service error instead of manufacturing zero counts (T-DASH-S-03)", async () => {
     db.ticket.count.mockRejectedValue(new Error("private database detail"));
 
