@@ -2,6 +2,7 @@ import type { Express, RequestHandler, Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { createStaffAuthMiddleware } from "../authorization.js";
 import { activeStaffTicketWhere } from "../lab-04/ticket-scope.js";
+import { parseUtcTimestamp } from "../lab-04/list-query.js";
 
 type QueueModel = {
   findMany(args: unknown): Promise<unknown>;
@@ -103,8 +104,8 @@ function parseQueueQuery(raw: Record<string, unknown>): { query?: QueueQuery; fi
       fieldErrors[key] = "Date must be a UTC ISO-8601 timestamp.";
       return undefined;
     }
-    const parsed = new Date(value);
-    if (!Number.isFinite(parsed.getTime())) fieldErrors[key] = "Date must be a valid UTC ISO-8601 timestamp.";
+    const parsed = parseUtcTimestamp(value);
+    if (!parsed) fieldErrors[key] = "Date must be a valid UTC ISO-8601 timestamp.";
     return parsed;
   };
   const updatedSince = parseUtc("updatedSince");
@@ -173,11 +174,13 @@ function buildWhere(query: QueueQuery, actorId: number): Record<string, unknown>
   if (query.itPriority === "UNPRIORITIZED") where.itPriority = null;
   else if (query.itPriority) where.itPriority = query.itPriority;
   if (query.updatedSince || query.resolvedSince || query.before) {
-    const range: { gte?: Date; lt?: Date } = {};
-    if (query.updatedSince) range.gte = query.updatedSince;
-    if (query.resolvedSince) range.gte = query.resolvedSince;
-    if (query.before) range.lt = query.before;
-    where[query.statusGroup === "resolved" ? "resolvedAt" : "updatedAt"] = range;
+    if (query.updatedSince) where.updatedAt = { gte: query.updatedSince };
+    if (query.resolvedSince) where.resolvedAt = { gte: query.resolvedSince };
+    if (query.before) {
+      const upperField = query.statusGroup === "resolved" ? "resolvedAt" : "updatedAt";
+      const upperBound = where[upperField] as { gte?: Date; lt?: Date } | undefined;
+      where[upperField] = { ...upperBound, lt: query.before };
+    }
   }
   if (query.assignment === "unassigned") where.assignedStaffId = null;
   if (query.assignment === "mine") where.assignedStaffId = actorId;

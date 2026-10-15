@@ -2,6 +2,7 @@ import type { Express, Request, Response, RequestHandler } from "express";
 import { getPrisma } from "../prisma.js";
 import { requireCsrf } from "../auth.js";
 import { allocateTicketNumber, type TicketSequenceClient } from "../ticket-number.js";
+import { parseUtcTimestamp } from "../lab-04/list-query.js";
 
 type Model = {
   findUnique(args: unknown): Promise<unknown>;
@@ -350,8 +351,8 @@ function parseListQuery(rawQuery: Record<string, unknown>): ParsedListQueryResul
       fieldErrors[key] = "Date must be a UTC ISO-8601 timestamp.";
       return undefined;
     }
-    const parsed = new Date(value);
-    if (!Number.isFinite(parsed.getTime())) fieldErrors[key] = "Date must be a valid UTC ISO-8601 timestamp.";
+    const parsed = parseUtcTimestamp(value);
+    if (!parsed) fieldErrors[key] = "Date must be a valid UTC ISO-8601 timestamp.";
     return parsed;
   };
   const updatedSince = parseUtc("updatedSince");
@@ -423,12 +424,13 @@ function buildTicketListWhere(query: ParsedListQuery, requesterId: number): Reco
   else if (query.statusGroup === "active") where.currentStatus = { in: ACTIVE_STATUSES };
   else if (query.statusGroup === "resolved") where.currentStatus = { in: RESOLVED_STATUSES };
   if (query.updatedSince || query.resolvedSince || query.before) {
-    const useResolvedAt = query.statusGroup === "resolved";
-    const range: { gte?: Date; lt?: Date } = {};
-    if (query.updatedSince) range.gte = query.updatedSince;
-    if (query.resolvedSince) range.gte = query.resolvedSince;
-    if (query.before) range.lt = query.before;
-    where[useResolvedAt ? "resolvedAt" : "updatedAt"] = range;
+    if (query.updatedSince) where.updatedAt = { gte: query.updatedSince };
+    if (query.resolvedSince) where.resolvedAt = { gte: query.resolvedSince };
+    if (query.before) {
+      const upperField = query.statusGroup === "resolved" ? "resolvedAt" : "updatedAt";
+      const upperBound = where[upperField] as { gte?: Date; lt?: Date } | undefined;
+      where[upperField] = { ...upperBound, lt: query.before };
+    }
   }
   if (query.categoryId !== undefined) where.categoryId = query.categoryId;
   if (query.relatedSystemId !== undefined) where.relatedSystemId = query.relatedSystemId;
