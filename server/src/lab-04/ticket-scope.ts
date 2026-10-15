@@ -31,6 +31,18 @@ export type TicketScope = {
   assignedStaffId: number | null;
 };
 
+/** Active requester identity scope shared by staff dashboards and their Ticket drill-down list. */
+export function activeStaffTicketWhere(): Prisma.TicketWhereInput {
+  return {
+    requester: {
+      is: {
+        isActive: true,
+        user: { is: { role: "REQUESTER", isActive: true } },
+      },
+    },
+  };
+}
+
 export function parseTicketNumber(raw: string | undefined): string {
   const value = raw?.trim() ?? "";
   if (!TICKET_NUMBER_PATTERN.test(value)) throw new ActionRuleError(400, "INVALID_TICKET_NUMBER", "Ticket Number must match TKT-YYYY-NNNNNN.");
