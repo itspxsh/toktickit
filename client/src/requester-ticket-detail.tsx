@@ -28,7 +28,16 @@ function displayPriority(value: string): string {
 }
 
 function displayStatus(value: string): string {
-  return value === "NEW" ? "New" : value;
+  return value.replaceAll("_", " ");
+}
+
+function formatStatusEventTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok", day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(date);
 }
 
 /** Requester-owned Ticket Detail with the L2-08 Attachment lifecycle panel. */
@@ -202,6 +211,11 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
       </section>
 
       <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} mode="requester" />
+
+      <section className="ticket-detail__group" aria-labelledby="requester-status-history-title">
+        <h2 id="requester-status-history-title">Ticket status history</h2>
+        {ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{displayStatus(event.fromStatus)} → {displayStatus(event.toStatus)} · {event.actor?.name ?? "Support user"} · <time dateTime={event.createdAt} title={event.createdAt}>{formatStatusEventTime(event.createdAt)}</time></li>)}</ol> : <p>No status changes recorded.</p>}
+      </section>
 
       <AttachmentSection
         ticketNumber={ticket.ticketNumber}

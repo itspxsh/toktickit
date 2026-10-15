@@ -16,10 +16,15 @@ const staffTicket: api.StaffTicketDetailView = {
   requestedPriority: "MEDIUM",
   itPriority: "HIGH",
   currentStatus: "IN_PROGRESS",
+  workflowVersion: 3,
+  resolvedAt: null,
+  allowedTransitions: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  resolutionGate: { canResolve: false, blockers: ["UNFINISHED_ACTIONS"] },
   appearsResolved: false,
   requester: { id: 12, name: "Example Requester", email: "requester@example.test" },
   assignedStaff: { id: 21, name: "Ticket Owner" },
   attachments: [],
+  statusEvents: [],
   publicComments: [],
   internalNotes: [{ id: 5, author: { id: 21, name: "Ticket Owner", role: "IT_STAFF" }, body: "Private note", createdAt: "2026-10-10T07:01:00.000Z" }],
 };
@@ -40,6 +45,7 @@ const requesterTicket: api.TicketDetailView = {
   createdAt: "2026-10-10T07:00:00.000Z",
   updatedAt: "2026-10-10T07:01:00.000Z",
   attachments: [],
+  statusEvents: [],
 };
 
 const action = {

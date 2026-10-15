@@ -11,6 +11,7 @@ export interface RelatedSystem {
 }
 
 export type RequestedPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type TicketStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
 
 export interface CreateTicketPayload {
   categoryId: number;
@@ -31,7 +32,9 @@ export interface TicketView {
   requestedPriority: RequestedPriority;
   description: string;
   itPriority: string | null;
-  currentStatus: "NEW";
+  currentStatus: TicketStatus;
+  resolvedAt?: string | null;
+  workflowVersion?: number;
   appearsResolved?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -52,10 +55,14 @@ export interface TicketAttachmentView {
 
 export interface TicketDetailView extends TicketView {
   attachments: TicketAttachmentView[];
+  statusEvents: TicketStatusEventView[];
 }
 
-export type StaffTicketStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
+export type StaffTicketStatus = TicketStatus;
 export type StaffTicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type TicketResolutionBlocker = "ZERO_COMPLETED" | "UNFINISHED_ACTIONS" | "FOLLOW_UP_REQUIRED";
+export interface TicketStatusEventView { id: number; fromStatus: StaffTicketStatus; toStatus: StaffTicketStatus; createdAt: string; actor: { id: number; name: string; role: AuthRole } | null }
+export interface TicketResolutionGate { canResolve: boolean; blockers: TicketResolutionBlocker[] }
 export interface StaffPerson { id: number; name: string; role?: string }
 export interface StaffComment { id: number; author: StaffPerson; body: string; createdAt: string }
 export interface StaffTicketDetailView {
@@ -66,9 +73,14 @@ export interface StaffTicketDetailView {
   requestedPriority: RequestedPriority;
   itPriority: StaffTicketPriority | null;
   currentStatus: StaffTicketStatus;
+  workflowVersion: number;
+  resolvedAt: string | null;
+  allowedTransitions: StaffTicketStatus[];
+  resolutionGate: TicketResolutionGate;
+  statusEvents: TicketStatusEventView[];
   appearsResolved: boolean;
   requester: { id: number; name: string; email: string };
-  assignedStaff: { id: number; name: string } | null;
+  assignedStaff: { id: number; name: string; role?: AuthRole } | null;
   attachments: TicketAttachmentView[];
   publicComments: StaffComment[];
   internalNotes: StaffComment[];
@@ -655,20 +667,20 @@ export function transitionStaffAction(ticketNumber: string, actionId: number, pa
   return staffMutation(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions/${actionId}/transitions`, "POST", payload);
 }
 
-export function claimStaffTicket(ticketNumber: string) {
-  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/claim`, "POST", {});
+export function claimStaffTicket(ticketNumber: string, expectedTicketVersion: number) {
+  return staffMutation<{ assignedStaff: { id: number; name: string }; ticketVersion: number }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/claim`, "POST", { expectedTicketVersion });
 }
 
-export function assignStaffTicket(ticketNumber: string, assignedStaffId: number) {
-  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/assignment`, "PATCH", { assignedStaffId });
+export function assignStaffTicket(ticketNumber: string, expectedTicketVersion: number, assignedStaffId: number | null) {
+  return staffMutation<{ assignedStaff: { id: number; name: string } | null; ticketVersion: number }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/assignment`, "PATCH", { expectedTicketVersion, assignedStaffId });
 }
 
-export function updateStaffPriority(ticketNumber: string, itPriority: StaffTicketPriority) {
-  return staffMutation<{ itPriority: StaffTicketPriority }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/priority`, "PATCH", { itPriority });
+export function updateStaffPriority(ticketNumber: string, expectedTicketVersion: number, itPriority: StaffTicketPriority) {
+  return staffMutation<{ itPriority: StaffTicketPriority | null; ticketVersion: number }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/priority`, "PATCH", { expectedTicketVersion, itPriority });
 }
 
-export function updateStaffStatus(ticketNumber: string, currentStatus: StaffTicketStatus, confirm = false) {
-  return staffMutation<{ currentStatus: StaffTicketStatus }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/status`, "PATCH", { currentStatus, confirm });
+export function updateStaffStatus(ticketNumber: string, expectedTicketVersion: number, currentStatus: StaffTicketStatus, confirm = false) {
+  return staffMutation<{ currentStatus: StaffTicketStatus; ticketVersion: number; allowedTransitions: StaffTicketStatus[]; resolutionGate: TicketResolutionGate; noOp: boolean }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/status`, "PATCH", { expectedTicketVersion, currentStatus, confirm });
 }
 
 export function addStaffPublicComment(ticketNumber: string, body: string) {

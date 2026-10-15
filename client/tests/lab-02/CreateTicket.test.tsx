@@ -24,6 +24,7 @@ const ticketDetail: api.TicketDetailView = {
   createdAt: "2026-09-06T00:00:00.000Z",
   updatedAt: "2026-09-06T00:00:00.000Z",
   attachments: [],
+  statusEvents: [],
 };
 
 function renderCreateTicket() {

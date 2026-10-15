@@ -44,6 +44,7 @@ const detail: api.TicketDetailView = {
       createdAt: "2026-09-06T00:30:00.000Z",
     },
   ],
+  statusEvents: [],
 };
 
 function renderDetail(onNavigate?: (path: string) => void) {
