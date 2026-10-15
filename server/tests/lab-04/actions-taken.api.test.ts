@@ -488,7 +488,7 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
   it("T-ACT-07 re-reads an authorized matching Action after a unique-key create race", async () => {
     authenticatedAs("IT_STAFF");
     const ticket = { id: 51, ticketNumber: "TKT-2026-000051", workflowVersion: 4, currentStatus: "OPEN", assignedStaffId: null };
-    db.ticket.findFirst.mockResolvedValueOnce(ticket).mockResolvedValueOnce({ ...ticket, workflowVersion: 5 });
+    db.ticket.findFirst.mockResolvedValueOnce(ticket).mockResolvedValueOnce(ticket).mockResolvedValueOnce({ ...ticket, workflowVersion: 5 });
     db.ticket.findUnique.mockResolvedValue(ticket);
     const payload = {
       clientRequestId: "6d0e5ea5-3b6e-4ac4-bd7b-3115e23bc232",
@@ -517,7 +517,7 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ ticketVersion: 5, action: { id: 90, state: "PLANNED" } });
-    expect(db.ticket.findFirst).toHaveBeenCalledTimes(2);
+    expect(db.ticket.findFirst).toHaveBeenCalledTimes(3);
     expect(db.actionTaken.findUnique).toHaveBeenCalledTimes(2);
     expect(db.actionRevision.create).not.toHaveBeenCalled();
     expect(db.ticket.update).not.toHaveBeenCalled();

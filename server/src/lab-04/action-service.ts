@@ -87,9 +87,9 @@ function snapshot(row: ActionRecord): Prisma.InputJsonObject {
   };
 }
 
-async function findCurrentTicket(tx: Prisma.TransactionClient, ticketId: number): Promise<TicketScope> {
-  const row = await tx.ticket.findUnique({
-    where: { id: ticketId },
+async function findCurrentTicket(tx: Prisma.TransactionClient, ctx: RequestContext): Promise<TicketScope> {
+  const row = await tx.ticket.findFirst({
+    where: { id: ctx.ticket.id, ticketNumber: ctx.ticketNumber, ...activeStaffTicketWhere() },
     select: { id: true, ticketNumber: true, workflowVersion: true, currentStatus: true, assignedStaffId: true },
   });
   if (!row) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
@@ -194,7 +194,7 @@ export async function createAction(
   const fingerprint = actionFingerprint(input.assigneeId, input.content);
   try { return await prisma.$transaction(async (tx) => {
     await lockTicket(tx, ctx.ticket.id);
-    const ticket = await findCurrentTicket(tx, ctx.ticket.id);
+    const ticket = await findCurrentTicket(tx, ctx);
     const existing = await tx.actionTaken.findUnique({
       where: { ticketId_clientRequestId: { ticketId: ticket.id, clientRequestId: input.clientRequestId } },
       select: { ...ACTION_SAFE_SELECT, ticketId: true, clientRequestId: true, payloadFingerprint: true, createdById: true, assigneeId: true, performedById: true },
@@ -263,7 +263,7 @@ export async function updateAction(
 ): Promise<{ action: unknown; ticketVersion: number; noOp: boolean }> {
   try { return await prisma.$transaction(async (tx) => {
     await lockTicket(tx, ctx.ticket.id);
-    const ticket = await findCurrentTicket(tx, ctx.ticket.id);
+    const ticket = await findCurrentTicket(tx, ctx);
     assertParentEditable(ticket);
     assertTicketVersion(ticket, input.expectedTicketVersion);
     const action = await findAction(tx, ticket.id, actionId);
@@ -294,7 +294,7 @@ export async function transitionAction(
 ): Promise<{ action: unknown; ticketVersion: number }> {
   try { return await prisma.$transaction(async (tx) => {
     await lockTicket(tx, ctx.ticket.id);
-    const ticket = await findCurrentTicket(tx, ctx.ticket.id);
+    const ticket = await findCurrentTicket(tx, ctx);
     assertParentEditable(ticket);
     assertTicketVersion(ticket, input.expectedTicketVersion);
     const action = await findAction(tx, ticket.id, actionId);
