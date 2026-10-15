@@ -2,6 +2,7 @@ import type { Express, RequestHandler, Response } from "express";
 import { requireCsrf } from "../auth.js";
 import { getPrisma } from "../prisma.js";
 import { ActionRuleError } from "../lab-04/action-rules.js";
+import { activeStaffTicketWhere } from "../lab-04/ticket-scope.js";
 import { allowedTicketTransitions, assignTicket, claimTicket, resolutionBlockers, updateTicketPriority, updateTicketStatus, type ResolutionAction } from "../lab-04/workflow-service.js";
 import type { CurrentStatus, ItPriority, PrismaClient } from "@prisma/client";
 
@@ -144,7 +145,7 @@ function plainText(value: unknown): value is string {
 }
 
 async function loadTicket(prisma: StaffTicketDetailClient, number: string): Promise<any> {
-  return prisma.ticket.findFirst({ where: { ticketNumber: number, requester: { isActive: true } }, select: DETAIL_SELECT });
+  return prisma.ticket.findFirst({ where: { ticketNumber: number, ...activeStaffTicketWhere() }, select: DETAIL_SELECT });
 }
 
 function actor(req: Parameters<RequestHandler>[0]): { id: number; role: AuthRole } | null {

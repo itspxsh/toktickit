@@ -8,7 +8,7 @@ import {
   type ActionContent,
   validateActionContent,
 } from "./action-rules.js";
-import { ACTION_SAFE_SELECT, type TicketScope } from "./ticket-scope.js";
+import { ACTION_SAFE_SELECT, activeStaffTicketWhere, type TicketScope } from "./ticket-scope.js";
 import { advanceTicketVersion, assertTicketVersion, lockTicket, mapTransactionError, TRANSACTION_OPTIONS } from "./workflow-service.js";
 
 type ActionRecord = {
@@ -235,7 +235,7 @@ export async function createAction(
       return await prisma.$transaction(async (tx) => {
         await lockTicket(tx, ctx.ticket.id);
         const ticket = await tx.ticket.findFirst({
-          where: { id: ctx.ticket.id, ticketNumber: ctx.ticketNumber, requester: { isActive: true } },
+          where: { id: ctx.ticket.id, ticketNumber: ctx.ticketNumber, ...activeStaffTicketWhere() },
           select: { id: true, ticketNumber: true, workflowVersion: true, currentStatus: true, assignedStaffId: true },
         });
         if (!ticket) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
