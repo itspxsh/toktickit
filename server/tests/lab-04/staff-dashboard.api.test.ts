@@ -2,7 +2,7 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const db = vi.hoisted(() => ({
-  ticket: { count: vi.fn(), findMany: vi.fn() },
+  ticket: { count: vi.fn(), findMany: vi.fn(), groupBy: vi.fn() },
   requester: { findUnique: vi.fn() },
   user: { findUnique: vi.fn(), findFirst: vi.fn() },
   actionTaken: { count: vi.fn(), findMany: vi.fn() },
@@ -37,6 +37,7 @@ describe("L4-07 Staff dashboard API (T-DASH-S-01..03)", () => {
     vi.clearAllMocks();
     db.ticket.count.mockResolvedValue(0);
     db.ticket.findMany.mockResolvedValue([]);
+    db.ticket.groupBy.mockResolvedValue([]);
     db.user.findFirst.mockResolvedValue({ id: 41, name: "Support Agent", role: "IT_STAFF", isActive: true });
     db.user.findUnique.mockResolvedValue({ id: 41, role: "IT_STAFF", isActive: true });
     db.actionTaken.count.mockResolvedValue(0);
@@ -69,5 +70,27 @@ describe("L4-07 Staff dashboard API (T-DASH-S-01..03)", () => {
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("FORBIDDEN");
     expect(db.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("keeps dashboard staff drill-down lists inside the same active requester scope (T-QUERY-01)", async () => {
+    const response = await request(app).get("/api/staff/tickets?statusGroup=active&assignment=unassigned");
+
+    expect(response.status).toBe(200);
+    const expectedRequesterScope = {
+      is: {
+        isActive: true,
+        user: { is: { role: "REQUESTER", isActive: true } },
+      },
+    };
+    expect(db.ticket.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        currentStatus: { in: ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"] },
+        assignedStaffId: null,
+        requester: expectedRequesterScope,
+      }),
+    }));
+    expect(db.ticket.count).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ requester: expectedRequesterScope }),
+    }));
   });
 });
