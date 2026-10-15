@@ -71,11 +71,14 @@ describe.sequential("L4-07 PostgreSQL dashboard reconciliation and query budget"
       prisma.category.findFirst({ orderBy: { id: "asc" }, select: { id: true } }),
       prisma.relatedSystem.findFirst({ orderBy: { id: "asc" }, select: { id: true } }),
     ]);
-    expect(requester?.userId).not.toBeNull();
-    expect(staff).not.toBeNull();
-    expect(category).not.toBeNull();
-    expect(relatedSystem).not.toBeNull();
-    return { requester: requester!, staffId: staff!.id, categoryId: category!.id, relatedSystemId: relatedSystem!.id };
+    if (!requester || requester.userId === null) throw new Error("Seed requester must have a linked user");
+    if (!staff || !category || !relatedSystem) throw new Error("Dashboard integration references were not seeded");
+    return {
+      requester: { id: requester.id, userId: requester.userId },
+      staffId: staff.id,
+      categoryId: category.id,
+      relatedSystemId: relatedSystem.id,
+    };
   }
 
   it("T-DB-DASH-01 reconciles session-scoped metrics with independent SQL and keeps a coherent repeatable-read snapshot", async () => {
@@ -111,7 +114,11 @@ describe.sequential("L4-07 PostgreSQL dashboard reconciliation and query budget"
     const separateConnection = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
     try {
       const repeatableSnapshotPrisma = {
-        $transaction: (callback: (tx: Prisma.TransactionClient) => Promise<unknown>, options?: Prisma.TransactionOptions) =>
+        $transaction: (callback: (tx: Prisma.TransactionClient) => Promise<unknown>, options?: {
+          isolationLevel?: Prisma.TransactionIsolationLevel;
+          maxWait?: number;
+          timeout?: number;
+        }) =>
           prisma.$transaction(async (tx) => {
             const wrappedTx = new Proxy(tx, {
               get(target, property, receiver) {
@@ -195,7 +202,10 @@ describe.sequential("L4-07 PostgreSQL dashboard reconciliation and query budget"
     expect(fixtureCounts).toEqual({ tickets: 5000n, actions: 10000n });
 
     const queryStatements: string[] = [];
-    prisma.$on("query", (event) => { queryStatements.push(event.query); });
+    const queryEventClient = prisma as unknown as {
+      $on(event: "query", callback: (event: { query: string }) => void): void;
+    };
+    queryEventClient.$on("query", (event) => { queryStatements.push(event.query); });
     const queryCount = async (run: () => Promise<unknown>) => {
       const start = queryStatements.length;
       await run();
