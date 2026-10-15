@@ -180,6 +180,31 @@ describe("L4-07 Staff dashboard API (T-DASH-S-01..03)", () => {
     expect(db.ticket.count).toHaveBeenCalledWith({ where: expectedWhere });
   });
 
+  it("keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt", async () => {
+    const since = "2026-10-08T12:00:00.000Z";
+    const before = "2026-10-15T12:00:00.000Z";
+    const response = await request(app).get(`/api/staff/tickets?statusGroup=resolved&updatedSince=${since}&before=${before}`);
+
+    expect(response.status).toBe(200);
+    const expectedWhere = {
+      requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+      currentStatus: { in: ["RESOLVED", "CLOSED"] },
+      updatedAt: { gte: new Date(since) },
+      resolvedAt: { lt: new Date(before) },
+    };
+    expect(db.ticket.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expectedWhere }));
+    expect(db.ticket.count).toHaveBeenCalledWith({ where: expectedWhere });
+  });
+
+  it("rejects impossible UTC calendar dates before reading Tickets", async () => {
+    const response = await request(app).get("/api/staff/tickets?updatedSince=2026-02-30T12:00:00.000Z&before=2026-03-01T12:00:00.000Z");
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(db.ticket.findMany).not.toHaveBeenCalled();
+    expect(db.ticket.count).not.toHaveBeenCalled();
+  });
+
   it("returns a safe service error instead of manufacturing zero counts (T-DASH-S-03)", async () => {
     db.ticket.count.mockRejectedValue(new Error("private database detail"));
 

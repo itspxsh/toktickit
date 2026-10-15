@@ -100,6 +100,31 @@ describe("L4-07 Requester dashboard API (T-DASH-R-01..02)", () => {
     expect(db.ticket.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ requesterId: 7 }) }));
   });
 
+  it("keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt", async () => {
+    const response = await request(app).get(
+      `/api/tickets?statusGroup=resolved&updatedSince=${WINDOW_START}&before=${AS_OF}`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(db.ticket.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        requesterId: 7,
+        currentStatus: { in: ["RESOLVED", "CLOSED"] },
+        updatedAt: { gte: new Date(WINDOW_START) },
+        resolvedAt: { lt: new Date(AS_OF) },
+      }),
+    }));
+  });
+
+  it("rejects impossible UTC calendar dates before reading tickets", async () => {
+    const response = await request(app).get("/api/tickets?updatedSince=2026-02-30T12:00:00.000Z&before=2026-03-01T12:00:00.000Z");
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+    expect(db.ticket.findMany).not.toHaveBeenCalled();
+    expect(db.ticket.count).not.toHaveBeenCalled();
+  });
+
   it("calculates all requester metrics and emits only bounded safe summaries (T-DASH-R-01..02)", async () => {
     const fixture = {
       ticketNumber: "TKT-2026-000031",
