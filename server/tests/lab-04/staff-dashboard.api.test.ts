@@ -197,7 +197,7 @@ describe("L4-07 Staff dashboard API (T-DASH-S-01..03)", () => {
   });
 
   it("rejects impossible UTC calendar dates before reading Tickets", async () => {
-    const response = await request(app).get("/api/staff/tickets?updatedSince=2026-02-30T12:00:00.000Z&before=2026-03-01T12:00:00.000Z");
+    const response = await request(app).get("/api/staff/tickets?updatedSince=2026-02-30T12:00:00.000Z&before=2026-03-05T12:00:00.000Z");
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("VALIDATION_ERROR");
