@@ -93,4 +93,83 @@ describe("L4-07 Staff dashboard API (T-DASH-S-01..03)", () => {
       where: expect.objectContaining({ requester: expectedRequesterScope }),
     }));
   });
+
+  it("matches staff/Admin buckets, actor-owned work and safe Action pagination (T-DASH-S-01..02)", async () => {
+    db.ticket.count
+      .mockResolvedValueOnce(7)
+      .mockResolvedValueOnce(3)
+      .mockResolvedValueOnce(2);
+    db.ticket.groupBy
+      .mockResolvedValueOnce([{ currentStatus: "OPEN", _count: { _all: 6 } }])
+      .mockResolvedValueOnce([{ itPriority: null, _count: { _all: 2 } }, { itPriority: "URGENT", _count: { _all: 3 } }]);
+    db.actionTaken.count.mockResolvedValue(4);
+    db.actionTaken.findMany.mockResolvedValue([{
+      id: 91,
+      description: "Check the assigned workstation",
+      state: "PLANNED",
+      createdAt: new Date("2026-10-14T08:00:00.000Z"),
+      assignee: { id: 41, name: "Support Agent", role: "IT_STAFF", isActive: true, passwordHash: "not selected" },
+      ticket: { ticketNumber: "TKT-2026-000041", summary: "Device connectivity" },
+      result: "must not be selected",
+    }]);
+
+    const response = await request(app).get("/api/dashboards/staff?actionPage=2&actionPageSize=3");
+
+    expect(response.status).toBe(200);
+    expect(response.body.metrics).toMatchObject({
+      unassignedActive: { value: 7 },
+      ownedActive: { value: 3 },
+      urgentActive: { value: 2 },
+      myUnfinishedActions: { value: 4, drillDown: "/staff/dashboard?actionPage=2#my-actions" },
+    });
+    expect(response.body.statusBuckets.find((bucket: { status: string }) => bucket.status === "OPEN").value).toBe(6);
+    expect(response.body.priorityBuckets.find((bucket: { priority: string }) => bucket.priority === "UNPRIORITIZED").value).toBe(2);
+    expect(response.body.priorityBuckets.find((bucket: { priority: string }) => bucket.priority === "URGENT").value).toBe(3);
+    expect(response.body.myActions).toEqual({
+      items: [{
+        id: 91,
+        description: "Check the assigned workstation",
+        state: "PLANNED",
+        createdAt: "2026-10-14T08:00:00.000Z",
+        assignee: { id: 41, name: "Support Agent", role: "IT_STAFF", isActive: true },
+        ticketNumber: "TKT-2026-000041",
+        ticketSummary: "Device connectivity",
+        href: "/staff/tickets/TKT-2026-000041#action-91",
+      }],
+      page: 2,
+      pageSize: 3,
+      total: 4,
+      totalPages: 2,
+    });
+
+    const activeScope = {
+      requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+      currentStatus: { in: ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"] },
+    };
+    expect(db.ticket.count).toHaveBeenNthCalledWith(1, { where: { ...activeScope, assignedStaffId: null } });
+    expect(db.ticket.count).toHaveBeenNthCalledWith(2, { where: { ...activeScope, assignedStaffId: 41 } });
+    expect(db.ticket.count).toHaveBeenNthCalledWith(3, { where: { ...activeScope, itPriority: "URGENT" } });
+    expect(db.ticket.groupBy).toHaveBeenNthCalledWith(1, expect.objectContaining({ by: ["currentStatus"], where: { requester: activeScope.requester } }));
+    expect(db.ticket.groupBy).toHaveBeenNthCalledWith(2, expect.objectContaining({ by: ["itPriority"], where: activeScope }));
+    expect(db.actionTaken.count).toHaveBeenCalledWith({
+      where: { assigneeId: 41, state: { in: ["PLANNED", "IN_PROGRESS"] }, ticket: { is: activeScope } },
+    });
+    expect(db.actionTaken.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      skip: 3,
+      take: 3,
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      where: { assigneeId: 41, state: { in: ["PLANNED", "IN_PROGRESS"] }, ticket: { is: activeScope } },
+    }));
+    expect(db.actionTaken.findMany.mock.calls[0]?.[0].select).not.toHaveProperty("result");
+  });
+
+  it("returns a safe service error instead of manufacturing zero counts (T-DASH-S-03)", async () => {
+    db.ticket.count.mockRejectedValue(new Error("private database detail"));
+
+    const response = await request(app).get("/api/dashboards/staff");
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: { code: "INTERNAL_ERROR", message: "Unable to load dashboard data." } });
+    expect(JSON.stringify(response.body)).not.toContain("private database detail");
+  });
 });

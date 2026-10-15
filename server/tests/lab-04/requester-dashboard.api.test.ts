@@ -6,6 +6,7 @@ const db = vi.hoisted(() => ({
     count: vi.fn(),
     findMany: vi.fn(),
     findFirst: vi.fn(),
+    groupBy: vi.fn(),
   },
   requester: { findUnique: vi.fn() },
   user: { findUnique: vi.fn(), findFirst: vi.fn() },
@@ -47,6 +48,7 @@ describe("L4-07 Requester dashboard API (T-DASH-R-01..02)", () => {
     db.ticket.findMany.mockResolvedValue([]);
     db.requester.findUnique.mockResolvedValue({ id: 7, isActive: true });
     db.user.findUnique.mockResolvedValue({ id: 7, role: "REQUESTER", isActive: true, requester: { id: 7, isActive: true } });
+    db.user.findFirst.mockResolvedValue({ id: 7, requester: { id: 7, isActive: true } });
     db.actionTaken.count.mockResolvedValue(0);
     db.actionTaken.findMany.mockResolvedValue([]);
     db.$transaction.mockImplementation(async (callback: (tx: typeof db) => unknown) => callback(db));
@@ -96,5 +98,71 @@ describe("L4-07 Requester dashboard API (T-DASH-R-01..02)", () => {
       take: 20,
     }));
     expect(db.ticket.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ requesterId: 7 }) }));
+  });
+
+  it("calculates all requester metrics and emits only bounded safe summaries (T-DASH-R-01..02)", async () => {
+    const fixture = {
+      ticketNumber: "TKT-2026-000031",
+      summary: "VPN reconnect issue",
+      currentStatus: "WAITING_FOR_REQUESTER",
+      itPriority: "HIGH",
+      updatedAt: new Date("2026-10-14T10:00:00.000Z"),
+      resolvedAt: null,
+      description: "must not be projected",
+      requesterUserId: 7,
+    };
+    db.ticket.count
+      .mockResolvedValueOnce(4)
+      .mockResolvedValueOnce(2)
+      .mockResolvedValueOnce(8)
+      .mockResolvedValueOnce(1);
+    db.ticket.findMany.mockResolvedValue([fixture]);
+
+    const response = await request(app).get("/api/dashboards/requester");
+
+    expect(response.status).toBe(200);
+    expect(response.body.metrics).toMatchObject({
+      activeTickets: { value: 4 },
+      waitingForRequester: { value: 2 },
+      updatedLast7Days: { value: 8 },
+      resolvedLast7Days: { value: 1 },
+    });
+    const safeSummary = {
+      ticketNumber: fixture.ticketNumber,
+      summary: fixture.summary,
+      currentStatus: fixture.currentStatus,
+      itPriority: fixture.itPriority,
+      updatedAt: fixture.updatedAt.toISOString(),
+      resolvedAt: null,
+      href: `/tickets/${fixture.ticketNumber}`,
+    };
+    expect(response.body.attentionTickets).toEqual([safeSummary]);
+    expect(response.body.recentTickets).toEqual([safeSummary]);
+
+    const ownerScope = {
+      requesterId: 7,
+      requesterUserId: 7,
+      requesterUser: { is: { id: 7, role: "REQUESTER", isActive: true } },
+      requester: { is: { id: 7, isActive: true, user: { is: { id: 7, role: "REQUESTER", isActive: true } } } },
+    };
+    expect(db.ticket.count).toHaveBeenNthCalledWith(1, { where: expect.objectContaining({ ...ownerScope, currentStatus: { in: ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"] } }) });
+    expect(db.ticket.count).toHaveBeenNthCalledWith(2, { where: expect.objectContaining({ ...ownerScope, currentStatus: "WAITING_FOR_REQUESTER" }) });
+    expect(db.ticket.count).toHaveBeenNthCalledWith(3, { where: expect.objectContaining({ ...ownerScope, updatedAt: { gte: new Date(WINDOW_START), lt: new Date(AS_OF) } }) });
+    expect(db.ticket.count).toHaveBeenNthCalledWith(4, { where: expect.objectContaining({ ...ownerScope, currentStatus: { in: ["RESOLVED", "CLOSED"] }, resolvedAt: { gte: new Date(WINDOW_START), lt: new Date(AS_OF) } }) });
+    for (const call of db.ticket.findMany.mock.calls) {
+      expect(call[0]).toMatchObject({ take: 5, orderBy: [{ updatedAt: "desc" }, { id: "desc" }], select: { ticketNumber: true, summary: true, currentStatus: true, itPriority: true, updatedAt: true, resolvedAt: true } });
+      expect(call[0].where).toMatchObject(ownerScope);
+    }
+  });
+
+  it("does not turn an inactive or unlinked session identity into an empty dashboard", async () => {
+    db.user.findFirst.mockResolvedValue(null);
+
+    const response = await request(app).get("/api/dashboards/requester");
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+    expect(db.ticket.count).not.toHaveBeenCalled();
+    expect(db.ticket.findMany).not.toHaveBeenCalled();
   });
 });
