@@ -226,6 +226,10 @@ describe("L4-04 Actions Taken API (T-ACT / T-SEC)", () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toMatchObject({ ticketVersion: 4, action: { id: 90, state: "PLANNED", createdBy: { id: actor.id }, assignee: { id: 77 }, performedBy: null } });
+    expect(db.ticket.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: {
+      ticketNumber: "TKT-2026-000051",
+      requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+    } }));
     expect(JSON.stringify(response.body)).not.toMatch(/passwordHash|payloadFingerprint|clientRequestId|tokenHash/);
     expect(db.$queryRaw).toHaveBeenCalled();
     expect(db.user.findFirst).toHaveBeenCalledWith({ where: { id: 77, isActive: true, role: { in: ["IT_STAFF", "ADMIN"] } }, select: { id: true } });

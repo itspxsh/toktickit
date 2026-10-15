@@ -70,7 +70,7 @@ describe("L4-06 Ticket workflow API (T-WF-01..04)", () => {
     }));
   });
 
-  it("T-DASH-STAFF-SCOPE keeps direct detail reads inside the active requester-user scope", async () => {
+  it("T-DASH-S-04 keeps direct detail reads inside the active requester-user scope", async () => {
     const response = await request(createTestApp()).get(`/api/staff/tickets/${ticket.ticketNumber}`);
 
     expect(response.status).toBe(200);
@@ -82,7 +82,7 @@ describe("L4-06 Ticket workflow API (T-WF-01..04)", () => {
     }));
   });
 
-  it("T-DASH-STAFF-SCOPE rechecks active requester-user scope after locking a workflow Ticket", async () => {
+  it("T-DASH-S-04 rechecks active requester-user scope after locking a workflow Ticket", async () => {
     const response = await request(createTestApp()).post(`/api/staff/tickets/${ticket.ticketNumber}/claim`)
       .send({ expectedTicketVersion: 3 });
 
