@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import * as api from "../../src/api.ts";
+import { RequesterDashboard } from "../../src/requester-dashboard.tsx";
 
 const requesterDashboard = {
   asOf: "2026-10-16T00:00:00.000Z",
@@ -37,5 +39,33 @@ describe("L4-08 requester dashboard API", () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ metrics: null }) });
     vi.stubGlobal("fetch", fetchMock);
     await expect(api.fetchRequesterDashboard()).rejects.toThrow(/dashboard/i);
+  });
+
+  it("T-UI-DR-01 / AC-10 rejects malformed dates in server-provided drill-down links", async () => {
+    vi.spyOn(api, "fetchRequesterDashboard").mockResolvedValue({
+      ...requesterDashboard,
+      metrics: {
+        ...requesterDashboard.metrics,
+        updatedLast7Days: { value: 3, drillDown: "/tickets?updatedSince=2026-02-31T00%3A00%3A00.000Z&before=2026-10-16T00%3A00%3A00.000Z" },
+      },
+    });
+    render(<RequesterDashboard onNavigate={vi.fn()} />);
+
+    expect(await screen.findByRole("heading", { name: "My Dashboard" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Updated in the last 7 days: 3" })).not.toBeInTheDocument();
+  });
+
+  it("T-UI-DR-01 / AC-10 rejects offset and contradictory dates in drill-down links", async () => {
+    vi.spyOn(api, "fetchRequesterDashboard").mockResolvedValue({
+      ...requesterDashboard,
+      metrics: {
+        ...requesterDashboard.metrics,
+        updatedLast7Days: { value: 3, drillDown: "/tickets?updatedSince=2026-10-09T00%3A00%3A00%2B01%3A00&before=2026-10-08T00%3A00%3A00.000Z" },
+      },
+    });
+    render(<RequesterDashboard onNavigate={vi.fn()} />);
+
+    expect(await screen.findByRole("heading", { name: "My Dashboard" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Updated in the last 7 days: 3" })).not.toBeInTheDocument();
   });
 });

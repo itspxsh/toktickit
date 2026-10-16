@@ -51,16 +51,20 @@ describe("L4-08 dashboard and navigation hardening", () => {
     const { result } = renderHook(() => useBrowserLocation(guard));
     const pushState = vi.spyOn(window.history, "pushState");
     const back = vi.spyOn(window.history, "back");
-    window.history.replaceState({}, "", "/tickets");
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    act(() => {
+      window.history.replaceState({}, "", "/tickets");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
     expect(guard).toHaveBeenCalledTimes(1);
     expect(window.location.pathname).toBe("/create-ticket");
     expect(result.current[0]).toBe("/create-ticket");
     act(() => confirmNavigation?.());
     expect(back).toHaveBeenCalledTimes(1);
     expect(pushState).toHaveBeenCalledTimes(1);
-    window.history.replaceState({}, "", "/tickets");
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    act(() => {
+      window.history.replaceState({}, "", "/tickets");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
     expect(guard).toHaveBeenCalledTimes(1);
     expect(window.location.pathname).toBe("/tickets");
     vi.restoreAllMocks();
