@@ -79,4 +79,38 @@ describe("L4-08 dashboard views", () => {
     await userEvent.click(screen.getByRole("button", { name: "Previous" }));
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith("/staff/dashboard?actionPage=1#my-actions"));
   });
+
+  it("T-UI-DR-01 / AC-10,14 rejects same-origin dashboard links with unapproved query keys or fragments", async () => {
+    vi.mocked(api.fetchRequesterDashboard).mockResolvedValue({
+      asOf: "2026-10-16T00:00:00.000Z", windowStart: "2026-10-09T00:00:00.000Z", displayTimeZone: "Asia/Bangkok",
+      metrics: {
+        activeTickets: { value: 2, drillDown: "/tickets?statusGroup=active&admin=true" },
+        waitingForRequester: { value: 1, drillDown: "/tickets?status=WAITING_FOR_REQUESTER" },
+        updatedLast7Days: { value: 3, drillDown: "/tickets?updatedSince=2026-10-09T00%3A00%3A00.000Z&before=2026-10-16T00%3A00%3A00.000Z" },
+        resolvedLast7Days: { value: 1, drillDown: "/tickets?statusGroup=resolved&resolvedSince=2026-10-09T00%3A00%3A00.000Z&before=2026-10-16T00%3A00%3A00.000Z#admin" },
+      }, attentionTickets: [], recentTickets: [{ ticketNumber: "TKT-2026-000001", summary: "VPN access", currentStatus: "OPEN", itPriority: null, updatedAt: "2026-10-15T10:00:00Z", resolvedAt: null, href: "/tickets/TKT-2026-000001?admin=true" }],
+    });
+    render(<RequesterDashboard onNavigate={vi.fn()} />);
+    expect(await screen.findByRole("heading", { name: "My Dashboard" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Active tickets: 2" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Resolved in the last 7 days: 1" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open ticket" })).not.toBeInTheDocument();
+  });
+
+  it("T-UI-DR-01 / AC-11,14 rejects unapproved staff query keys and dashboard anchors", async () => {
+    vi.mocked(api.fetchStaffDashboard).mockResolvedValue({
+      asOf: "2026-10-16T00:00:00.000Z", windowStart: "2026-10-09T00:00:00.000Z", displayTimeZone: "Asia/Bangkok",
+      metrics: {
+        unassignedActive: { value: 2, drillDown: "/staff/tickets?statusGroup=active&assignment=unassigned&ownerId=1" },
+        ownedActive: { value: 1, drillDown: "/staff/tickets?statusGroup=active&assignment=mine" },
+        urgentActive: { value: 1, drillDown: "/staff/tickets?statusGroup=active&itPriority=URGENT" },
+        myUnfinishedActions: { value: 6, drillDown: "/staff/dashboard?actionPage=1#admin" },
+      }, statusBuckets: [], priorityBuckets: [], recentTickets: [], urgentTickets: [],
+      myActions: { items: [], page: 1, pageSize: 5, total: 0, totalPages: 0 },
+    });
+    render(<StaffDashboard location="/staff/dashboard" onNavigate={vi.fn()} />);
+    expect(await screen.findByRole("heading", { name: "Support Dashboard" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Unassigned active tickets: 2" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "My unfinished actions: 6" })).not.toBeInTheDocument();
+  });
 });
