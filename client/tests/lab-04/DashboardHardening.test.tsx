@@ -13,6 +13,23 @@ vi.mock("../../src/api.ts", async (importOriginal) => {
 afterEach(() => vi.clearAllMocks());
 
 describe("L4-08 dashboard and navigation hardening", () => {
+  it("replaces the current history entry when canonicalizing a URL", async () => {
+    const { useBrowserLocation } = await import("../../src/App.tsx");
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const replace = vi.spyOn(window.history, "replaceState");
+    const push = vi.spyOn(window.history, "pushState");
+    const { result, unmount } = renderHook(() => useBrowserLocation());
+
+    act(() => result.current[1]("/tickets?status=OPEN", { replace: true }));
+
+    expect(replace).toHaveBeenCalledWith({}, "", "/tickets?status=OPEN");
+    expect(push).not.toHaveBeenCalled();
+    expect(result.current[0]).toBe("/tickets?status=OPEN");
+    unmount();
+    vi.restoreAllMocks();
+    window.history.replaceState({}, "", current);
+  });
+
   it("shows the forbidden state when a dashboard API responds 403", async () => {
     vi.mocked(api.fetchRequesterDashboard).mockRejectedValue(new api.ApiError("Forbidden", 403));
     render(<RequesterDashboard onNavigate={vi.fn()} />);

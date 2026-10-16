@@ -1,5 +1,7 @@
+import { render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as api from "../../src/api.ts";
+import { StaffDashboard } from "../../src/staff-dashboard.tsx";
 
 const staffDashboard = {
   asOf: "2026-10-16T00:00:00.000Z",
@@ -34,5 +36,14 @@ describe("L4-08 staff dashboard API", () => {
       expect.stringMatching(/\/api\/dashboards\/staff\?actionPage=1&actionPageSize=5$/),
       expect.objectContaining({ credentials: "include" }),
     );
+  });
+
+  it("T-UI-DS-01 / AC-11,14 normalizes an unsafe actionPage before fetching", () => {
+    const fetchDashboard = vi.spyOn(api, "fetchStaffDashboard").mockImplementation(() => new Promise(() => {}));
+    const onNavigate = vi.fn();
+    render(<StaffDashboard location="/staff/dashboard?actionPage=9007199254740992#my-actions" onNavigate={onNavigate} />);
+
+    expect(fetchDashboard).toHaveBeenCalledWith({ actionPage: 1, actionPageSize: 5 }, expect.any(AbortSignal));
+    expect(onNavigate).toHaveBeenCalledWith("/staff/dashboard#my-actions", { replace: true });
   });
 });

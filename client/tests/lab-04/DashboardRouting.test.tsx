@@ -53,7 +53,7 @@ describe("L4-08 role Dashboard routes and navigation", () => {
     expect(screen.getByRole("combobox", { name: "Status group" })).toHaveValue("");
     expect(screen.getByRole("textbox", { name: "Resolved since (UTC ISO)" })).toHaveValue("");
     expect(fetchTickets).toHaveBeenCalledWith(undefined, expect.objectContaining({ status: "NEW", statusGroup: undefined, updatedSince: undefined, resolvedSince: undefined, before: "2026-10-16T00:00:00.000Z" }), expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith("/tickets?status=NEW&before=2026-10-16T00%3A00%3A00.000Z");
+    expect(onNavigate).toHaveBeenCalledWith("/tickets?status=NEW&before=2026-10-16T00%3A00%3A00.000Z", { replace: true });
   });
 
   it("T-UI-NAV-02 / AC-12 drops an active group that contradicts an exact terminal status", async () => {
@@ -64,7 +64,7 @@ describe("L4-08 role Dashboard routes and navigation", () => {
 
     expect(await screen.findByRole("heading", { name: "My Tickets" })).toBeInTheDocument();
     expect(fetchTickets).toHaveBeenCalledWith(undefined, expect.objectContaining({ status: "CANCELLED", statusGroup: undefined }), expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith("/tickets?status=CANCELLED");
+    expect(onNavigate).toHaveBeenCalledWith("/tickets?status=CANCELLED", { replace: true });
   });
 
   it("T-UI-NAV-02 / AC-12 drops resolvedSince unless resolved status group remains valid", async () => {
@@ -107,7 +107,7 @@ describe("L4-08 role Dashboard routes and navigation", () => {
       updatedSince: undefined,
       before: undefined,
     }), expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith("/tickets");
+    expect(onNavigate).toHaveBeenCalledWith("/tickets", { replace: true });
   });
 
   it("T-UI-NAV-02 / AC-12 requires a valid exclusive upper bound for date lower bounds", async () => {
@@ -119,7 +119,7 @@ describe("L4-08 role Dashboard routes and navigation", () => {
 
     await screen.findByRole("heading", { name: "My Tickets" });
     expect(fetchTickets).toHaveBeenCalledWith(undefined, expect.objectContaining({ updatedSince: undefined, before: undefined }), expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith("/tickets");
+    expect(onNavigate).toHaveBeenCalledWith("/tickets", { replace: true });
   });
 
   it("T-UI-NAV-02 / AC-12 applies the same date-window validation to staff queue URLs", async () => {
@@ -132,7 +132,7 @@ describe("L4-08 role Dashboard routes and navigation", () => {
 
     await screen.findByRole("heading", { name: "Staff Ticket Queue" });
     expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ updatedSince: undefined, before }), expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith(`/staff/tickets?before=${encodeURIComponent(before)}`);
+    expect(onNavigate).toHaveBeenCalledWith(`/staff/tickets?before=${encodeURIComponent(before)}`, { replace: true });
   });
 
   it("T-UI-NAV-02 / AC-12 allows a valid before-only date filter", async () => {
@@ -155,7 +155,7 @@ describe("L4-08 role Dashboard routes and navigation", () => {
 
     await screen.findByRole("heading", { name: "My Tickets" });
     expect(fetchTickets).toHaveBeenCalledWith(undefined, expect.objectContaining({ before: undefined }), expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith("/tickets");
+    expect(onNavigate).toHaveBeenCalledWith("/tickets", { replace: true });
   });
 
   it("T-UI-NAV-02 / AC-12 rejects impossible calendar dates in staff URL filters", async () => {
@@ -167,6 +167,6 @@ describe("L4-08 role Dashboard routes and navigation", () => {
 
     await screen.findByRole("heading", { name: "Staff Ticket Queue" });
     expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ updatedSince: undefined, before: undefined }), expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith("/staff/tickets");
+    expect(onNavigate).toHaveBeenCalledWith("/staff/tickets", { replace: true });
   });
 });
