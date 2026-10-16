@@ -90,4 +90,60 @@ describe("L4-08 role Dashboard routes and navigation", () => {
     expect(fetchTickets).toHaveBeenLastCalledWith(undefined, expect.objectContaining({ status: "CANCELLED", statusGroup: undefined }), expect.any(AbortSignal));
     expect(onNavigate).toHaveBeenLastCalledWith("/tickets?status=CANCELLED");
   });
+
+  it("T-UI-NAV-02 / AC-12 drops invalid requester IDs, priorities, and date windows before fetching", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    const fetchTickets = vi.spyOn(api, "fetchMyTickets").mockResolvedValue({ data: [], pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 } });
+    const onNavigate = vi.fn();
+    const tooFuture = new Date(Date.now() + 120_000).toISOString();
+    const since = new Date(Date.now() - 120_000).toISOString();
+    render(<RequesterProvider mode="disabled"><MyTickets location={`/tickets?requestedPriority=BOGUS&categoryId=0&relatedSystemId=1x&updatedSince=${encodeURIComponent(since)}&before=${encodeURIComponent(tooFuture)}`} onNavigate={onNavigate} /></RequesterProvider>);
+
+    await screen.findByRole("heading", { name: "My Tickets" });
+    expect(fetchTickets).toHaveBeenCalledWith(undefined, expect.objectContaining({
+      requestedPriority: undefined,
+      categoryId: undefined,
+      relatedSystemId: undefined,
+      updatedSince: undefined,
+      before: undefined,
+    }), expect.any(AbortSignal));
+    expect(onNavigate).toHaveBeenCalledWith("/tickets");
+  });
+
+  it("T-UI-NAV-02 / AC-12 requires a valid exclusive upper bound for date lower bounds", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    const fetchTickets = vi.spyOn(api, "fetchMyTickets").mockResolvedValue({ data: [], pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 } });
+    const lower = new Date(Date.now() - 120_000).toISOString();
+    const onNavigate = vi.fn();
+    render(<RequesterProvider mode="disabled"><MyTickets location={`/tickets?updatedSince=${encodeURIComponent(lower)}`} onNavigate={onNavigate} /></RequesterProvider>);
+
+    await screen.findByRole("heading", { name: "My Tickets" });
+    expect(fetchTickets).toHaveBeenCalledWith(undefined, expect.objectContaining({ updatedSince: undefined, before: undefined }), expect.any(AbortSignal));
+    expect(onNavigate).toHaveBeenCalledWith("/tickets");
+  });
+
+  it("T-UI-NAV-02 / AC-12 applies the same date-window validation to staff queue URLs", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    const fetchTickets = vi.spyOn(api, "fetchStaffTickets").mockResolvedValue({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+    const since = new Date(Date.now() - 120_000).toISOString();
+    const before = new Date(Date.now() - 240_000).toISOString();
+    const onNavigate = vi.fn();
+    render(<StaffTicketQueue location={`/staff/tickets?updatedSince=${encodeURIComponent(since)}&before=${encodeURIComponent(before)}`} onNavigate={onNavigate} />);
+
+    await screen.findByRole("heading", { name: "Staff Ticket Queue" });
+    expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ updatedSince: undefined, before }), expect.any(AbortSignal));
+    expect(onNavigate).toHaveBeenCalledWith(`/staff/tickets?before=${encodeURIComponent(before)}`);
+  });
+
+  it("T-UI-NAV-02 / AC-12 allows a valid before-only date filter", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    const fetchTickets = vi.spyOn(api, "fetchStaffTickets").mockResolvedValue({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+    const before = new Date(Date.now() + 30_000).toISOString();
+    const onNavigate = vi.fn();
+    render(<StaffTicketQueue location={`/staff/tickets?before=${encodeURIComponent(before)}`} onNavigate={onNavigate} />);
+
+    await screen.findByRole("heading", { name: "Staff Ticket Queue" });
+    expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ updatedSince: undefined, resolvedSince: undefined, before }), expect.any(AbortSignal));
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
 });
