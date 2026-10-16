@@ -762,13 +762,13 @@ select[aria-readonly="true"] {
   margin-top: var(--space-2);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   .app-shell__menu-toggle {
     display: none;
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 991px) {
   .app-shell__header-inner {
     flex-wrap: wrap;
     min-height: 72px;

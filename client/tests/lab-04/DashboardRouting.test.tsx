@@ -13,7 +13,7 @@ afterEach(() => vi.restoreAllMocks());
 function NavigationDraftHarness({ onNavigate }: { onNavigate: () => void }) {
   const context = useRequesterContext();
   return <>
-    <button type="button" onClick={() => context.setActionsDirty(true)}>Start an Action draft</button>
+    <button type="button" onClick={() => context.setStaffTicketDirty(true)}>Start an Action draft</button>
     <button type="button" onClick={() => context.requestNavigation(onNavigate)}>Go to dashboard</button>
     <RequesterChangeConfirmation />
   </>;

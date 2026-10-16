@@ -39,6 +39,15 @@ function safeError(error: unknown): string {
   return error instanceof ApiError || error instanceof Error ? error.message : "Unable to update Actions Taken.";
 }
 
+function hasDraftContent(draft: Draft): boolean {
+  return Object.values(draft).some((value) => typeof value === "boolean" ? value : value.trim().length > 0);
+}
+
+function draftsEqual(left: Draft, right: Draft): boolean {
+  return left.description === right.description && left.assigneeId === right.assigneeId && left.result === right.result &&
+    left.followUpRequired === right.followUpRequired && left.followUpNote === right.followUpNote && left.attachmentNotes === right.attachmentNotes;
+}
+
 function newRequestId(): string {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
   if (!globalThis.crypto?.getRandomValues) throw new Error("This browser cannot securely create an Action request ID.");
@@ -56,10 +65,11 @@ export interface ActionsTakenProps {
   ticketOwner?: { id: number; name: string } | null;
   initialFocusActionId?: number;
   onTicketChanged?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 /** Current Ticket Actions. Requester mode is deliberately read-only; the API remains the authorization boundary. */
-export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, initialFocusActionId, onTicketChanged }: ActionsTakenProps) {
+export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, initialFocusActionId, onTicketChanged, onDirtyChange }: ActionsTakenProps) {
   const support = mode === "support";
   const terminalTicket = Boolean(ticketStatus && TERMINAL_TICKETS.has(ticketStatus));
   const [page, setPage] = useState(1);
@@ -78,6 +88,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, in
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<Draft>(emptyDraft);
+  const [editInitialDraft, setEditInitialDraft] = useState<Draft | null>(null);
   const [pendingTransition, setPendingTransition] = useState<PendingTransition>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [completeResult, setCompleteResult] = useState("");
@@ -91,6 +102,16 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, in
   const [historyError, setHistoryError] = useState("");
   const requestKey = useRef<{ signature: string; id: string } | null>(null);
   const initialFocusPending = useRef(initialFocusActionId !== undefined);
+  const hasUnsavedDraft = support && (
+    (formOpen && hasDraftContent(draft)) ||
+    (editInitialDraft !== null && !draftsEqual(editDraft, editInitialDraft)) ||
+    Boolean(pendingTransition)
+  );
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedDraft);
+    return () => onDirtyChange?.(false);
+  }, [hasUnsavedDraft, onDirtyChange]);
 
   useEffect(() => {
     initialFocusPending.current = initialFocusActionId !== undefined;
@@ -217,7 +238,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, in
         attachmentNotes: editDraft.attachmentNotes.trim(),
         ...(Number(editDraft.assigneeId) !== action.assignee.id ? { assigneeId: Number(editDraft.assigneeId) } : {}),
       });
-      setEditingId(null); setSelectedAssignee(null); setFocusActionId(action.id); await refreshAfterWrite("Action updated.");
+      setEditingId(null); setEditInitialDraft(null); setSelectedAssignee(null); setFocusActionId(action.id); await refreshAfterWrite("Action updated.");
     } catch (reason) {
       if (reason instanceof ApiError && reason.status === 409) setConflict(true);
       setError(safeError(reason));
@@ -247,7 +268,9 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, in
     setFormOpen(false);
     setEditingId(action.id);
     setSelectedAssignee(action.assignee);
-    setEditDraft({ description: action.description, assigneeId: String(action.assignee.id), result: action.result, followUpRequired: action.followUpRequired, followUpNote: action.followUpNote, attachmentNotes: action.attachmentNotes });
+    const initial = { description: action.description, assigneeId: String(action.assignee.id), result: action.result, followUpRequired: action.followUpRequired, followUpNote: action.followUpNote, attachmentNotes: action.attachmentNotes };
+    setEditInitialDraft(initial);
+    setEditDraft(initial);
   }
 
   function actionForm(current: Draft, editing: boolean, action?: ActionView) {
@@ -271,7 +294,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, in
       <FormField id={`action-follow-up-${suffix}`} label="Follow-up required"><input id={`action-follow-up-${suffix}`} type="checkbox" checked={current.followUpRequired} onChange={(event) => setFormField("followUpRequired", event.target.checked, editing)} /></FormField>
       {current.followUpRequired && <FormField id={`action-follow-up-note-${suffix}`} label="Follow-up note" hint="Enter 5–2,000 characters." required><textarea id={`action-follow-up-note-${suffix}`} value={current.followUpNote} required minLength={5} maxLength={2000} onChange={(event) => setFormField("followUpNote", event.target.value, editing)} /></FormField>}
       <FormField id={`action-attachment-notes-${suffix}`} label="Attachment notes" hint="Describe a file already attached to this Ticket; this does not upload a file. Maximum 1,000 characters."><textarea id={`action-attachment-notes-${suffix}`} value={current.attachmentNotes} maxLength={1000} onChange={(event) => setFormField("attachmentNotes", event.target.value, editing)} /></FormField>
-      <div className="form-actions"><button className="button" type="submit" disabled={saving || assigneesLoading || !validAssigneeSelected}>{saving ? "Saving…" : editing ? "Save action" : "Create action"}</button>{editing ? <button className="button button--secondary" type="button" onClick={() => { setEditingId(null); setSelectedAssignee(null); }}>Discard changes</button> : <button className="button button--secondary" type="button" onClick={() => { setFormOpen(false); setDraft(emptyDraft); setSelectedAssignee(null); requestKey.current = null; }}>Cancel</button>}</div>
+      <div className="form-actions"><button className="button" type="submit" disabled={saving || assigneesLoading || !validAssigneeSelected}>{saving ? "Saving…" : editing ? "Save action" : "Create action"}</button>{editing ? <button className="button button--secondary" type="button" onClick={() => { setEditingId(null); setEditInitialDraft(null); setSelectedAssignee(null); }}>Discard changes</button> : <button className="button button--secondary" type="button" onClick={() => { setFormOpen(false); setDraft(emptyDraft); setSelectedAssignee(null); requestKey.current = null; }}>Cancel</button>}</div>
     </form>;
   }
 

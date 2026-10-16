@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as api from "../../src/api.ts";
 import { StaffDashboard } from "../../src/staff-dashboard.tsx";
@@ -68,7 +68,7 @@ describe("L4-08 staff dashboard API", () => {
 
     expect(await screen.findByRole("heading", { name: "Support Dashboard" })).toBeInTheDocument();
     expect(fetchDashboard).toHaveBeenCalledWith({ actionPage: 4, actionPageSize: 5 }, expect.any(AbortSignal));
-    expect(onNavigate).toHaveBeenCalledWith("/staff/dashboard?actionPage=2#my-actions", { replace: true });
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith("/staff/dashboard?actionPage=2#my-actions", { replace: true }));
   });
 
   it.each([

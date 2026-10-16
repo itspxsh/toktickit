@@ -8,7 +8,7 @@ function formatTime(value: string): string {
 }
 
 const ACTION_PAGE_SIZE = 5;
-const MAX_ACTION_PAGE = Math.floor(Number.MAX_SAFE_INTEGER / ACTION_PAGE_SIZE) + 1;
+const MAX_ACTION_PAGE = 10_000;
 
 function parseActionPage(value: string | null): number | null {
   if (!value || !/^[1-9]\d*$/.test(value)) return null;
@@ -91,6 +91,13 @@ export function StaffDashboard({ location, onNavigate }: { location: string; onN
       onNavigate(canonicalLocation, { replace: true });
     }
   }, [allowedQuery, canonicalLocation, location, onNavigate, parsedPage, rawPage]);
+  useEffect(() => {
+    if (loading || !data || actionPage <= Math.max(1, data.myActions.totalPages)) return;
+    const lastPage = Math.max(1, data.myActions.totalPages);
+    const query = new URLSearchParams();
+    if (lastPage > 1) query.set("actionPage", String(lastPage));
+    onNavigate(`/staff/dashboard${query.size ? `?${query}` : ""}${hash === "#my-actions" ? hash : ""}`, { replace: true });
+  }, [actionPage, data, hash, loading, onNavigate]);
   useEffect(() => {
     if (loading || !location.includes("#")) return;
     const targetId = location.slice(location.indexOf("#") + 1);

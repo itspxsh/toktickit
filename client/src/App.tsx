@@ -185,7 +185,7 @@ function HealthCheck() {
 function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: AuthUser | null; legacy?: boolean; onLogout?: () => void }) {
   const context = useRequesterContext();
   const [activePath, navigate] = useBrowserLocation(
-    context.createTicketDirty ? context.requestNavigation : undefined,
+    context.createTicketDirty || context.staffTicketDirty ? context.requestNavigation : undefined,
   );
   const pathname = activePath.split(/[?#]/, 1)[0] || "/";
   const requesterRequired = (legacy || authUser?.role === "REQUESTER") && (
@@ -237,7 +237,7 @@ function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: 
       onNavigate={handleNavigate}
     />
   ) : staffTicketDetailMatch ? (
-    <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} initialActionId={parseActionAnchor(activePath)} />
+    <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={handleNavigate} onDirtyChange={context.setStaffTicketDirty} initialActionId={parseActionAnchor(activePath)} />
   ) : pathname === "/staff/tickets" ? (
     <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} location={activePath} onNavigate={handleNavigate} />
   ) : pathname === "/admin/users" ? (
@@ -265,7 +265,7 @@ function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: 
       onNavigate={handleNavigate}
     >
       {authUser ? <RoleGuard role={authUser.role} path={pathname}>{routeContent}</RoleGuard> : routeContent}
-      {legacy && <RequesterChangeConfirmation />}
+      <RequesterChangeConfirmation />
     </AppShell>
   );
 }

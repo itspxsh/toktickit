@@ -147,6 +147,12 @@ function validateDateFilters(statusGroup: QueueControls["statusGroup"], updatedS
   return { updatedSince: validUpdatedSince, resolvedSince: validResolvedSince, before: validBefore };
 }
 
+function visiblePageNumbers(currentPage: number, totalPages: number): number[] {
+  const pageCount = Math.min(totalPages, 5);
+  const firstPage = Math.max(1, Math.min(currentPage - 2, totalPages - pageCount + 1));
+  return Array.from({ length: pageCount }, (_, index) => firstPage + index);
+}
+
 function controlsUrl(controls: QueueControls): string {
   const params = new URLSearchParams();
   if (controls.q.trim()) params.set("q", controls.q.trim());
@@ -232,6 +238,8 @@ export function StaffTicketQueue({ onOpenTicket, onNavigate, location }: StaffTi
 
   const items = result?.items ?? [];
   const totalPages = result?.totalPages ?? 0;
+  const activeDates = validateDateFilters(controls.statusGroup, controls.updatedSince, controls.resolvedSince, controls.before);
+  const hasActiveFilter = Boolean(controls.status || controls.statusGroup || activeDates.updatedSince || activeDates.resolvedSince || activeDates.before || controls.itPriority);
   return (
     <section className="card stack" aria-labelledby="staff-queue-title">
       <div>
@@ -292,7 +300,7 @@ export function StaffTicketQueue({ onOpenTicket, onNavigate, location }: StaffTi
         <button type="button" className="button button--tertiary" onClick={reset}>Reset</button>
       </form>
 
-      {(controls.status || controls.statusGroup || controls.updatedSince || controls.resolvedSince || controls.before || controls.itPriority) && <div className="dashboard-filter-summary" aria-label="Active filters"><strong>Active filters</strong>{controls.statusGroup && <button type="button" onClick={() => update("statusGroup", "")}>Status group: {controls.statusGroup} ×</button>}{controls.status && <button type="button" onClick={() => update("status", "")}>Status: {controls.status} ×</button>}{controls.itPriority && <button type="button" onClick={() => update("itPriority", "")}>IT priority: {controls.itPriority} ×</button>}{controls.updatedSince && <button type="button" onClick={() => update("updatedSince", "")}>Updated since ×</button>}{controls.resolvedSince && <button type="button" onClick={() => update("resolvedSince", "")}>Resolved since ×</button>}{controls.before && <button type="button" onClick={() => update("before", "")}>Before ×</button>}<button type="button" className="button button--tertiary" onClick={reset}>Clear filters</button></div>}
+      {hasActiveFilter && <div className="dashboard-filter-summary" aria-label="Active filters"><strong>Active filters</strong>{controls.statusGroup && <button type="button" onClick={() => update("statusGroup", "")}>Status group: {controls.statusGroup} ×</button>}{controls.status && <button type="button" onClick={() => update("status", "")}>Status: {controls.status} ×</button>}{controls.itPriority && <button type="button" onClick={() => update("itPriority", "")}>IT priority: {controls.itPriority} ×</button>}{activeDates.updatedSince && <button type="button" onClick={() => update("updatedSince", "")}>Updated since ×</button>}{activeDates.resolvedSince && <button type="button" onClick={() => update("resolvedSince", "")}>Resolved since ×</button>}{activeDates.before && <button type="button" onClick={() => update("before", "")}>Before ×</button>}<button type="button" className="button button--tertiary" onClick={reset}>Clear filters</button></div>}
 
       {state === "loading" && <LoadingState label="Loading staff queue…" />}
       {state === "error" && <ErrorState onRetry={() => setReloadToken((value) => value + 1)}>Unable to load staff queue.</ErrorState>}
@@ -323,7 +331,7 @@ export function StaffTicketQueue({ onOpenTicket, onNavigate, location }: StaffTi
           </div>
           <nav className="pagination" aria-label="Staff queue pagination">
             <button type="button" className="button button--tertiary" disabled={controls.page <= 1} onClick={() => { const next = { ...controls, page: controls.page - 1 }; setControls(next); onNavigate?.(controlsUrl(next)); }}>Previous</button>
-            {Array.from({ length: Math.min(totalPages, 5) }, (_, index) => index + 1).map((page) => (
+            {visiblePageNumbers(controls.page, totalPages).map((page) => (
               <button key={page} type="button" className="button button--tertiary" aria-current={controls.page === page ? "page" : undefined} aria-label={`Page ${page}`} onClick={() => { const next = { ...controls, page }; setControls(next); onNavigate?.(controlsUrl(next)); }}>{page}</button>
             ))}
             <button type="button" className="button button--tertiary" disabled={controls.page >= totalPages} onClick={() => { const next = { ...controls, page: controls.page + 1 }; setControls(next); onNavigate?.(controlsUrl(next)); }}>Next</button>

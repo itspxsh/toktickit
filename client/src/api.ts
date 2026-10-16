@@ -288,11 +288,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isIsoDate(value: unknown): value is string {
-  return typeof value === "string" && !Number.isNaN(Date.parse(value));
+  if (typeof value !== "string") return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?Z$/.exec(value);
+  if (!match) return false;
+  const [, year, month, day, hour, minute, second, fraction = ""] = match;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return false;
+  const expected = [Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)];
+  const actual = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
+  return actual.every((component, index) => component === expected[index]) && date.getUTCMilliseconds() === Number(fraction.padEnd(3, "0") || "0");
 }
 
 function isDashboardMetric(value: unknown): value is DashboardMetric {
-  return isRecord(value) && Number.isFinite(value.value) && (value.value as number) >= 0 && typeof value.drillDown === "string";
+  return isRecord(value) && Number.isSafeInteger(value.value) && (value.value as number) >= 0 && typeof value.drillDown === "string";
 }
 
 function isDashboardTicket(value: unknown): value is DashboardTicketSummary {
@@ -318,11 +326,14 @@ function isStaffDashboard(value: unknown): value is StaffDashboardView {
   if (!isDashboardBase(value) || !isRecord(value.metrics) || !isRecord(value.myActions)) return false;
   const metrics = value.metrics;
   const metricsValid = ["unassignedActive", "ownedActive", "urgentActive", "myUnfinishedActions"].every((key) => isDashboardMetric(metrics[key]));
-  const bucketsValid = Array.isArray(value.statusBuckets) && value.statusBuckets.every((row) => isRecord(row) && typeof row.status === "string" && Number.isFinite(row.value) && typeof row.drillDown === "string") &&
-    Array.isArray(value.priorityBuckets) && value.priorityBuckets.every((row) => isRecord(row) && typeof row.priority === "string" && Number.isFinite(row.value) && typeof row.drillDown === "string");
+  const bucketsValid = Array.isArray(value.statusBuckets) && value.statusBuckets.every((row) => isRecord(row) && typeof row.status === "string" && Number.isSafeInteger(row.value) && (row.value as number) >= 0 && typeof row.drillDown === "string") &&
+    Array.isArray(value.priorityBuckets) && value.priorityBuckets.every((row) => isRecord(row) && typeof row.priority === "string" && Number.isSafeInteger(row.value) && (row.value as number) >= 0 && typeof row.drillDown === "string");
   const actions = value.myActions;
   const actionsValid = Array.isArray(actions.items) && actions.items.every((row) => isRecord(row) && Number.isSafeInteger(row.id) && typeof row.description === "string" && typeof row.state === "string" && isIsoDate(row.createdAt) && isRecord(row.assignee) && typeof row.ticketNumber === "string" && typeof row.ticketSummary === "string" && typeof row.href === "string") &&
-    [actions.page, actions.pageSize, actions.total, actions.totalPages].every((number) => Number.isSafeInteger(number) && (number as number) >= 0);
+    Number.isSafeInteger(actions.page) && (actions.page as number) >= 0 && (actions.total === 0 || (actions.page as number) >= 1) &&
+    Number.isSafeInteger(actions.pageSize) && (actions.pageSize as number) >= 1 &&
+    Number.isSafeInteger(actions.total) && (actions.total as number) >= 0 &&
+    Number.isSafeInteger(actions.totalPages) && (actions.totalPages as number) >= 0;
   return metricsValid && bucketsValid && actionsValid && Array.isArray(value.recentTickets) && value.recentTickets.every(isDashboardTicket) && Array.isArray(value.urgentTickets) && value.urgentTickets.every(isDashboardTicket);
 }
 

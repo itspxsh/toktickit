@@ -205,8 +205,9 @@ export function MyTickets({ onNavigate, location }: MyTicketsProps = {}) {
   }, [controls.search]);
 
   const query = useMemo(() => toQuery({ ...controls, search: debouncedSearch }), [controls, debouncedSearch]);
+  const activeDates = validateDateFilters(controls.statusGroup, controls.updatedSince, controls.resolvedSince, controls.before);
   const hasSearchOrFilter = Boolean(
-    controls.search.trim() || controls.categoryId || controls.relatedSystemId || controls.requestedPriority || controls.status || controls.statusGroup || controls.updatedSince || controls.resolvedSince || controls.before,
+    controls.search.trim() || controls.categoryId || controls.relatedSystemId || controls.requestedPriority || controls.status || controls.statusGroup || activeDates.updatedSince || activeDates.resolvedSince || activeDates.before,
   );
 
   useEffect(() => {
@@ -399,7 +400,7 @@ export function MyTickets({ onNavigate, location }: MyTicketsProps = {}) {
         </button>
       </form>
 
-      {hasSearchOrFilter && <div className="dashboard-filter-summary" aria-label="Active filters"><strong>Active filters</strong>{controls.statusGroup && <button type="button" onClick={() => updateControl("statusGroup", "")}>Status group: {controls.statusGroup} ×</button>}{controls.status && <button type="button" onClick={() => updateControl("status", "")}>Status: {controls.status} ×</button>}{controls.updatedSince && <button type="button" onClick={() => updateControl("updatedSince", "")}>Updated since ×</button>}{controls.resolvedSince && <button type="button" onClick={() => updateControl("resolvedSince", "")}>Resolved since ×</button>}{controls.before && <button type="button" onClick={() => updateControl("before", "")}>Before ×</button>}<button type="button" className="button button--tertiary" onClick={clearFilters}>Reset filters</button></div>}
+      {hasSearchOrFilter && <div className="dashboard-filter-summary" aria-label="Active filters"><strong>Active filters</strong>{controls.statusGroup && <button type="button" onClick={() => updateControl("statusGroup", "")}>Status group: {controls.statusGroup} ×</button>}{controls.status && <button type="button" onClick={() => updateControl("status", "")}>Status: {controls.status} ×</button>}{activeDates.updatedSince && <button type="button" onClick={() => updateControl("updatedSince", "")}>Updated since ×</button>}{activeDates.resolvedSince && <button type="button" onClick={() => updateControl("resolvedSince", "")}>Resolved since ×</button>}{activeDates.before && <button type="button" onClick={() => updateControl("before", "")}>Before ×</button>}<button type="button" className="button button--tertiary" onClick={clearFilters}>Reset filters</button></div>}
 
       {listState === "loading" && <LoadingState label="Loading My Tickets…" />}
       {listState === "error" && (

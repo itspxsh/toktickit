@@ -22,6 +22,7 @@ export interface StaffTicketDetailProps {
   ticketNumber: string;
   staffOptions?: StaffPerson[];
   onNavigate?: (path: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
   initialActionId?: number;
 }
 
@@ -42,7 +43,7 @@ function formatSupportRole(role?: string): string | null {
   return null;
 }
 
-export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate, initialActionId }: StaffTicketDetailProps) {
+export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate, onDirtyChange, initialActionId }: StaffTicketDetailProps) {
   const [ticket, setTicket] = useState<StaffTicketDetailView | null>(null);
   const loadedTicketNumber = useRef<string | null>(null);
   const [state, setState] = useState<"loading" | "success" | "error">("loading");
@@ -55,6 +56,15 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate,
   const [note, setNote] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [actionsDirty, setActionsDirty] = useState(false);
+  const hasUnsavedChanges = actionsDirty || Boolean(comment.trim() || note.trim()) || Boolean(ticket && (
+    priority !== (ticket.itPriority ?? "LOW") || status !== ticket.currentStatus || assignee !== (ticket.assignedStaff ? String(ticket.assignedStaff.id) : "")
+  ));
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedChanges);
+    return () => onDirtyChange?.(false);
+  }, [hasUnsavedChanges, onDirtyChange]);
 
   useEffect(() => {
     setNotice("");
@@ -117,7 +127,7 @@ export function StaffTicketDetail({ ticketNumber, staffOptions = [], onNavigate,
       <section className="ticket-detail__group" aria-labelledby="staff-status-history-title"><h2 id="staff-status-history-title">Ticket status history</h2>{ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{displayStatus(event.fromStatus)} → {displayStatus(event.toStatus)} · {event.actor?.name ?? "Support user"} · <time dateTime={event.createdAt} title={event.createdAt}>{formatStatusEventTime(event.createdAt)}</time></li>)}</ol> : <p>No status changes recorded.</p>}</section>
 
       <section className="ticket-detail__group" aria-labelledby="attachments-title"><h2 id="attachments-title">Attachments</h2>{ticket.attachments.length ? <ul>{ticket.attachments.map((item) => <li key={item.id}><span>{item.originalName}</span> <span>({item.mimeType}, {item.sizeBytes} bytes, {item.status})</span></li>)}</ul> : <p>No attachments.</p>}</section>
-      <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} ticketOwner={ticket.assignedStaff} mode="support" initialFocusActionId={initialActionId} onTicketChanged={() => setReload((value) => value + 1)} />
+      <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} ticketOwner={ticket.assignedStaff} mode="support" initialFocusActionId={initialActionId} onTicketChanged={() => setReload((value) => value + 1)} onDirtyChange={setActionsDirty} />
       <section className="ticket-detail__group" aria-labelledby="public-comments-title"><h2 id="public-comments-title">Public Comments</h2><ul>{ticket.publicComments.map((item) => <li key={item.id}><strong>{item.author.name}</strong>: {item.body}</li>)}</ul><FormField id="staff-public-comment" label="Public comment" hint="Plain text, 1–2,000 characters."><textarea id="staff-public-comment" value={comment} onChange={(event) => setComment(event.target.value)} /></FormField><button type="button" className="button" disabled={!comment.trim()} onClick={() => void run(() => addStaffPublicComment(ticket.ticketNumber, comment.trim()).then(() => setComment("")), "Comment added.")}>Add public comment</button></section>
       <section className="ticket-detail__group" aria-labelledby="internal-notes-title"><h2 id="internal-notes-title">Internal Notes</h2><ul>{ticket.internalNotes.map((item) => <li key={item.id}><strong>{item.author.name}</strong>: {item.body}</li>)}</ul><FormField id="staff-internal-note" label="Internal note" hint="Visible only to IT Staff and Admin."><textarea id="staff-internal-note" value={note} onChange={(event) => setNote(event.target.value)} /></FormField><button type="button" className="button" disabled={!note.trim()} onClick={() => void run(() => addInternalNote(ticket.ticketNumber, note.trim()).then(() => setNote("")), "Internal note added.")}>Add internal note</button></section>
       <ConfirmationDialog open={dialogOpen} title="Confirm status change" message={`Change ${ticket.ticketNumber} to ${displayStatus(status)}?`} confirmLabel="Confirm status" onCancel={() => setDialogOpen(false)} onConfirm={() => { setDialogOpen(false); void run(() => updateStaffStatus(ticket.ticketNumber, ticket.workflowVersion, status, true), "Status updated."); }} />
