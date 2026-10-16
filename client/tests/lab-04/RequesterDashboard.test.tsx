@@ -32,4 +32,10 @@ describe("L4-08 requester dashboard API", () => {
       expect.objectContaining({ credentials: "include" }),
     );
   });
+
+  it("T-UI-DR-01 / AC-10 rejects malformed success payloads into a safe error path", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ metrics: null }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(api.fetchRequesterDashboard()).rejects.toThrow(/dashboard/i);
+  });
 });
