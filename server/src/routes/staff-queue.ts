@@ -1,6 +1,8 @@
 import type { Express, RequestHandler, Response } from "express";
 import { getPrisma } from "../prisma.js";
 import { createStaffAuthMiddleware } from "../authorization.js";
+import { activeStaffTicketWhere } from "../lab-04/ticket-scope.js";
+import { parseUtcTimestamp } from "../lab-04/list-query.js";
 
 type QueueModel = {
   findMany(args: unknown): Promise<unknown>;
@@ -16,11 +18,15 @@ type QueueStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "R
 type ItPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 type Assignment = "unassigned" | "mine" | "assigned";
 type QueueSort = "updatedAtDesc" | "priorityDesc" | "statusAsc";
+type StatusGroup = "active" | "resolved";
+type QueuePriority = ItPriority | "UNPRIORITIZED";
 
 const STATUSES = new Set<QueueStatus>([
   "NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED",
 ]);
 const IT_PRIORITIES = new Set<ItPriority>(["LOW", "MEDIUM", "HIGH", "URGENT"]);
+const ACTIVE_STATUSES: QueueStatus[] = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"];
+const RESOLVED_STATUSES: QueueStatus[] = ["RESOLVED", "CLOSED"];
 const ASSIGNMENTS = new Set<Assignment>(["unassigned", "mine", "assigned"]);
 const SORTS = new Set<QueueSort>(["updatedAtDesc", "priorityDesc", "statusAsc"]);
 const MAX_PAGE_SIZE = 100;
@@ -57,7 +63,11 @@ function positiveInteger(value: unknown): number | undefined {
 interface QueueQuery {
   q?: string;
   status?: QueueStatus;
-  itPriority?: ItPriority;
+  statusGroup?: StatusGroup;
+  updatedSince?: Date;
+  resolvedSince?: Date;
+  before?: Date;
+  itPriority?: QueuePriority;
   assignment?: Assignment;
   sort: QueueSort;
   page: number;
@@ -80,11 +90,41 @@ function parseQueueQuery(raw: Record<string, unknown>): { query?: QueueQuery; fi
     else status = value as QueueStatus;
   }
 
-  let itPriority: ItPriority | undefined;
+  let statusGroup: StatusGroup | undefined;
+  if (raw.statusGroup !== undefined) {
+    const value = queryString(raw.statusGroup);
+    if (value !== "active" && value !== "resolved") fieldErrors.statusGroup = "Status group must be active or resolved.";
+    else statusGroup = value;
+  }
+
+  const parseUtc = (key: "updatedSince" | "resolvedSince" | "before"): Date | undefined => {
+    if (raw[key] === undefined) return undefined;
+    const value = queryString(raw[key]);
+    if (!value || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) {
+      fieldErrors[key] = "Date must be a UTC ISO-8601 timestamp.";
+      return undefined;
+    }
+    const parsed = parseUtcTimestamp(value);
+    if (!parsed) fieldErrors[key] = "Date must be a valid UTC ISO-8601 timestamp.";
+    return parsed;
+  };
+  const updatedSince = parseUtc("updatedSince");
+  const resolvedSince = parseUtc("resolvedSince");
+  const before = parseUtc("before");
+  if (updatedSince && resolvedSince) fieldErrors.updatedSince = "Use only one date lower bound.";
+  if ((updatedSince || resolvedSince) && !before) fieldErrors.before = "A date lower bound requires before.";
+  if (resolvedSince && statusGroup !== "resolved") fieldErrors.resolvedSince = "resolvedSince requires statusGroup=resolved.";
+  if (before && before.getTime() > Date.now() + 60_000) fieldErrors.before = "before cannot be more than 60 seconds in the future.";
+  const lowerBound = updatedSince ?? resolvedSince;
+  if (lowerBound && before && lowerBound.getTime() >= before.getTime()) fieldErrors.before = "before must be later than the date lower bound.";
+  if (status && statusGroup === "active" && !ACTIVE_STATUSES.includes(status)) fieldErrors.statusGroup = "Status conflicts with statusGroup.";
+  if (status && statusGroup === "resolved" && !RESOLVED_STATUSES.includes(status)) fieldErrors.statusGroup = "Status conflicts with statusGroup.";
+
+  let itPriority: QueuePriority | undefined;
   if (raw.itPriority !== undefined) {
     const value = queryString(raw.itPriority);
-    if (value === undefined || !IT_PRIORITIES.has(value as ItPriority)) fieldErrors.itPriority = "IT priority is invalid.";
-    else itPriority = value as ItPriority;
+    if (value === undefined || (value !== "UNPRIORITIZED" && !IT_PRIORITIES.has(value as ItPriority))) fieldErrors.itPriority = "IT priority is invalid.";
+    else itPriority = value as QueuePriority;
   }
 
   let assignment: Assignment | undefined;
@@ -117,11 +157,11 @@ function parseQueueQuery(raw: Record<string, unknown>): { query?: QueueQuery; fi
 
   if (page > Math.floor(Number.MAX_SAFE_INTEGER / pageSize) + 1) fieldErrors.page = "Page is too large.";
   if (Object.keys(fieldErrors).length > 0) return { fieldErrors };
-  return { fieldErrors, query: { q, status, itPriority, assignment, sort, page, pageSize } };
+  return { fieldErrors, query: { q, status, statusGroup, updatedSince, resolvedSince, before, itPriority, assignment, sort, page, pageSize } };
 }
 
 function buildWhere(query: QueueQuery, actorId: number): Record<string, unknown> {
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { ...activeStaffTicketWhere() };
   if (query.q) {
     where.OR = [
       { ticketNumber: { contains: query.q, mode: "insensitive" } },
@@ -129,7 +169,19 @@ function buildWhere(query: QueueQuery, actorId: number): Record<string, unknown>
     ];
   }
   if (query.status) where.currentStatus = query.status;
-  if (query.itPriority) where.itPriority = query.itPriority;
+  else if (query.statusGroup === "active") where.currentStatus = { in: ACTIVE_STATUSES };
+  else if (query.statusGroup === "resolved") where.currentStatus = { in: RESOLVED_STATUSES };
+  if (query.itPriority === "UNPRIORITIZED") where.itPriority = null;
+  else if (query.itPriority) where.itPriority = query.itPriority;
+  if (query.updatedSince || query.resolvedSince || query.before) {
+    if (query.updatedSince) where.updatedAt = { gte: query.updatedSince };
+    if (query.resolvedSince) where.resolvedAt = { gte: query.resolvedSince };
+    if (query.before) {
+      const upperField = query.statusGroup === "resolved" ? "resolvedAt" : "updatedAt";
+      const upperBound = where[upperField] as { gte?: Date; lt?: Date } | undefined;
+      where[upperField] = { ...upperBound, lt: query.before };
+    }
+  }
   if (query.assignment === "unassigned") where.assignedStaffId = null;
   if (query.assignment === "mine") where.assignedStaffId = actorId;
   if (query.assignment === "assigned") where.assignedStaffId = { not: null };

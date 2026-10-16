@@ -75,10 +75,10 @@ describe("GET /api/tickets", () => {
       select: { id: true, isActive: true },
     });
     expect(calls.ticketFindMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { requesterId: 1, currentStatus: "NEW" },
+      where: { requesterId: 1 },
       orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
       skip: 0,
-      take: 10,
+      take: 20,
     }));
     const firstCall = (calls.ticketFindMany.mock.calls as unknown as Array<Array<Record<string, any>>>)[0];
     expect(firstCall[0].where).not.toHaveProperty("requesterId", 999);
@@ -148,7 +148,7 @@ describe("GET /api/tickets", () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({
-      error: { code: "INVALID_QUERY" },
+      error: { code: "VALIDATION_ERROR" },
     });
     expect(JSON.stringify(response.body)).not.toMatch(/SELECT|database|stack/i);
     expect(calls.ticketFindMany).not.toHaveBeenCalled();

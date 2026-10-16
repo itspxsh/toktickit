@@ -13,6 +13,7 @@ import { registerStaffTicketDetailRoutes } from "./routes/staff-ticket-detail.js
 import { registerAdminUserRoutes } from "./routes/users-admin.js";
 import { registerActionsTakenRoutes } from "./routes/actions-taken.js";
 import { registerStaffAssigneeRoutes } from "./routes/staff-assignees.js";
+import { registerDashboardRoutes } from "./routes/dashboards.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -63,6 +64,7 @@ registerAttachmentRoutes(app, undefined, undefined, requireCsrf);
 registerStaffQueueRoutes(app, undefined, staffAuthenticated);
 registerStaffTicketDetailRoutes(app, undefined, staffAuthenticated, requireCsrf);
 registerStaffAssigneeRoutes(app, undefined, staffAuthenticated);
+registerDashboardRoutes(app, undefined, requesterAuthenticated, staffAuthenticated);
 registerActionsTakenRoutes(app, undefined, requesterAuthenticated, staffAuthenticated, requireCsrf);
 registerAdminUserRoutes(app, undefined, adminAuthenticated, requireCsrf);
 

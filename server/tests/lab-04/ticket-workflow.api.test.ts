@@ -70,6 +70,38 @@ describe("L4-06 Ticket workflow API (T-WF-01..04)", () => {
     }));
   });
 
+  it("T-DASH-S-04 keeps direct detail reads inside the active requester-user scope", async () => {
+    const response = await request(createTestApp()).get(`/api/staff/tickets/${ticket.ticketNumber}`);
+
+    expect(response.status).toBe(200);
+    expect(db.ticket.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        ticketNumber: ticket.ticketNumber,
+        requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+      },
+    }));
+  });
+
+  it("T-DASH-S-04 rechecks active requester-user scope after locking a workflow Ticket", async () => {
+    const response = await request(createTestApp()).post(`/api/staff/tickets/${ticket.ticketNumber}/claim`)
+      .send({ expectedTicketVersion: 3 });
+
+    expect(response.status).toBe(200);
+    expect(db.ticket.findFirst).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: {
+        ticketNumber: ticket.ticketNumber,
+        requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+      },
+    }));
+    expect(db.ticket.findFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: {
+        id: ticket.id,
+        ticketNumber: ticket.ticketNumber,
+        requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } },
+      },
+    }));
+  });
+
   it("T-WF-01 enforces the Admin-only cancelled reopen transition", async () => {
     db.ticket.findFirst.mockResolvedValue({ ...ticket, currentStatus: "CANCELLED" });
     const response = await request(createTestApp("IT_STAFF"))

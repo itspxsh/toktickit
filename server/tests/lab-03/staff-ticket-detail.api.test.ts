@@ -99,7 +99,8 @@ describe("staff ticket detail and workflow", () => {
     expect(missingVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
     const response = await request(app).patch("/api/staff/tickets/TKT-2026-000004/priority").send({ expectedTicketVersion: 3, itPriority: "URGENT" });
     expect(response.status).toBe(200);
-    expect(calls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { isActive: true } } }));
+    expect(calls.ticketFindFirst).toHaveBeenNthCalledWith(1, expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } } } }));
+    expect(calls.ticketFindFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({ where: { id: ticket.id, ticketNumber: ticket.ticketNumber, requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } } } }));
     expect(calls.ticketUpdateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: ticket.id, workflowVersion: 3 }, data: { itPriority: "URGENT", workflowVersion: { increment: 1 } } }));
   });
 
@@ -111,7 +112,8 @@ describe("staff ticket detail and workflow", () => {
     expect(missingVersion.body.error).toMatchObject({ code: "VALIDATION_ERROR", fieldErrors: { expectedTicketVersion: expect.any(String) } });
     const claimed = await request(available).post("/api/staff/tickets/TKT-2026-000004/claim").send({ expectedTicketVersion: 3 });
     expect(claimed.status).toBe(200);
-    expect(availableCalls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { isActive: true } } }));
+    expect(availableCalls.ticketFindFirst).toHaveBeenNthCalledWith(1, expect.objectContaining({ where: { ticketNumber: ticket.ticketNumber, requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } } } }));
+    expect(availableCalls.ticketFindFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({ where: { id: ticket.id, ticketNumber: ticket.ticketNumber, requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } } } }));
     expect(availableCalls.ticketUpdateMany).toHaveBeenCalledWith({ where: { id: ticket.id, workflowVersion: 3, assignedStaffId: null }, data: { assignedStaffId: 21, workflowVersion: { increment: 1 } } });
 
     const occupied = createTestApp({ ticket: unassigned, claimCount: 0 });

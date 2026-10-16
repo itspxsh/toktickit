@@ -2,6 +2,8 @@
 
 All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. IDs are Lab 4-local. Bind each ID to an actual named `it/test` or parameterized case and exact file; retain failed-red then green output/commits. Companions `specification.md`, `api-spec.md`, `ui-spec.md` define expected behavior, not mocks. Contract tests must not pass only because of unconditional stubs.
 
+> Status: this test contract was approved through L4-01 peer review. The matrix records required behaviors and intended files; actual validation counts and red/green evidence are maintained in `reviewer.md` and the corresponding PRs.
+
 ## 1. Test file responsibilities
 
 * `server/tests/lab-04/actions.unit.test.ts`: field normalization, state/gate predicates, strict parsing and canonical fingerprint.
@@ -41,6 +43,7 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 | T-DASH-S-01 | 11 | Staff/Admin own/unassigned/urgent/status/priority/null buckets and five-item recent/urgent lists match fixtures. | staff-dashboard.api.test.ts |
 | T-DASH-S-02 | 11,12 | My Actions counts child rows not distinct Tickets, supports page beyond first, ignores foreign assignee; active parent predicate. | staff-dashboard.api.test.ts |
 | T-DASH-S-03 | 10,11 | Empty scopes zeros/[], safe failures not fake zeros, authenticated role mismatch403. | staff-dashboard.api.test.ts |
+| T-DASH-S-04 | 11,18 | Staff Ticket list, dashboard, direct detail, workflow and Actions access/rechecks consistently require an active Requester linked to an active REQUESTER User; inactive/unlinked legacy owners remain hidden. | staff-dashboard.api.test.ts; ticket-workflow.api.test.ts; actions-taken.api.test.ts |
 | T-QUERY-01 | 12 | Both list APIs all statuses/groups/time bounds/before/null priority/AND/pagination, exact authorization where/select/order asserted. | requester-dashboard.api.test.ts |
 | T-SEC-01 | 06,18 | Real middleware representative protected GET/write checks: registrar default is fail-closed; shared requester route guard performs one session/requester lookup; anonymous/expired/inactive401, first-login403, and Requester-vs-support role403. | actions-taken.api.test.ts |
 | T-SEC-02 | 18 | Real write wiring rejects missing/wrong CSRF and foreign Origin independently before mutation; session role change is effective on the next request. | actions-taken.api.test.ts |
@@ -138,14 +141,14 @@ The acceptance criteria collectively include the proposed BRs in `specification.
 | AC-08 | T-UNIT-02, T-WF-02, T-RACE-02, T-UI-WF-01, T-E2E-02 |
 | AC-09 | T-UNIT-03, T-ACT-07..08, T-WF-03, T-RACE-01..03, T-UI-ACT-04, T-UI-WF-02 |
 | AC-10 | T-DASH-R-01..02, T-DASH-S-03, T-DB-DASH-01, T-UI-DR-01, T-E2E-03 |
-| AC-11 | T-DASH-S-01..03, T-DB-DASH-01, T-UI-DS-01, T-E2E-03 |
+| AC-11 | T-DASH-S-01..04, T-DB-DASH-01, T-UI-DS-01, T-E2E-03 |
 | AC-12 | T-UNIT-03, T-DASH-R-02, T-DASH-S-02, T-QUERY-01, T-UI-NAV-01..02, T-E2E-03 |
 | AC-13 | T-REG-01, T-UI-NAV-01, T-UI-REG-01..02, T-E2E-03 |
 | AC-14 | T-REG-01..02, T-UI-ACT-01/04, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-UI-REG-01, T-A11Y-01, T-E2E-02..03 |
 | AC-15 | T-MIG-01..05, T-WF-04 |
 | AC-16 | T-MIG-03 |
 | AC-17 | T-REG-01..02, T-RACE-04, T-UI-REG-01..02, T-E2E-02..03, all existing Labs1..3 tests and adapted live browser suites |
-| AC-18 | T-ACT-06, T-SEC-01..03, T-MIG-05, T-E2E-01 |
+| AC-18 | T-ACT-06, T-DASH-S-04, T-SEC-01..03, T-MIG-05, T-E2E-01 |
 | AC-19 | T-STYLE-01, T-A11Y-01, T-RESP-01 |
 | AC-20 | T-PERF-01 |
 | AC-21 | T-E2E-01..03, T-RESP-01, T-EVID-01 |

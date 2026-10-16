@@ -31,6 +31,18 @@ export type TicketScope = {
   assignedStaffId: number | null;
 };
 
+/** Active requester identity scope shared by staff dashboards, lists, and Ticket detail/workflow access. */
+export function activeStaffTicketWhere(): Prisma.TicketWhereInput {
+  return {
+    requester: {
+      is: {
+        isActive: true,
+        user: { is: { role: "REQUESTER", isActive: true } },
+      },
+    },
+  };
+}
+
 export function parseTicketNumber(raw: string | undefined): string {
   const value = raw?.trim() ?? "";
   if (!TICKET_NUMBER_PATTERN.test(value)) throw new ActionRuleError(400, "INVALID_TICKET_NUMBER", "Ticket Number must match TKT-YYYY-NNNNNN.");
@@ -53,7 +65,7 @@ export async function findAuthorizedTicket(
   const ticket = await prisma.ticket.findFirst({
     where: {
       ticketNumber,
-      requester: { isActive: true },
+      ...(role === "staff" ? activeStaffTicketWhere() : { requester: { isActive: true } }),
       // requesterId is populated exclusively by the session-backed requester
       // middleware and preserves ownership for legacy Tickets without a
       // requesterUserId value.

@@ -2,7 +2,7 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import type { CurrentStatus, ItPriority, UserRole } from "@prisma/client";
 import type { Request } from "express";
 import { ActionRuleError, assertVersions } from "./action-rules.js";
-import { findAuthorizedTicket, type TicketScope } from "./ticket-scope.js";
+import { activeStaffTicketWhere, findAuthorizedTicket, type TicketScope } from "./ticket-scope.js";
 
 const TICKET_TRANSITIONS: Record<CurrentStatus, readonly CurrentStatus[]> = {
   NEW: ["OPEN", "IN_PROGRESS", "CANCELLED"],
@@ -59,7 +59,7 @@ const EDITABLE_TICKET_STATUSES: readonly CurrentStatus[] = ["NEW", "OPEN", "IN_P
 
 async function loadLockedTicket(tx: WorkflowTransaction, ticket: TicketScope): Promise<WorkflowTicket> {
   const current = await tx.ticket.findFirst({
-    where: { id: ticket.id, ticketNumber: ticket.ticketNumber, requester: { isActive: true } },
+    where: { id: ticket.id, ticketNumber: ticket.ticketNumber, ...activeStaffTicketWhere() },
     select: { id: true, ticketNumber: true, workflowVersion: true, currentStatus: true, assignedStaffId: true, resolvedAt: true, itPriority: true },
   });
   if (!current) throw new ActionRuleError(404, "TICKET_NOT_FOUND", "Ticket was not found.");

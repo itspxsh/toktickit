@@ -102,7 +102,7 @@ describe("T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions
       where: { id: 42, role: { in: ["IT_STAFF", "ADMIN"] }, isActive: true },
     }));
     expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({
-      where: { ticketNumber: "TKT-2026-000077", requester: { isActive: true } },
+      where: { ticketNumber: "TKT-2026-000077", requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } } },
     }));
     expect(updateMany).toHaveBeenCalledTimes(2);
   });
