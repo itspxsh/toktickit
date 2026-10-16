@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { RoleGuard } from "../../src/auth.tsx";
 import { AppShell } from "../../src/components/ui.tsx";
@@ -74,7 +75,19 @@ describe("L4-08 role Dashboard routes and navigation", () => {
     render(<StaffTicketQueue location="/staff/tickets?status=CANCELLED&statusGroup=active&resolvedSince=2026-10-09T00%3A00%3A00.000Z&before=2026-10-16T00%3A00%3A00.000Z" onNavigate={onNavigate} />);
 
     expect(await screen.findByRole("heading", { name: "Staff Ticket Queue" })).toBeInTheDocument();
-    expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ status: "CANCELLED", statusGroup: undefined, resolvedSince: undefined, before: "2026-10-16T00:00:00.000Z" }));
+    expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ status: "CANCELLED", statusGroup: undefined, resolvedSince: undefined, before: "2026-10-16T00:00:00.000Z" }), expect.any(AbortSignal));
     expect(screen.getByRole("combobox", { name: "Status group" })).toHaveValue("");
+  });
+
+  it("T-UI-NAV-02 / AC-12 keeps interactive exact-status filters compatible with status groups", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    const fetchTickets = vi.spyOn(api, "fetchMyTickets").mockResolvedValue({ data: [], pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 } });
+    const onNavigate = vi.fn();
+    render(<RequesterProvider mode="disabled"><MyTickets location="/tickets?statusGroup=active" onNavigate={onNavigate} /></RequesterProvider>);
+
+    await screen.findByRole("heading", { name: "My Tickets" });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Current Status" }), "CANCELLED");
+    expect(fetchTickets).toHaveBeenLastCalledWith(undefined, expect.objectContaining({ status: "CANCELLED", statusGroup: undefined }), expect.any(AbortSignal));
+    expect(onNavigate).toHaveBeenLastCalledWith("/tickets?status=CANCELLED");
   });
 });
