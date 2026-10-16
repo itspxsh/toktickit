@@ -18,6 +18,7 @@ type RequesterLoadStatus = "loading" | "success" | "error";
 export interface RequesterContextValue {
   contextVersion: number;
   createTicketDirty: boolean;
+  staffTicketDirty: boolean;
   error: string | null;
   authenticatedRequester: Pick<Requester, "name" | "email"> | null;
   mode: "development" | "authenticated" | "disabled";
@@ -34,6 +35,7 @@ export interface RequesterContextValue {
   requestNavigation: (onNavigate: () => void) => void;
   selectRequester: (id: number) => boolean;
   setCreateTicketDirty: (dirty: boolean) => void;
+  setStaffTicketDirty: (dirty: boolean) => void;
 }
 
 // Keeping the context creation in this module avoids introducing a router or
@@ -69,12 +71,14 @@ export function RequesterProvider({ children, mode = "development", authenticate
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [createTicketDirty, setCreateTicketDirty] = useState(false);
+  const [staffTicketDirty, setStaffTicketDirty] = useState(false);
   const [pendingChange, setPendingChange] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     kind: "requester" | "navigation";
     run?: () => void;
   }>();
   const [contextVersion, setContextVersion] = useState(0);
+  const hasUnsavedForm = createTicketDirty || staffTicketDirty;
 
   useEffect(() => {
     if (mode !== "development") {
@@ -140,7 +144,7 @@ export function RequesterProvider({ children, mode = "development", authenticate
   const requestChangeRequester = useCallback(
     (onCleared?: () => void) => {
       const navigation = typeof onCleared === "function" ? onCleared : undefined;
-      if (createTicketDirty) {
+      if (hasUnsavedForm) {
         setPendingAction({ kind: "requester", run: navigation });
         setPendingChange(true);
         return;
@@ -148,19 +152,19 @@ export function RequesterProvider({ children, mode = "development", authenticate
       clearRequester();
       navigation?.();
     },
-    [clearRequester, createTicketDirty],
+    [clearRequester, hasUnsavedForm],
   );
 
   const requestNavigation = useCallback(
     (onNavigate: () => void) => {
-      if (createTicketDirty) {
+      if (hasUnsavedForm) {
         setPendingAction({ kind: "navigation", run: onNavigate });
         setPendingChange(true);
         return;
       }
       onNavigate();
     },
-    [createTicketDirty],
+    [hasUnsavedForm],
   );
 
   const cancelRequesterChange = useCallback(() => {
@@ -173,6 +177,7 @@ export function RequesterProvider({ children, mode = "development", authenticate
     setPendingChange(false);
     setPendingAction(undefined);
     setCreateTicketDirty(false);
+    setStaffTicketDirty(false);
     if (action?.kind === "requester") clearRequester();
     action?.run?.();
   }, [clearRequester, pendingAction]);
@@ -181,6 +186,7 @@ export function RequesterProvider({ children, mode = "development", authenticate
     () => ({
       contextVersion,
       createTicketDirty,
+      staffTicketDirty,
       error,
       authenticatedRequester,
       mode,
@@ -197,6 +203,7 @@ export function RequesterProvider({ children, mode = "development", authenticate
       requestNavigation,
       selectRequester,
       setCreateTicketDirty,
+      setStaffTicketDirty,
     }),
     [
       cancelRequesterChange,
@@ -204,6 +211,7 @@ export function RequesterProvider({ children, mode = "development", authenticate
       confirmRequesterChange,
       contextVersion,
       createTicketDirty,
+      staffTicketDirty,
       error,
       authenticatedRequester,
       mode,
@@ -214,6 +222,7 @@ export function RequesterProvider({ children, mode = "development", authenticate
       selectedRequester,
       selectedRequesterId,
       selectRequester,
+      setStaffTicketDirty,
       status,
     ],
   );
@@ -325,7 +334,7 @@ export function RequesterChangeConfirmation() {
     <ConfirmationDialog
       open={context.pendingChange}
       title="Discard changes?"
-      message="Unsaved Create Ticket values will be removed."
+      message="Unsaved form changes will be removed if you leave this page."
       onCancel={context.cancelRequesterChange}
       onConfirm={context.confirmRequesterChange}
     />
