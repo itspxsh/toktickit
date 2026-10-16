@@ -1,12 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { RoleGuard } from "../../src/auth.tsx";
 import { AppShell } from "../../src/components/ui.tsx";
 import { MyTickets } from "../../src/my-tickets.tsx";
 import { StaffTicketQueue } from "../../src/staff-ticket-queue.tsx";
-import { RequesterProvider } from "../../src/requester.tsx";
+import { RequesterChangeConfirmation, RequesterProvider, useRequesterContext } from "../../src/requester.tsx";
 import * as api from "../../src/api.ts";
+
+afterEach(() => vi.restoreAllMocks());
+
+function NavigationDraftHarness({ onNavigate }: { onNavigate: () => void }) {
+  const context = useRequesterContext();
+  return <>
+    <button type="button" onClick={() => context.setActionsDirty(true)}>Start an Action draft</button>
+    <button type="button" onClick={() => context.requestNavigation(onNavigate)}>Go to dashboard</button>
+    <RequesterChangeConfirmation />
+  </>;
+}
 
 describe("L4-08 role Dashboard routes and navigation", () => {
   it("T-UI-NAV-01 / AC-12,13 permits the Requester Dashboard and rejects staff deep links", () => {
@@ -168,5 +179,62 @@ describe("L4-08 role Dashboard routes and navigation", () => {
     await screen.findByRole("heading", { name: "Staff Ticket Queue" });
     expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ updatedSince: undefined, before: undefined }), expect.any(AbortSignal));
     expect(onNavigate).toHaveBeenCalledWith("/staff/tickets", { replace: true });
+  });
+
+  it("T-UI-NAV-02 / AC-14 keeps the current numbered Staff queue page in the visible page window", async () => {
+    const fetchTickets = vi.spyOn(api, "fetchStaffTickets").mockResolvedValue({
+      items: [{
+        ticketNumber: "TKT-2026-000004", summary: "VPN access", requester: { id: 12, name: "Requester" },
+        itPriority: "HIGH", currentStatus: "IN_PROGRESS", assignedStaff: null, updatedAt: "2026-10-16T00:00:00.000Z",
+      }],
+      page: 6, pageSize: 20, total: 200, totalPages: 10,
+    });
+
+    render(<StaffTicketQueue location="/staff/tickets?page=6" onNavigate={vi.fn()} />);
+
+    const currentPage = await screen.findByRole("button", { name: "Page 6" });
+    expect(currentPage).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Page 5" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Page 7" })).toBeInTheDocument();
+    expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ page: 6 }), expect.any(AbortSignal));
+  });
+
+  it("T-UI-NAV-02 / AC-14 hides requester date-filter chips when an invalid future bound is omitted", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    vi.spyOn(api, "fetchMyTickets").mockResolvedValue({ data: [], pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 } });
+    const user = userEvent.setup();
+    render(<RequesterProvider mode="disabled"><MyTickets onNavigate={vi.fn()} /></RequesterProvider>);
+    await screen.findByRole("heading", { name: "My Tickets" });
+
+    const future = new Date(Date.now() + 120_000).toISOString();
+    await user.type(screen.getByRole("textbox", { name: "Before (UTC ISO)" }), future);
+
+    expect(screen.queryByRole("region", { name: "Active filters" })).not.toBeInTheDocument();
+  });
+
+  it("T-UI-NAV-02 / AC-14 hides Staff date-filter chips when an invalid future bound is omitted", async () => {
+    vi.spyOn(api, "fetchStaffTickets").mockResolvedValue({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+    const user = userEvent.setup();
+    render(<StaffTicketQueue onNavigate={vi.fn()} />);
+    await screen.findByRole("heading", { name: "Staff Ticket Queue" });
+
+    const future = new Date(Date.now() + 120_000).toISOString();
+    await user.type(screen.getByRole("textbox", { name: "Before (UTC ISO)" }), future);
+
+    expect(screen.queryByRole("region", { name: "Active filters" })).not.toBeInTheDocument();
+  });
+
+  it("T-UI-NAV-01 / AC-14 confirms before navigating away from an unsaved Action draft", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    render(<RequesterProvider mode="disabled"><NavigationDraftHarness onNavigate={onNavigate} /></RequesterProvider>);
+
+    await user.click(screen.getByRole("button", { name: "Start an Action draft" }));
+    await user.click(screen.getByRole("button", { name: "Go to dashboard" }));
+
+    expect(screen.getByRole("alertdialog", { name: "Discard changes?" })).toBeInTheDocument();
+    expect(onNavigate).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+    expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 });

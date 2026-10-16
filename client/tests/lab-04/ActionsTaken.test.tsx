@@ -122,6 +122,19 @@ describe("L4-05 Actions Taken UI", () => {
     vi.unstubAllGlobals();
   });
 
+  it("T-UI-ACT-01 / AC-14 reports a dirty Action draft to the parent navigation guard", async () => {
+    const user = userEvent.setup();
+    const onDirtyChange = vi.fn();
+    render(<ActionsTaken ticketNumber={ticketNumber} mode="support" ticketStatus="IN_PROGRESS" onDirtyChange={onDirtyChange} />);
+
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await user.click(within(section).getByRole("button", { name: "Add action" }));
+    const form = screen.getByRole("button", { name: "Create action" }).closest("form");
+    await user.type(within(form as HTMLFormElement).getByRole("textbox", { name: "Description" }), "Unsaved repair step");
+
+    await waitFor(() => expect(onDirtyChange).toHaveBeenLastCalledWith(true));
+  });
+
   it("T-UI-ACT-01 / AC-01,03,14: creates support work with accessible validation and retained retry draft", async () => {
     const user = userEvent.setup();
     let failCreate = true;
