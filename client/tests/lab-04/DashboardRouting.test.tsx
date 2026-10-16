@@ -146,4 +146,27 @@ describe("L4-08 role Dashboard routes and navigation", () => {
     expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ updatedSince: undefined, resolvedSince: undefined, before }), expect.any(AbortSignal));
     expect(onNavigate).not.toHaveBeenCalled();
   });
+
+  it("T-UI-NAV-02 / AC-12 rejects impossible calendar dates in requester URL filters", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    const fetchTickets = vi.spyOn(api, "fetchMyTickets").mockResolvedValue({ data: [], pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 } });
+    const onNavigate = vi.fn();
+    render(<RequesterProvider mode="disabled"><MyTickets location="/tickets?before=2026-02-31T00%3A00%3A00.000Z" onNavigate={onNavigate} /></RequesterProvider>);
+
+    await screen.findByRole("heading", { name: "My Tickets" });
+    expect(fetchTickets).toHaveBeenCalledWith(undefined, expect.objectContaining({ before: undefined }), expect.any(AbortSignal));
+    expect(onNavigate).toHaveBeenCalledWith("/tickets");
+  });
+
+  it("T-UI-NAV-02 / AC-12 rejects impossible calendar dates in staff URL filters", async () => {
+    vi.spyOn(api, "fetchReferenceData").mockResolvedValue({ categories: [], relatedSystems: [] });
+    const fetchTickets = vi.spyOn(api, "fetchStaffTickets").mockResolvedValue({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+    const since = new Date(Date.now() - 120_000).toISOString();
+    const onNavigate = vi.fn();
+    render(<StaffTicketQueue location={`/staff/tickets?updatedSince=${encodeURIComponent(since)}&before=2026-02-31T00%3A00%3A00.000Z`} onNavigate={onNavigate} />);
+
+    await screen.findByRole("heading", { name: "Staff Ticket Queue" });
+    expect(fetchTickets).toHaveBeenCalledWith(expect.objectContaining({ updatedSince: undefined, before: undefined }), expect.any(AbortSignal));
+    expect(onNavigate).toHaveBeenCalledWith("/staff/tickets");
+  });
 });
