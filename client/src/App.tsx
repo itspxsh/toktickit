@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { checkSystem, type Category } from "./api.ts";
 import {
   Alert,
@@ -28,6 +28,8 @@ import { StaffTicketDetail } from "./staff-ticket-detail.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
 import { StaffTicketQueue } from "./staff-ticket-queue.tsx";
 import { UserManagement } from "./user-management.tsx";
+import { RequesterDashboard } from "./requester-dashboard.tsx";
+import { StaffDashboard } from "./staff-dashboard.tsx";
 import { AuthLoading, AuthProvider, ChangePassword, Login, RoleGuard, useAuth } from "./auth.tsx";
 import type { AuthUser } from "./api.ts";
 import "./styles.css";
@@ -55,30 +57,66 @@ export {
   AttachmentSection,
   StaffTicketQueue,
   UserManagement,
+  RequesterDashboard,
+  StaffDashboard,
   TicketDetailPlaceholder,
   useRequesterContext,
 };
 
 type UiState = "idle" | "loading" | "success" | "error";
 
-function usePathname(): [string, (path: string) => void] {
-  const [pathname, setPathname] = useState(() =>
-    typeof window === "undefined" ? "/" : window.location.pathname,
+export function useBrowserLocation(
+  guardPopNavigation?: (continueNavigation: () => void) => void,
+): [string, (path: string, options?: { replace?: boolean }) => void] {
+  const [location, setLocation] = useState(() =>
+    typeof window === "undefined" ? "/" : `${window.location.pathname}${window.location.search}${window.location.hash}`,
   );
+  const currentLocation = useRef(location);
+  const guardRef = useRef(guardPopNavigation);
+  const skipPopGuardRef = useRef(false);
+  currentLocation.current = location;
+  guardRef.current = guardPopNavigation;
 
   useEffect(() => {
-    const onPopState = () => setPathname(window.location.pathname);
+    const onPopState = () => {
+      const destination = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      if (skipPopGuardRef.current) {
+        skipPopGuardRef.current = false;
+        setLocation(destination);
+        return;
+      }
+      const guard = guardRef.current;
+      if (!guard) {
+        setLocation(destination);
+        return;
+      }
+
+      const previous = currentLocation.current;
+      window.history.pushState({}, "", previous);
+      guard(() => {
+        skipPopGuardRef.current = true;
+        window.history.back();
+      });
+    };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  function navigate(path: string) {
+  function navigate(path: string, options: { replace?: boolean } = {}) {
     if (typeof window === "undefined") return;
-    if (window.location.pathname !== path) window.history.pushState({}, "", path);
-    setPathname(path);
+    if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) return;
+    const destination = new URL(path, window.location.origin);
+    if (destination.origin !== window.location.origin) return;
+    const next = `${destination.pathname}${destination.search}${destination.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (current !== next) {
+      if (options.replace) window.history.replaceState({}, "", next);
+      else window.history.pushState({}, "", next);
+    }
+    setLocation(next);
   }
 
-  return [pathname, navigate];
+  return [location, navigate];
 }
 
 /** Lab 1's health check remains available inside the Lab 2 application shell. */
@@ -145,21 +183,28 @@ function HealthCheck() {
 }
 
 function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: AuthUser | null; legacy?: boolean; onLogout?: () => void }) {
-  const [activePath, navigate] = usePathname();
   const context = useRequesterContext();
+  const [activePath, navigate] = useBrowserLocation(
+    context.createTicketDirty ? context.requestNavigation : undefined,
+  );
+  const pathname = activePath.split(/[?#]/, 1)[0] || "/";
   const requesterRequired = (legacy || authUser?.role === "REQUESTER") && (
-    activePath === "/tickets" ||
-    activePath.startsWith("/tickets/") ||
-    activePath === "/create-ticket" ||
-    activePath.startsWith("/create-ticket/"));
-  const selectionRoute = legacy && activePath === "/select-requester";
-  const ticketDetailMatch = activePath.match(/^\/tickets\/([^/]+)$/);
-  const staffTicketDetailMatch = activePath.match(/^\/staff\/tickets\/([^/]+)$/);
+    pathname === "/tickets" ||
+    pathname.startsWith("/tickets/") ||
+    pathname === "/create-ticket" ||
+    pathname.startsWith("/create-ticket/"));
+  const selectionRoute = legacy && pathname === "/select-requester";
+  const ticketDetailMatch = pathname.match(/^\/tickets\/([^/]+)$/);
+  const staffTicketDetailMatch = pathname.match(/^\/staff\/tickets\/([^/]+)$/);
   const mustSelect = legacy && (
     selectionRoute ||
     (requesterRequired && (context.status !== "success" || !context.selectedRequester)));
 
   useEffect(() => {
+    if (authUser && pathname === "/") {
+      navigate(authUser.role === "REQUESTER" ? "/dashboard" : "/staff/dashboard");
+      return;
+    }
     if (
       legacy && requesterRequired &&
       context.status === "success" &&
@@ -168,35 +213,41 @@ function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: 
     ) {
       navigate("/select-requester");
     }
-  }, [activePath, context.selectedRequester, context.status, requesterRequired, selectionRoute]);
+  }, [activePath, authUser, context.selectedRequester, context.status, navigate, requesterRequired, selectionRoute]);
 
   function handleChangeRequester() {
     context.requestChangeRequester(() => navigate("/select-requester"));
   }
 
-  function handleNavigate(path: string) {
-    context.requestNavigation(() => navigate(path));
+  function handleNavigate(path: string, options?: { replace?: boolean }) {
+    context.requestNavigation(() => navigate(path, options));
   }
 
   const routeContent = mustSelect ? (
     <RequesterSelection onContinue={() => navigate("/tickets")} />
-  ) : activePath === "/change-password" ? (
+  ) : pathname === "/change-password" ? (
     <ChangePassword />
+  ) : pathname === "/dashboard" && authUser?.role === "REQUESTER" ? (
+    <RequesterDashboard onNavigate={handleNavigate} />
+  ) : pathname === "/staff/dashboard" && (authUser?.role === "IT_STAFF" || authUser?.role === "ADMIN") ? (
+    <StaffDashboard location={activePath} onNavigate={handleNavigate} />
   ) : ticketDetailMatch ? (
     <RequesterTicketDetail
       ticketNumber={decodeTicketNumber(ticketDetailMatch[1])}
       onNavigate={handleNavigate}
     />
   ) : staffTicketDetailMatch ? (
-    <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} />
-  ) : activePath === "/staff/tickets" ? (
-    <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} />
-  ) : activePath === "/admin/users" ? (
+    <StaffTicketDetail ticketNumber={decodeTicketNumber(staffTicketDetailMatch[1])} onNavigate={navigate} initialActionId={parseActionAnchor(activePath)} />
+  ) : pathname === "/staff/tickets" ? (
+    <StaffTicketQueue onOpenTicket={(number) => navigate(`/staff/tickets/${encodeURIComponent(number)}`)} location={activePath} onNavigate={handleNavigate} />
+  ) : pathname === "/admin/users" ? (
     <UserManagement />
-  ) : activePath === "/tickets" ? (
-    <MyTickets onNavigate={handleNavigate} />
-  ) : activePath === "/create-ticket" ? (
+  ) : pathname === "/tickets" ? (
+    <MyTickets onNavigate={handleNavigate} location={activePath} />
+  ) : pathname === "/create-ticket" ? (
     <CreateTicket onNavigate={handleNavigate} />
+  ) : pathname === "/service-status" ? (
+    <HealthCheck />
   ) : (
     <HealthCheck />
   );
@@ -213,7 +264,7 @@ function RequesterAwareApp({ authUser, legacy = false, onLogout }: { authUser?: 
       onLogout={authUser ? onLogout : undefined}
       onNavigate={handleNavigate}
     >
-      {authUser ? <RoleGuard role={authUser.role} path={activePath}>{routeContent}</RoleGuard> : routeContent}
+      {authUser ? <RoleGuard role={authUser.role} path={pathname}>{routeContent}</RoleGuard> : routeContent}
       {legacy && <RequesterChangeConfirmation />}
     </AppShell>
   );
@@ -225,6 +276,13 @@ function decodeTicketNumber(value: string): string {
   } catch {
     return value;
   }
+}
+
+function parseActionAnchor(location: string): number | undefined {
+  const match = location.match(/#action-(\d+)$/);
+  if (!match) return undefined;
+  const id = Number(match[1]);
+  return Number.isSafeInteger(id) && id > 0 ? id : undefined;
 }
 
 function AuthenticatedApp() {

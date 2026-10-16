@@ -907,3 +907,44 @@ select[aria-readonly="true"] {
     grid-template-columns: 1fr;
   }
 }
+
+.dashboard-page { max-width: var(--content-max-width); }
+.dashboard-heading,
+.dashboard-section-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.dashboard-heading h1 { margin: 0; }
+.dashboard-heading .eyebrow { margin: 0 0 4px; }
+.dashboard-asof { margin: 0; color: #52665b; font-size: .9rem; }
+.dashboard-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); }
+.dashboard-metric { min-width: 0; }
+.dashboard-metric h2 { margin: 0; font-size: 1rem; }
+.dashboard-metric a,
+.dashboard-metric p { display: inline-block; margin: 8px 0 0; font-size: 2rem; font-weight: 800; line-height: 1.15; }
+.dashboard-ticket-list,
+.dashboard-action-list,
+.dashboard-buckets { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.dashboard-ticket-list li,
+.dashboard-action-list li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; padding: 12px 0; border-bottom: 1px solid var(--color-border); }
+.dashboard-ticket-list li:last-child,
+.dashboard-action-list li:last-child { border-bottom: 0; }
+.dashboard-ticket-list p,
+.dashboard-action-list p { margin: 2px 0 0; overflow-wrap: anywhere; }
+.dashboard-buckets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.dashboard-buckets li { min-width: 0; overflow-wrap: anywhere; }
+.dashboard-filter-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dashboard-filter-summary button:not(.button) { min-height: 36px; padding: 4px 10px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-pale); color: var(--color-text); }
+.dashboard-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+#my-actions { scroll-margin-top: 24px; }
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .dashboard-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 767px) {
+  .dashboard-metrics,
+  .dashboard-split { grid-template-columns: 1fr; }
+  .dashboard-heading,
+  .dashboard-section-heading { align-items: flex-start; flex-direction: column; }
+  .dashboard-ticket-list li,
+  .dashboard-action-list li { align-items: flex-start; flex-direction: column; }
+  .dashboard-buckets { grid-template-columns: 1fr; }
+}

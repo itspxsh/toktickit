@@ -56,14 +56,17 @@ export function AppShell({
     });
   }, []);
 
-  const isActive = (path: string) => activePath === path || activePath.startsWith(`${path}/`);
+  const pathname = activePath.split(/[?#]/, 1)[0] || "/";
+  const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
   const roleName = role === "IT_STAFF" ? "IT Staff" : role === "ADMIN" ? "Administrator" : "Requester";
   const destinations = role === "ADMIN"
-    ? [{ path: "/staff/tickets", label: "Staff Tickets" }, { path: "/admin/users", label: "User Management" }]
+    ? [{ path: "/staff/dashboard", label: "Dashboard" }, { path: "/staff/tickets", label: "Staff Tickets" }, { path: "/admin/users", label: "User Management" }, { path: "/service-status", label: "Service status" }]
     : role === "IT_STAFF"
-      ? [{ path: "/staff/tickets", label: "Staff Tickets" }]
-      : [{ path: "/tickets", label: "My Tickets" }, { path: "/create-ticket", label: "Create Ticket" }];
+      ? [{ path: "/staff/dashboard", label: "Dashboard" }, { path: "/staff/tickets", label: "Staff Tickets" }, { path: "/service-status", label: "Service status" }]
+      : role === "REQUESTER"
+        ? [{ path: "/dashboard", label: "Dashboard" }, { path: "/tickets", label: "My Tickets" }, { path: "/create-ticket", label: "Create Ticket" }, { path: "/service-status", label: "Service status" }]
+        : [{ path: "/tickets", label: "My Tickets" }, { path: "/create-ticket", label: "Create Ticket" }];
 
   return (
     <div className="app-shell">

@@ -54,11 +54,12 @@ export interface ActionsTakenProps {
   mode: Mode;
   ticketStatus?: string;
   ticketOwner?: { id: number; name: string } | null;
+  initialFocusActionId?: number;
   onTicketChanged?: () => void;
 }
 
 /** Current Ticket Actions. Requester mode is deliberately read-only; the API remains the authorization boundary. */
-export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, onTicketChanged }: ActionsTakenProps) {
+export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, initialFocusActionId, onTicketChanged }: ActionsTakenProps) {
   const support = mode === "support";
   const terminalTicket = Boolean(ticketStatus && TERMINAL_TICKETS.has(ticketStatus));
   const [page, setPage] = useState(1);
@@ -82,13 +83,19 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
   const [completeResult, setCompleteResult] = useState("");
   const [confirmFollowUpResolved, setConfirmFollowUpResolved] = useState(false);
   const [conflict, setConflict] = useState(false);
-  const [focusActionId, setFocusActionId] = useState<number | null>(null);
+  const [focusActionId, setFocusActionId] = useState<number | null>(initialFocusActionId ?? null);
   const [historyActionId, setHistoryActionId] = useState<number | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
   const [history, setHistory] = useState<ActionRevisionPage | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
   const requestKey = useRef<{ signature: string; id: string } | null>(null);
+  const initialFocusPending = useRef(initialFocusActionId !== undefined);
+
+  useEffect(() => {
+    initialFocusPending.current = initialFocusActionId !== undefined;
+    setFocusActionId(initialFocusActionId ?? null);
+  }, [ticketNumber, initialFocusActionId]);
 
   useEffect(() => {
     if (!terminalTicket) return;
@@ -101,19 +108,24 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, on
     const controller = new AbortController();
     let ignore = false;
     setLoading(true); setError("");
+    const focusId = initialFocusPending.current ? initialFocusActionId : undefined;
     const load = support
-      ? fetchStaffTicketActions(ticketNumber, page, PAGE_SIZE, controller.signal)
+      ? fetchStaffTicketActions(ticketNumber, page, PAGE_SIZE, controller.signal, focusId)
       : fetchRequesterTicketActions(ticketNumber, page, PAGE_SIZE, controller.signal);
     load.then((value) => {
       if (ignore) return;
       setData(value);
+      if (focusId) {
+        initialFocusPending.current = false;
+        if (value.page !== page) setPage(value.page);
+      }
       setConflict(false);
     }).catch((reason: unknown) => {
       if (ignore || (reason instanceof DOMException && reason.name === "AbortError")) return;
       setError(safeError(reason));
     }).finally(() => { if (!ignore) setLoading(false); });
     return () => { ignore = true; controller.abort(); };
-  }, [ticketNumber, page, reload, support]);
+  }, [ticketNumber, page, reload, support, initialFocusActionId]);
 
   useEffect(() => {
     if (!support) return;
