@@ -15,6 +15,15 @@ afterEach(() => vi.clearAllMocks());
 Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: vi.fn() });
 
 describe("L4-08 dashboard views", () => {
+  it("T-UI-NAV-02 / AC-12 serializes dashboard date/group drilldowns in list requests", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [], pagination: { page: 1, pageSize: 10, totalItems: 0, totalPages: 0 } }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.fetchMyTickets(undefined, { statusGroup: "resolved", resolvedSince: "2026-10-09T00:00:00.000Z", before: "2026-10-16T00:00:00.000Z" });
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("statusGroup=resolved");
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("resolvedSince=2026-10-09T00%3A00%3A00.000Z");
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("before=2026-10-16T00%3A00%3A00.000Z");
+  });
+
   it("T-UI-DR-01 / AC-10,14 renders requester summaries and refuses foreign destinations", async () => {
     vi.mocked(api.fetchRequesterDashboard).mockResolvedValue({
       asOf: "2026-10-16T00:00:00.000Z", windowStart: "2026-10-09T00:00:00.000Z", displayTimeZone: "Asia/Bangkok",
