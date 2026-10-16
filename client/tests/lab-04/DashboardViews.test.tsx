@@ -24,6 +24,16 @@ describe("L4-08 dashboard views", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toContain("before=2026-10-16T00%3A00%3A00.000Z");
   });
 
+  it("T-UI-DS-01 / AC-11 resolves a direct Action anchor to its authorized page", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ items: [], page: 2, pageSize: 20, total: 25, totalPages: 2, ticketVersion: 1 }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await api.fetchStaffTicketActions("TKT-2026-000001", 1, 20, undefined, 42);
+    const requestUrl = new URL(fetchMock.mock.calls[0]?.[0] as string);
+    expect(requestUrl.searchParams.get("focusActionId")).toBe("42");
+    expect(requestUrl.searchParams.has("page")).toBe(false);
+    expect(requestUrl.searchParams.get("pageSize")).toBe("20");
+  });
+
   it("T-UI-DR-01 / AC-10,14 renders requester summaries and refuses foreign destinations", async () => {
     vi.mocked(api.fetchRequesterDashboard).mockResolvedValue({
       asOf: "2026-10-16T00:00:00.000Z", windowStart: "2026-10-09T00:00:00.000Z", displayTimeZone: "Asia/Bangkok",
