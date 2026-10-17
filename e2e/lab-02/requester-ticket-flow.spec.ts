@@ -6,7 +6,9 @@ import { API_BASE_URL, expectNoHorizontalOverflow, preflight, signIn } from "../
 const REPOSITORY_ROOT = path.basename(process.cwd()) === "client"
   ? path.resolve(process.cwd(), "..")
   : path.resolve(process.cwd());
-const ARTIFACT_ROOT = process.env.E2E_ARTIFACT_ROOT ?? path.join(REPOSITORY_ROOT, "artifacts/lab-04/regression");
+const ARTIFACT_ROOT = process.env.E2E_ARTIFACT_ROOT
+  ? path.resolve(REPOSITORY_ROOT, process.env.E2E_ARTIFACT_ROOT)
+  : path.join(REPOSITORY_ROOT, "artifacts/lab-04/regression");
 const ONE_BY_ONE_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
   "base64",

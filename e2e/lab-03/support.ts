@@ -62,8 +62,9 @@ export async function signIn(page: Page, role: E2ERole, testInfo?: TestInfo): Pr
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
   if (testInfo) await saveScreenshot(page, testInfo, "authentication", `${role}-login`);
   const destination = role === "requester" || role === "requesterB" ? "My Tickets" : role === "staff" ? "Staff Tickets" : "User Management";
+  const authenticatedMarker = page.getByLabel("Authenticated user context");
   const changePassword = page.getByRole("heading", { name: "Change Password" });
-  const destinationLink = page.getByRole("link", { name: destination });
+  const destinationLink = page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: destination });
   const submitCredentials = async (candidate: string) => {
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill(candidate);
@@ -71,12 +72,12 @@ export async function signIn(page: Page, role: E2ERole, testInfo?: TestInfo): Pr
   };
   await submitCredentials(password);
   let requiresPasswordChange = await changePassword.waitFor({ state: "visible", timeout: 5_000 }).then(() => true).catch(() => false);
-  let authenticated = await destinationLink.waitFor({ state: "visible", timeout: 5_000 }).then(() => true).catch(() => false);
+  let authenticated = await authenticatedMarker.waitFor({ state: "attached", timeout: 5_000 }).then(() => true).catch(() => false);
   if (!requiresPasswordChange && !authenticated) {
     await expect(page.getByRole("alert").first()).toBeVisible();
     await submitCredentials(requiredEnv(credentials.newPassword));
     requiresPasswordChange = await changePassword.waitFor({ state: "visible", timeout: 5_000 }).then(() => true).catch(() => false);
-    authenticated = await destinationLink.waitFor({ state: "visible", timeout: 5_000 }).then(() => true).catch(() => false);
+    authenticated = await authenticatedMarker.waitFor({ state: "attached", timeout: 5_000 }).then(() => true).catch(() => false);
   }
   expect(requiresPasswordChange || authenticated, `Unable to authenticate seeded ${role} fixture`).toBeTruthy();
   if (requiresPasswordChange) {

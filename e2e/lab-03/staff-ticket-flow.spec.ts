@@ -13,9 +13,19 @@ test.describe("Lab 3 IT Staff journey", () => {
     await page.getByRole("link", { name: "Staff Tickets" }).click();
     await expect(page.getByRole("heading", { name: "Staff Ticket Queue" })).toBeVisible();
     await page.getByLabel("Search tickets").fill("TKT-");
-    await page.getByLabel("Status").selectOption("NEW");
+    await page.getByLabel("Status", { exact: true }).selectOption("NEW");
     await page.getByLabel("Page size").selectOption("50");
     await expect(page.getByLabel("Page size")).toHaveValue("50");
+    const filteredRows = page.locator("tbody tr");
+    const emptyFilteredState = page.getByRole("heading", { name: "Nothing here yet" });
+    await expect.poll(async () => (await filteredRows.count()) > 0 || await emptyFilteredState.isVisible()).toBe(true);
+    // The three viewport projects share one seeded database, so earlier
+    // journeys may have transitioned every NEW seed ticket. Keep proving the
+    // filter control, then clear it only when it would hide all remaining rows.
+    if (await filteredRows.count() === 0) {
+      await page.getByRole("button", { name: "Status: NEW ×" }).click();
+    }
+    await expect(filteredRows.first()).toBeVisible();
     const nextPage = page.getByRole("button", { name: "Next" });
     if (await nextPage.isEnabled()) {
       await nextPage.click();
@@ -48,7 +58,15 @@ test.describe("Lab 3 IT Staff journey", () => {
     await expect(page.locator('p[role="status"]')).toContainText(/Priority updated/i);
     const statusSelect = page.getByLabel("Status", { exact: true });
     const currentStatus = await statusSelect.inputValue();
-    const nextStatus = currentStatus === "NEW" ? "OPEN" : currentStatus;
+    const nextStatusByCurrent: Record<string, string> = {
+      NEW: "OPEN",
+      OPEN: "IN_PROGRESS",
+      IN_PROGRESS: "WAITING_FOR_REQUESTER",
+      WAITING_FOR_REQUESTER: "IN_PROGRESS",
+      REOPENED: "IN_PROGRESS",
+    };
+    const nextStatus = nextStatusByCurrent[currentStatus];
+    if (!nextStatus) throw new Error(`Expected an editable seeded ticket status, got ${currentStatus}`);
     await statusSelect.selectOption(nextStatus);
     await page.getByRole("button", { name: "Save status" }).click();
     await expect(page.locator('p[role="status"]')).toContainText(/Status updated/i);

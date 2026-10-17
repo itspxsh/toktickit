@@ -323,7 +323,7 @@ describe.sequential("L4-04/06 PostgreSQL workflow concurrency", () => {
     const synchronizeCount = (client: PrismaClient) => new Proxy(client, {
       get(target, property) {
         if (property === "attachment") {
-          const attachment = Reflect.get(target, property, target) as Record<string, unknown>;
+          const attachment = Reflect.get(target, property, target) as unknown as Record<string, unknown>;
           return new Proxy(attachment, {
             get(model, method) {
               const value = Reflect.get(model, method, model);

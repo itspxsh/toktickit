@@ -60,6 +60,16 @@ function createTestApp(overrides: Record<string, unknown> = {}) {
       create: calls.attachmentCreate,
       update: calls.attachmentUpdate,
     },
+    $queryRaw: vi.fn(async () => [{ id: 42 }]),
+    $transaction: vi.fn(async (callback: (transaction: unknown) => Promise<unknown>) => callback({
+      ticket: { findFirst: calls.ticketFindFirst },
+      attachment: {
+        count: calls.attachmentCount,
+        create: calls.attachmentCreate,
+      },
+      $queryRaw: vi.fn(async () => [{ id: 42 }]),
+      $transaction: vi.fn(),
+    })),
   }) as never);
   return { app, calls };
 }
