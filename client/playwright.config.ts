@@ -39,7 +39,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `set -a; . server/.env; set +a; if [ -n "\${E2E_DATABASE_URL:-}" ]; then export DATABASE_URL="$E2E_DATABASE_URL"; fi; if [ -n "\${E2E_AUTH_ORIGIN:-}" ]; then export AUTH_ORIGIN="$E2E_AUTH_ORIGIN"; fi; if [ -n "\${E2E_SESSION_COOKIE_SECURE:-}" ]; then export SESSION_COOKIE_SECURE="$E2E_SESSION_COOKIE_SECURE"; fi; export PORT='${apiPort}'; npm --prefix server run build && npm --prefix server run start`,
+      command: `if ! node -e 'try { const db = new URL(process.env.E2E_DATABASE_URL ?? ""); const name = decodeURIComponent(db.pathname.split("/").pop() ?? ""); const client = new URL(process.env.E2E_BASE_URL ?? ""); const auth = new URL(process.env.E2E_AUTH_ORIGIN ?? ""); if (!["postgres:", "postgresql:"].includes(db.protocol) || !/_test$/i.test(name) || client.origin !== auth.origin || (client.protocol === "http:" && process.env.E2E_SESSION_COOKIE_SECURE !== "false")) process.exit(1); } catch { process.exit(1); }' 2>/dev/null; then echo 'E2E requires a PostgreSQL E2E_DATABASE_URL ending in _test, matching E2E_BASE_URL/E2E_AUTH_ORIGIN, and SESSION_COOKIE_SECURE=false for local HTTP.' >&2; exit 1; fi; set -a; . server/.env; set +a; export DATABASE_URL="$E2E_DATABASE_URL"; export AUTH_ORIGIN="$E2E_AUTH_ORIGIN"; export SESSION_COOKIE_SECURE="$E2E_SESSION_COOKIE_SECURE"; export PORT='${apiPort}'; npm --prefix server run build && npm --prefix server run start`,
       cwd: "..",
       url: `${apiURL}/api/health`,
       timeout: 30_000,

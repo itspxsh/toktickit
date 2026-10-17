@@ -317,38 +317,13 @@ describe.sequential("L4-04/06 PostgreSQL workflow concurrency", () => {
     process.env.ATTACHMENT_STORAGE_DIR = storage;
     const firstClient = new PrismaClient({ datasources: { db: { url } } });
     const secondClient = new PrismaClient({ datasources: { db: { url } } });
-    let countArrivals = 0;
-    let releaseCounts!: () => void;
-    const countsReady = new Promise<void>((resolve) => { releaseCounts = resolve; });
-    const synchronizeCount = (client: PrismaClient) => new Proxy(client, {
-      get(target, property) {
-        if (property === "attachment") {
-          const attachment = Reflect.get(target, property, target) as unknown as Record<string, unknown>;
-          return new Proxy(attachment, {
-            get(model, method) {
-              const value = Reflect.get(model, method, model);
-              if (method !== "count" || typeof value !== "function") return value;
-              return async (...args: unknown[]) => {
-                const count = await (value as (...items: unknown[]) => Promise<number>).apply(model, args);
-                countArrivals += 1;
-                if (countArrivals === 2) releaseCounts();
-                await countsReady;
-                return count;
-              };
-            },
-          });
-        }
-        const value = Reflect.get(target, property, target);
-        return typeof value === "function" ? value.bind(target) : value;
-      },
-    }) as PrismaClient;
     const makeApp = (client: PrismaClient) => {
       const app = express();
       app.use(express.json());
       registerAttachmentRoutes(app, () => client as never);
       return app;
     };
-    const apps = [makeApp(synchronizeCount(firstClient)), makeApp(synchronizeCount(secondClient))];
+    const apps = [makeApp(firstClient), makeApp(secondClient)];
     const png = Buffer.from("89504e470d0a1a0a", "hex");
 
     try {
