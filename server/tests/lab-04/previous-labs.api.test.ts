@@ -1,6 +1,10 @@
 import express, { type RequestHandler } from "express";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
+import { registerAttachmentRoutes } from "../../src/routes/attachments.js";
 import { registerTicketRoutes } from "../../src/routes/tickets.js";
 import { registerStaffTicketDetailRoutes } from "../../src/routes/staff-ticket-detail.js";
 
@@ -62,6 +66,50 @@ describe("T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ requestedPriority: "URGENT", itPriority: "URGENT" }),
     }));
+  });
+
+  it("T-REG-02 / AC-17: keeps a successful soft removal successful when file cleanup fails", async () => {
+    const storage = await mkdtemp(path.join(os.tmpdir(), "toktickit-regression-remove-"));
+    const storageKey = "blocked-cleanup.png";
+    const originalStorageDirectory = process.env.ATTACHMENT_STORAGE_DIR;
+    process.env.ATTACHMENT_STORAGE_DIR = storage;
+    await mkdir(path.join(storage, storageKey));
+    const update = vi.fn(async () => ({
+      id: 101,
+      originalName: storageKey,
+      mimeType: "image/png",
+      sizeBytes: 8,
+      status: "REMOVED",
+      removedAt: new Date("2026-10-18T00:00:00.000Z"),
+      removalReason: "No longer required",
+      createdAt: new Date("2026-10-17T00:00:00.000Z"),
+    }));
+    const app = express();
+    app.use(express.json());
+    registerAttachmentRoutes(app, () => ({
+      ticket: { findFirst: vi.fn(async () => ({ id: 42 })) },
+      attachment: {
+        findFirst: vi.fn(async () => ({ id: 101, status: "ACTIVE", storageKey })),
+        update,
+      },
+    }) as never);
+
+    try {
+      const response = await request(app)
+        .delete(`/api/tickets/TKT-2026-000042/attachments/101`)
+        .set("X-Development-Requester-Id", "1")
+        .send({ reason: "No longer required" });
+      expect(response.status).toBe(200);
+      expect(response.body.data.status).toBe("REMOVED");
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { id: 101 },
+        data: expect.objectContaining({ status: "REMOVED", removalReason: "No longer required" }),
+      }));
+    } finally {
+      if (originalStorageDirectory === undefined) delete process.env.ATTACHMENT_STORAGE_DIR;
+      else process.env.ATTACHMENT_STORAGE_DIR = originalStorageDirectory;
+      await rm(storage, { recursive: true, force: true });
+    }
   });
 
   it("allows an active Admin to own a Ticket while still scoping the write to the Ticket", async () => {

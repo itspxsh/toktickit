@@ -8,6 +8,7 @@ directory, screenshots, or test output.
 Required environment names:
 
 - `E2E_REQUESTER_EMAIL`, `E2E_REQUESTER_PASSWORD`, `E2E_REQUESTER_NEW_PASSWORD`
+- `E2E_REQUESTER_B_EMAIL`, `E2E_REQUESTER_B_PASSWORD`, `E2E_REQUESTER_B_NEW_PASSWORD` (the independent second requester for the authenticated Lab 2 ownership-regression journey)
 - `E2E_STAFF_EMAIL`, `E2E_STAFF_PASSWORD`, `E2E_STAFF_NEW_PASSWORD`
 - `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_ADMIN_NEW_PASSWORD`
 - `E2E_CREATED_INITIAL_PASSWORD`
@@ -20,14 +21,16 @@ them.
 
 ## Exact local evidence workflow
 
-Use a test-scoped `DATABASE_URL_TEST` for migration evidence and a separately
-configured local development `DATABASE_URL` for the live web-server run. Do
-not paste either URL or any password into logs, screenshots, or source. The
-release-gate run used a local HTTP transport with `SESSION_COOKIE_SECURE=false`
-only for the test server; production/default configuration remains Secure. Set
-`AUTH_ORIGIN` to the exact client origin served by Playwright (for this setup,
-`export AUTH_ORIGIN=http://127.0.0.1:5173`) so CSRF origin checks and browser
-credentials are reproducible.
+Use a guarded PostgreSQL database whose name ends in `_test` for both migration
+and live browser evidence. Do not point the E2E server at the development
+database. Do not paste database URLs or passwords into logs, screenshots, or
+source. The isolated local HTTP run uses `SESSION_COOKIE_SECURE=false` only for
+the test server; production/default configuration remains Secure. Set
+`E2E_AUTH_ORIGIN` to exactly the client origin served by Playwright, for example
+`http://127.0.0.1:5175`; the test server maps it to `AUTH_ORIGIN` so CSRF checks
+and credentialed browser requests use the same origin contract. The Playwright
+config starts dedicated API/client servers on the ports in `E2E_API_URL` and
+`E2E_BASE_URL`, and refuses to reuse an existing server.
 
 ```text
 cd server
@@ -38,12 +41,21 @@ DATABASE_URL_TEST='<guarded-test-url-ending-in-test>' npm run db:test:reset
 DATABASE_URL_TEST='<guarded-test-url-ending-in-test>' npm run test:integration -- tests/lab-03/migration.integration.test.ts
 
 cd ../client
+E2E_DATABASE_URL='<same-guarded-test-url-ending-in-test>' \
+E2E_BASE_URL='http://127.0.0.1:5175' \
+E2E_API_URL='http://127.0.0.1:3301' \
+E2E_AUTH_ORIGIN='http://127.0.0.1:5175' \
+E2E_SESSION_COOKIE_SECURE=false \
+E2E_ARTIFACT_ROOT='artifacts/lab-04/regression' \
 npm run test:e2e:lab3
 ```
 
-For the separate local development API used by Playwright, apply
-`npm run prisma:migrate` and `npm run prisma:seed` with its development
-`DATABASE_URL`; never point that command at `DATABASE_URL_TEST`.
+The migration URL must be the same isolated `_test` database passed as
+`E2E_DATABASE_URL`; the Playwright-spawned server receives that value as
+`DATABASE_URL` without exposing it in the command output. Never substitute the
+development `server/.env` URL. Supply all fake role/password variables listed
+above through the environment only; do not copy secrets into command history or
+commit them.
 
 The migration command sequence above is the provenance for T-E2E-05; retain
 the command output under `artifacts/lab-03/migration/` with the pinned commit

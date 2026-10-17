@@ -210,7 +210,16 @@ export function StatusBadge({ label, tone = "neutral" }: StatusBadgeProps) {
 }
 
 export function PriorityBadge({ label, tone = "neutral" }: StatusBadgeProps) {
-  return <StatusBadge label={label} tone={tone} />;
+  return (
+    <span
+      className={`status-badge status-badge--${tone}`}
+      data-tone={tone}
+      role="status"
+      aria-label={`Priority: ${label}`}
+    >
+      <span aria-hidden="true">◆</span> {label}
+    </span>
+  );
 }
 
 export interface AlertProps {

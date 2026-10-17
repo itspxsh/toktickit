@@ -83,10 +83,10 @@ Do not run destructive migration files concurrently against one DB. Execute sepa
 | T-UI-DS-01 | 11,14 | Staff/Admin cards/buckets/recent/urgent/My Actions pagination links, rejects unsafe pagination values before fetch, and empty/error/forbidden. | StaffDashboard.test.tsx + DashboardViews.test.tsx + DashboardHardening.test.tsx |
 | T-UI-NAV-01 | 12,13 | Server-derived role landing/guard/nav aria-current, query/hash/back/forward reload, dirty-form Back guard whose confirmation returns to the existing history entry without duplicating it, canonical URL replacement (no Back-loop), no localStorage identity. | DashboardRouting.test.tsx + DashboardHardening.test.tsx |
 | T-UI-NAV-02 | 12,14 | URL filters visibly applied/clearable/canonicalized (unknown keys, invalid UTC dates, contradictory status/group and date ranges, lower-bound requires `before`, valid before-only, future-bound limit, requester IDs/priority), search debounce, page>5 aria-current and same-path navigation. | DashboardRouting.test.tsx + DashboardViews.test.tsx |
-| T-UI-REG-01 | 13,17 | Auth first-login/session expiry/password/logout, Lab1 diagnostic, requester create/list/detail/comment/resolution/attachment and Staff/Admin representative flows. | Regression.test.tsx |
+| T-UI-REG-01 | 13,17 | Failed authentication clears the password and exposes only the safe API message; authenticated requester create/list/detail/resolution/attachment/dirty-form/owner-isolation is exercised live, while Staff public-comment/internal-note flows remain covered by Lab 3 E2E. | Regression.test.tsx; e2e/lab-02/requester-ticket-flow.spec.ts; e2e/lab-03/staff-ticket-flow.spec.ts |
 | T-UI-REG-02 | 13,17 | Authenticated category diagnostics and Create Ticket reference requests include browser credentials required by the protected Lab3 endpoints. | previous-labs.test.tsx |
-| T-STYLE-01 | 19 | Token reuse, priority/status non-color text, shared labels/errors/read-only semantics, no placeholder controls. | VisualAccessibility.test.tsx |
-| T-A11Y-01 | 14,19 | Keyboard focus/dialog trap/Escape/restore, descriptions, live notices and metrics links accessible names. | VisualAccessibility.test.tsx |
+| T-STYLE-01 | 19 | Status and priority use distinct accessible text labels and visible non-color glyphs with the shared status-badge visual tokens; existing L1–4 tests cover labels/errors/read-only semantics and no placeholder controls. | VisualAccessibility.test.tsx; existing L1–4 client suites |
+| T-A11Y-01 | 14,19 | Keyboard focus trap, Escape, focus restoration, dialog description, live notices and metrics links accessible names. | VisualAccessibility.test.tsx; existing L1–4 client suites |
 
 ## 5. Live E2E / responsive / evidence
 
