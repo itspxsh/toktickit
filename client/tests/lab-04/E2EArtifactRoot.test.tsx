@@ -34,4 +34,13 @@ describe("E2E artifact root resolution", () => {
       .toContain("not allowed for HTTPS");
     expect(preflightError(config)).toBeNull();
   });
+
+  it("rejects insecure cookies for non-local HTTP origins", () => {
+    expect(preflightError({
+      E2E_DATABASE_URL: "postgresql://localhost/toktickit_test",
+      E2E_BASE_URL: "http://e2e.example.test",
+      E2E_AUTH_ORIGIN: "http://e2e.example.test",
+      E2E_SESSION_COOKIE_SECURE: "false",
+    })).toContain("only allowed for local HTTP");
+  });
 });
