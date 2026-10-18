@@ -1,11 +1,11 @@
 # L4-09 whole-product regression evidence
 
-This evidence was generated from the complete L4-09 source tree at commit
-[`2217d6e`](https://github.com/itspxsh/toktickit/commit/2217d6e) on branch
+This evidence was refreshed after the L4-09 review follow-up at commit
+[`ff08a01`](https://github.com/itspxsh/toktickit/commit/ff08a01) on branch
 `feature/lab4-09-whole-product-regression`, based on `lab4-staging` at
 `6dcdad0`. The PostgreSQL instance was temporary and isolated; the E2E database
-was named `toktickit_lab4_e2e_test`. No development database was reset or used
-for the browser runs. E2E configuration now fails closed unless its explicit
+was named `toktickit_l409_evidence_test`. No development database was reset or
+used for the browser runs. E2E configuration now fails closed unless its explicit
 PostgreSQL URL ends in `_test`, its auth origin matches the browser origin, and
 local HTTP explicitly opts into insecure test cookies.
 
@@ -15,8 +15,8 @@ local HTTP explicitly opts into insecure test cookies.
 | --- | --- |
 | PostgreSQL migrations on fresh E2E DB | 4/4 applied |
 | Serial PostgreSQL integration suites | 20/20 passed across 6 files |
-| Server tests | 173/173 passed across 24 files |
-| Client tests, including accessibility/visual checks | 128/128 passed across 29 files |
+| Server tests | 175/175 passed across 24 files |
+| Client tests, including accessibility/visual checks | 133/133 passed across 30 files |
 | Lab 3 authenticated E2E journeys | 9/9 passed (3 journeys × desktop/tablet/mobile) |
 | Lab 2 authenticated regression journey | 3/3 passed (desktop/tablet/mobile) |
 | Client production build | Passed |
@@ -25,22 +25,25 @@ local HTTP explicitly opts into insecure test cookies.
 | `git diff --check` | Passed |
 
 Playwright ran serially with one worker and zero retries. Viewports were
-1440×900 desktop, 768×1024 tablet, and 320×800 mobile. The 48 retained PNGs
-are loaded-state screenshots: 36 Lab 3 role journeys and 12 Lab 2 requester
-regression screenshots. Fixture names and email addresses use `.test`; no
-real credentials, tokens, database URLs, or personal data are included.
+1440×900 desktop, 768×1024 tablet, and 320×800 mobile. The 51 retained PNGs
+are loaded-state screenshots: 36 Lab 3 role journeys and 15 Lab 2 requester
+regression screenshots, including the cross-requester not-found state at all
+three project viewports. The three cross-requester images were checked at
+1440×900, 768×1024, and 320×800 respectively. Fixture names and email addresses
+use `.test`; no real credentials, tokens, database URLs, or personal data are
+included.
 
-The server unit suite initially could not bind Supertest's local listener in
-the restricted sandbox (`EPERM`); the same unmodified suite was rerun with
-local-listener permission and passed 173/173. This was an environment
-restriction, not a test skip. There are no skipped, retried, or flaky tests in
-the successful recorded runs.
+The final server suite was run with local-listener permission and passed
+175/175. One expected cleanup-failure regression writes a redacted `EPERM`
+diagnostic to stderr while its assertion passes; it is not a skipped or flaky
+test. No tests were skipped or retried in the successful recorded runs.
 
 ## Screenshot index
 
 - `lab-02/create-ticket/`: create flow at all three viewports.
 - `lab-02/my-tickets/`: populated requester ticket list at all three viewports.
-- `lab-02/ticket-detail/`: requester detail at all three viewports.
+- `lab-02/ticket-detail/`: requester detail and cross-requester not-found state
+  at all three viewports.
 - `lab-02/responsive/`: completed requester flow at all three viewports.
 - `screenshots/authentication/`: requester, Staff, and Admin authentication states.
 - `screenshots/staff-queue/`: populated Staff queue at all three viewports.
@@ -74,7 +77,13 @@ E2E_DATABASE_URL=<TEST_DATABASE_URL> E2E_BASE_URL=<client-origin> E2E_API_URL=<d
 E2E_DATABASE_URL=<TEST_DATABASE_URL> E2E_BASE_URL=<client-origin> E2E_API_URL=<dedicated-api-origin> E2E_AUTH_ORIGIN=<same-client-origin> E2E_SESSION_COOKIE_SECURE=false E2E_ARTIFACT_ROOT=artifacts/lab-04/regression <fake-role-credentials-in-environment> npm run test:e2e
 ```
 
-The recorded local ports were 5176 for the client, 3302 for the API, and 55433
-for the temporary PostgreSQL cluster. These are not required fixed ports; the
-E2E origins must match the selected dedicated ports and must not reuse a dev
-server.
+Post-fix run at `ff08a01`: migrations 4/4 applied to the isolated test database;
+PostgreSQL integration 20/20 across six files; server 175/175; client 133/133;
+Lab 2 E2E 3/3; Lab 3 E2E 9/9; client and server builds, Prisma validation, and
+`git diff --check` passed. The browser matrices used one worker, zero retries,
+and dedicated loopback servers at client port 5175 and API port 3301. The
+temporary PostgreSQL cluster used port 55433. These ports are not required
+fixed ports; E2E origins must match the selected dedicated ports and must not
+reuse a development server. Migration integration uses destructive fresh/upgrade
+fixtures on the explicitly guarded `_test` database; afterward, the browser
+database was rebuilt from the four repository migrations and reseeded.
