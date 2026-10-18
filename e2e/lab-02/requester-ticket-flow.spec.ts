@@ -2,13 +2,9 @@ import { expect, test, type Page, type TestInfo } from "../../client/node_module
 import path from "node:path";
 import { mkdir } from "node:fs/promises";
 import { API_BASE_URL, expectNoHorizontalOverflow, preflight, signIn } from "../lab-03/support.js";
+import { resolveArtifactRoot } from "../artifact-path.cjs";
 
-const REPOSITORY_ROOT = path.basename(process.cwd()) === "client"
-  ? path.resolve(process.cwd(), "..")
-  : path.resolve(process.cwd());
-const ARTIFACT_ROOT = process.env.E2E_ARTIFACT_ROOT
-  ? path.resolve(REPOSITORY_ROOT, process.env.E2E_ARTIFACT_ROOT)
-  : path.join(REPOSITORY_ROOT, "artifacts/lab-04/regression");
+const ARTIFACT_ROOT = resolveArtifactRoot("artifacts/lab-04/regression");
 const ONE_BY_ONE_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
   "base64",
@@ -42,6 +38,7 @@ test.describe("Authenticated Lab 2 requester regression", () => {
     await clickPrimaryLink(page, "My Tickets");
     await expect(page.getByRole("alertdialog", { name: "Discard changes?" })).toBeVisible();
     await page.getByRole("button", { name: "Cancel" }).last().click();
+    await expect(page).toHaveURL(/\/create-ticket$/);
     await expect(page.getByLabel("Summary")).toHaveValue("Unsaved authenticated regression draft");
     await clickPrimaryLink(page, "My Tickets");
     await page.getByRole("button", { name: "Confirm" }).last().click();
@@ -60,6 +57,7 @@ test.describe("Authenticated Lab 2 requester regression", () => {
     ]);
     await page.getByRole("button", { name: "Submit Ticket" }).click();
     await expect(page.getByRole("heading", { name: "Ticket created successfully" })).toBeVisible();
+    await expect(page.getByRole("listitem").filter({ hasText: "blocked.txt" })).toContainText(/not supported|not allowed|invalid/i);
     await expect(page.getByRole("listitem").filter({ hasText: "regression.png" })).toContainText(/Uploaded successfully/);
     await screenshot(page, testInfo, "create-ticket", "success");
     const numberText = await page.getByText(/Official Ticket Number:/).textContent();
@@ -67,8 +65,11 @@ test.describe("Authenticated Lab 2 requester regression", () => {
     expect(ticketNumber).toMatch(/^TKT-\d{4}-\d{6}$/);
 
     await page.getByRole("link", { name: "View Ticket" }).click();
+    await expect(page).toHaveURL(new RegExp(`/tickets/${ticketNumber}$`));
     await expect(page.getByRole("heading", { name: `Ticket ${ticketNumber}` })).toBeVisible();
     await expect(page.getByLabel("Summary")).toHaveValue(summary);
+    await expect(page.getByLabel("Description")).toHaveValue("Authenticated regression ticket for the Lab 2 requester flow.");
+    await expect(page.getByLabel("Ticket Number")).toHaveValue(ticketNumber!);
     await expect(page.getByRole("button", { name: "Download regression.png" })).toBeVisible();
     await screenshot(page, testInfo, "ticket-detail", "success");
 
@@ -108,6 +109,7 @@ test.describe("Authenticated Lab 2 requester regression", () => {
       await otherRequester.goto(`/tickets/${encodeURIComponent(ticketNumber!)}`);
       await expect(otherRequester.getByRole("heading", { name: "Ticket not found" })).toBeVisible();
       await expect(otherRequester.getByText(summary)).toHaveCount(0);
+      await screenshot(otherRequester, testInfo, "ticket-detail", "cross-requester-not-found");
     } finally {
       await secondContext.close();
     }

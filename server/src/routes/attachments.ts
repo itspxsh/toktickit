@@ -243,11 +243,6 @@ export function registerAttachmentRoutes(
 
     const prisma = prismaProvider();
     try {
-      const ticket = await findOwnedTicket(prisma, ticketNumber, requesterId);
-      if (!ticket) {
-        sendTicketNotFound(res);
-        return;
-      }
       const file = req.file as AttachmentFileLike;
       const validation = validateAttachment(file);
       if ("status" in validation) {
@@ -260,7 +255,9 @@ export function registerAttachmentRoutes(
         return;
       }
 
-      const storedFiles: Array<{ storageKey: string; permanentPath: string }> = [];
+      // Keep slow disk I/O outside the interactive transaction and row lock.
+      // The owned Ticket is still rechecked under the lock before its row is created.
+      const stored = await persistFile(req.file!, validation.extension);
       try {
         const created = await prisma.$transaction(async (transaction) => {
           const currentTicket = await findOwnedTicket(transaction, ticketNumber, requesterId);
@@ -283,8 +280,6 @@ export function registerAttachmentRoutes(
             throw new AttachmentRouteError(409, "ATTACHMENT_LIMIT_REACHED", "A Ticket can have at most five active Attachments.");
           }
 
-          const stored = await persistFile(req.file!, validation.extension);
-          storedFiles.push(stored);
           return await transaction.attachment.create({
             data: {
               ticketId: ownedTicket.id,
@@ -299,7 +294,7 @@ export function registerAttachmentRoutes(
         });
         res.status(201).json({ data: serialiseAttachment(created) });
       } catch (error) {
-        await Promise.all(storedFiles.map(({ permanentPath }) => unlink(permanentPath).catch(() => undefined)));
+        await unlink(stored.permanentPath).catch(() => undefined);
         if (error instanceof AttachmentRouteError) {
           sendUploadError(res, error.status, error.code, error.message);
           return;
@@ -461,7 +456,18 @@ export function registerAttachmentRoutes(
       if (typeof attachment.storageKey === "string") {
         const filePath = safeAttachmentPath(attachment.storageKey);
         // The soft-removal is already committed; physical cleanup is best effort.
-        if (filePath) await unlink(filePath).catch(() => undefined);
+        if (filePath) {
+          try {
+            await unlink(filePath);
+          } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (code !== "ENOENT") {
+              // Avoid logging private paths or storage keys; the attachment id
+              // and OS error code are enough to diagnose orphaned files.
+              console.error("Unable to remove stored Attachment file.", { attachmentId, code: code ?? "UNKNOWN" });
+            }
+          }
+        }
       }
       res.status(200).json({ data: serialiseAttachment(updated) });
     } catch {

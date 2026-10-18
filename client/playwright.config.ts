@@ -1,8 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
+import { resolveArtifactRoot } from "../e2e/artifact-path.cjs";
 
 const suite = process.env.E2E_SUITE === "lab3" ? "lab-03" : "lab-02";
-const artifactRoot = path.resolve(process.cwd(), "..", process.env.E2E_ARTIFACT_ROOT ?? `artifacts/${suite}`);
+const artifactRoot = resolveArtifactRoot(`artifacts/${suite}`);
 const baseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173";
 const baseUrl = new URL(baseURL);
 const clientPort = baseUrl.port || (baseUrl.protocol === "https:" ? "443" : "80");
@@ -39,7 +40,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `if ! node -e 'try { const db = new URL(process.env.E2E_DATABASE_URL ?? ""); const name = decodeURIComponent(db.pathname.split("/").pop() ?? ""); const client = new URL(process.env.E2E_BASE_URL ?? ""); const auth = new URL(process.env.E2E_AUTH_ORIGIN ?? ""); if (!["postgres:", "postgresql:"].includes(db.protocol) || !/_test$/i.test(name) || client.origin !== auth.origin || (client.protocol === "http:" && process.env.E2E_SESSION_COOKIE_SECURE !== "false")) process.exit(1); } catch { process.exit(1); }' 2>/dev/null; then echo 'E2E requires a PostgreSQL E2E_DATABASE_URL ending in _test, matching E2E_BASE_URL/E2E_AUTH_ORIGIN, and SESSION_COOKIE_SECURE=false for local HTTP.' >&2; exit 1; fi; set -a; . server/.env; set +a; export DATABASE_URL="$E2E_DATABASE_URL"; export AUTH_ORIGIN="$E2E_AUTH_ORIGIN"; export SESSION_COOKIE_SECURE="$E2E_SESSION_COOKIE_SECURE"; export PORT='${apiPort}'; npm --prefix server run build && npm --prefix server run start`,
+      command: `node e2e/assert-preflight.cjs || exit 1; set -a; . server/.env; set +a; export DATABASE_URL="$E2E_DATABASE_URL"; export AUTH_ORIGIN="$E2E_AUTH_ORIGIN"; export SESSION_COOKIE_SECURE="$E2E_SESSION_COOKIE_SECURE"; export PORT='${apiPort}'; npm --prefix server run build && npm --prefix server run start`,
       cwd: "..",
       url: `${apiURL}/api/health`,
       timeout: 30_000,

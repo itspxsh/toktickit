@@ -1,14 +1,10 @@
 import { expect, type Page, type TestInfo } from "../../client/node_modules/@playwright/test/index.js";
-import path from "node:path";
 import { mkdir } from "node:fs/promises";
+import path from "node:path";
+import { resolveArtifactRoot } from "../artifact-path.cjs";
 
 export const API_BASE_URL = process.env.E2E_API_URL ?? "http://127.0.0.1:3000";
-const REPOSITORY_ROOT = path.basename(process.cwd()) === "client"
-  ? path.resolve(process.cwd(), "..")
-  : path.resolve(process.cwd());
-const ARTIFACT_ROOT = process.env.E2E_ARTIFACT_ROOT
-  ? path.join(REPOSITORY_ROOT, process.env.E2E_ARTIFACT_ROOT, "screenshots")
-  : path.join(REPOSITORY_ROOT, "artifacts/lab-03/screenshots");
+const ARTIFACT_ROOT = path.join(resolveArtifactRoot("artifacts/lab-03"), "screenshots");
 
 export type E2ERole = "requester" | "requesterB" | "staff" | "admin";
 
