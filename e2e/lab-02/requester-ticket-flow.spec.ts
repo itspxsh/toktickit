@@ -98,11 +98,16 @@ test.describe("Authenticated Lab 2 requester regression", () => {
     const blocked = await page.request.get(`${API_BASE_URL}/api/tickets/${encodeURIComponent(ticketNumber!)}/attachments/${removed?.id}/download`);
     expect(blocked.status()).toBe(404);
 
+    const projectViewport = testInfo.project.use.viewport;
+    if (!projectViewport) throw new Error("The cross-requester evidence requires a configured project viewport.");
     const secondContext = await browser.newContext({
       baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173",
+      viewport: projectViewport,
     });
     try {
       const otherRequester = await secondContext.newPage();
+      expect(await otherRequester.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight })))
+        .toEqual(projectViewport);
       await signIn(otherRequester, "requesterB");
       await expect(otherRequester.getByRole("heading", { name: "My Tickets" })).toBeVisible();
       await expect(otherRequester.getByText(summary)).toHaveCount(0);
