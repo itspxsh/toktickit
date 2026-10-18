@@ -36,6 +36,16 @@ test.describe("Lab 3 IT Staff journey", () => {
     const filteredRows = page.locator("tbody tr");
     const emptyFilteredState = page.getByRole("heading", { name: "Nothing here yet" });
     await expect.poll(async () => (await filteredRows.count()) > 0 || await emptyFilteredState.isVisible()).toBe(true);
+    const nextPage = page.getByRole("button", { name: "Next" });
+    if (await nextPage.isEnabled()) {
+      await nextPage.click();
+      await expect(page.getByRole("button", { name: "Previous" })).toBeEnabled();
+      await page.getByRole("button", { name: "Previous" }).click();
+    } else {
+      await expect(nextPage).toBeDisabled();
+    }
+    // Resolve the editable row after paging so an index-based row locator can
+    // never silently retarget a different page when the workflow is changed.
     // The three viewport projects share one seeded database, so earlier
     // journeys may have transitioned every NEW seed ticket. Keep proving the
     // filter control, then search the full queue for any editable workflow row.
@@ -46,14 +56,6 @@ test.describe("Lab 3 IT Staff journey", () => {
     }
     if (!editableRow) throw new Error("The seeded Staff queue contains no Ticket with an editable workflow status.");
     await expect(editableRow).toBeVisible();
-    const nextPage = page.getByRole("button", { name: "Next" });
-    if (await nextPage.isEnabled()) {
-      await nextPage.click();
-      await expect(page.getByRole("button", { name: "Previous" })).toBeEnabled();
-      await page.getByRole("button", { name: "Previous" }).click();
-    } else {
-      await expect(nextPage).toBeDisabled();
-    }
     await expectNoHorizontalOverflow(page);
     await page.keyboard.press("Tab");
     await expect(page.locator(":focus-visible")).toBeVisible();
