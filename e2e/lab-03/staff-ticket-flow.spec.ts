@@ -1,5 +1,22 @@
-import { expect, test } from "../../client/node_modules/@playwright/test/index.js";
+import { expect, test, type Page } from "../../client/node_modules/@playwright/test/index.js";
 import { API_BASE_URL, expectNoHorizontalOverflow, preflight, saveScreenshot, signIn } from "./support.js";
+
+const nextStatusByCurrent: Record<string, string> = {
+  NEW: "OPEN",
+  OPEN: "IN_PROGRESS",
+  IN_PROGRESS: "WAITING_FOR_REQUESTER",
+  WAITING_FOR_REQUESTER: "IN_PROGRESS",
+  REOPENED: "IN_PROGRESS",
+};
+
+async function firstEditableQueueRow(page: Page) {
+  for (const row of await page.locator("tbody tr").all()) {
+    const label = await row.locator('[data-label="Status"] [role="status"]').getAttribute("aria-label");
+    const currentStatus = label?.replace(/^Status:\s*/i, "").trim().toUpperCase().replace(/[\s-]+/g, "_");
+    if (currentStatus && nextStatusByCurrent[currentStatus]) return row;
+  }
+  return null;
+}
 
 test.describe("Lab 3 IT Staff journey", () => {
   test("T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates filters, pagination controls, priority/status updates, workflow, and isolation", async ({ page }, testInfo) => {
@@ -13,9 +30,12 @@ test.describe("Lab 3 IT Staff journey", () => {
     await page.getByRole("link", { name: "Staff Tickets" }).click();
     await expect(page.getByRole("heading", { name: "Staff Ticket Queue" })).toBeVisible();
     await page.getByLabel("Search tickets").fill("TKT-");
-    await page.getByLabel("Status").selectOption("NEW");
+    await page.getByLabel("Status", { exact: true }).selectOption("NEW");
     await page.getByLabel("Page size").selectOption("50");
     await expect(page.getByLabel("Page size")).toHaveValue("50");
+    const filteredRows = page.locator("tbody tr");
+    const emptyFilteredState = page.getByRole("heading", { name: "Nothing here yet" });
+    await expect.poll(async () => (await filteredRows.count()) > 0 || await emptyFilteredState.isVisible()).toBe(true);
     const nextPage = page.getByRole("button", { name: "Next" });
     if (await nextPage.isEnabled()) {
       await nextPage.click();
@@ -24,11 +44,23 @@ test.describe("Lab 3 IT Staff journey", () => {
     } else {
       await expect(nextPage).toBeDisabled();
     }
+    // Resolve the editable row after paging so an index-based row locator can
+    // never silently retarget a different page when the workflow is changed.
+    // The three viewport projects share one seeded database, so earlier
+    // journeys may have transitioned every NEW seed ticket. Keep proving the
+    // filter control, then search the full queue for any editable workflow row.
+    let editableRow = await firstEditableQueueRow(page);
+    if (!editableRow) {
+      await page.getByRole("button", { name: "Status: NEW ×" }).click();
+      editableRow = await firstEditableQueueRow(page);
+    }
+    if (!editableRow) throw new Error("The seeded Staff queue contains no Ticket with an editable workflow status.");
+    await expect(editableRow).toBeVisible();
     await expectNoHorizontalOverflow(page);
     await page.keyboard.press("Tab");
     await expect(page.locator(":focus-visible")).toBeVisible();
 
-    const ticketLink = page.locator("tbody tr").first().getByRole("link", { name: /TKT-/ });
+    const ticketLink = editableRow.getByRole("link", { name: /TKT-/ });
     await expect(ticketLink).toBeVisible();
     await saveScreenshot(page, testInfo, "staff-queue", "success");
     await ticketLink.click();
@@ -48,7 +80,8 @@ test.describe("Lab 3 IT Staff journey", () => {
     await expect(page.locator('p[role="status"]')).toContainText(/Priority updated/i);
     const statusSelect = page.getByLabel("Status", { exact: true });
     const currentStatus = await statusSelect.inputValue();
-    const nextStatus = currentStatus === "NEW" ? "OPEN" : currentStatus;
+    const nextStatus = nextStatusByCurrent[currentStatus];
+    if (!nextStatus) throw new Error(`Expected an editable seeded ticket status, got ${currentStatus}`);
     await statusSelect.selectOption(nextStatus);
     await page.getByRole("button", { name: "Save status" }).click();
     await expect(page.locator('p[role="status"]')).toContainText(/Status updated/i);

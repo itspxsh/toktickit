@@ -194,23 +194,25 @@ export function FormField({ children, error, hint, id, label, required = false }
 export interface StatusBadgeProps {
   label: string;
   tone?: "success" | "warning" | "error" | "neutral";
+  ariaLabelPrefix?: "Status" | "Priority";
+  glyph?: string;
 }
 
-export function StatusBadge({ label, tone = "neutral" }: StatusBadgeProps) {
+export function StatusBadge({ label, tone = "neutral", ariaLabelPrefix = "Status", glyph = "●" }: StatusBadgeProps) {
   return (
     <span
       className={`status-badge status-badge--${tone}`}
       data-tone={tone}
       role="status"
-      aria-label={`Status: ${label}`}
+      aria-label={`${ariaLabelPrefix}: ${label}`}
     >
-      <span aria-hidden="true">●</span> {label}
+      <span aria-hidden="true">{glyph}</span> {label}
     </span>
   );
 }
 
 export function PriorityBadge({ label, tone = "neutral" }: StatusBadgeProps) {
-  return <StatusBadge label={label} tone={tone} />;
+  return <StatusBadge label={label} tone={tone} ariaLabelPrefix="Priority" glyph="◆" />;
 }
 
 export interface AlertProps {

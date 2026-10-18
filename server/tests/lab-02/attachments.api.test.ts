@@ -1,5 +1,5 @@
 import express from "express";
-import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import request from "supertest";
@@ -46,8 +46,23 @@ function createTestApp(overrides: Record<string, unknown> = {}) {
       removalReason: data.removalReason,
       createdAt,
     })),
+    beforeTransaction: vi.fn(async () => undefined),
+    lockQueryRaw: vi.fn(async () => [{ id: 42 }]),
   };
   Object.assign(calls, overrides);
+
+  const transaction = vi.fn(async (callback: (transaction: unknown) => Promise<unknown>) => {
+    await calls.beforeTransaction();
+    return callback({
+      ticket: { findFirst: calls.ticketFindFirst },
+      attachment: {
+        count: calls.attachmentCount,
+        create: calls.attachmentCreate,
+      },
+      $queryRaw: calls.lockQueryRaw,
+      $transaction: vi.fn(),
+    });
+  });
 
   const app = express();
   app.use(express.json());
@@ -60,6 +75,8 @@ function createTestApp(overrides: Record<string, unknown> = {}) {
       create: calls.attachmentCreate,
       update: calls.attachmentUpdate,
     },
+    $queryRaw: vi.fn(async () => [{ id: 42 }]),
+    $transaction: transaction,
   }) as never);
   return { app, calls };
 }
@@ -144,9 +161,25 @@ describe("Attachment routes", () => {
         status: "ACTIVE",
       },
     });
+    expect(calls.lockQueryRaw).toHaveBeenCalledOnce();
     const files = await readdir(storageDir);
     expect(files).toHaveLength(1);
     expect(files[0]).toMatch(/^[0-9a-f-]{36}\.png$/);
+  });
+
+  it("persists bytes before opening the capacity transaction", async () => {
+    const beforeTransaction = vi.fn(async () => {
+      expect(await readdir(storageDir)).toHaveLength(1);
+    });
+    const { app, calls } = createTestApp({ beforeTransaction });
+    const response = await request(app)
+      .post(`/api/tickets/${ticketNumber}/attachments`)
+      .set("X-Development-Requester-Id", String(requesterId))
+      .attach("file", png, { filename: "evidence.png", contentType: "image/png" });
+
+    expect(response.status).toBe(201);
+    expect(beforeTransaction).toHaveBeenCalledOnce();
+    expect(calls.lockQueryRaw).toHaveBeenCalledOnce();
   });
 
   it("API-11 / AC-15: rejects invalid files and active-count overflow without rows", async () => {
@@ -293,5 +326,29 @@ describe("Attachment routes", () => {
       .send({ reason: "Another explanation" });
     expect(repeated.status).toBe(409);
     expect(alreadyRemoved.calls.attachmentUpdate).not.toHaveBeenCalled();
+  });
+
+  it("keeps a successful soft-removal response but logs non-missing file cleanup errors", async () => {
+    const storageKey = "00000000-0000-4000-8000-000000000001.png";
+    await mkdir(path.join(storageDir, storageKey));
+    const appWithDirectory = createTestApp({
+      attachmentFindFirst: vi.fn(async () => ({ id: 101, status: "ACTIVE", storageKey })),
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const response = await request(appWithDirectory.app)
+        .delete(`/api/tickets/${ticketNumber}/attachments/101`)
+        .set("X-Development-Requester-Id", String(requesterId))
+        .send({ reason: "Uploaded the wrong screenshot." });
+
+      expect(response.status).toBe(200);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Unable to remove stored Attachment file.",
+        expect.objectContaining({ attachmentId: 101, code: expect.any(String) }),
+      );
+      expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(storageDir);
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 });

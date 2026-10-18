@@ -1,20 +1,23 @@
 import { expect, type Page, type TestInfo } from "../../client/node_modules/@playwright/test/index.js";
-import path from "node:path";
 import { mkdir } from "node:fs/promises";
+import path from "node:path";
+import { resolveArtifactRoot } from "../artifact-path.cjs";
 
 export const API_BASE_URL = process.env.E2E_API_URL ?? "http://127.0.0.1:3000";
-const REPOSITORY_ROOT = path.basename(process.cwd()) === "client"
-  ? path.resolve(process.cwd(), "..")
-  : path.resolve(process.cwd());
-const ARTIFACT_ROOT = path.join(REPOSITORY_ROOT, "artifacts/lab-03/screenshots");
+const ARTIFACT_ROOT = path.join(resolveArtifactRoot("artifacts/lab-03"), "screenshots");
 
-export type E2ERole = "requester" | "staff" | "admin";
+export type E2ERole = "requester" | "requesterB" | "staff" | "admin";
 
 const ROLE_ENV: Record<E2ERole, { email: string; password: string; newPassword: string }> = {
   requester: {
     email: "E2E_REQUESTER_EMAIL",
     password: "E2E_REQUESTER_PASSWORD",
     newPassword: "E2E_REQUESTER_NEW_PASSWORD",
+  },
+  requesterB: {
+    email: "E2E_REQUESTER_B_EMAIL",
+    password: "E2E_REQUESTER_B_PASSWORD",
+    newPassword: "E2E_REQUESTER_B_NEW_PASSWORD",
   },
   staff: {
     email: "E2E_STAFF_EMAIL",
@@ -54,17 +57,25 @@ export async function signIn(page: Page, role: E2ERole, testInfo?: TestInfo): Pr
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
   if (testInfo) await saveScreenshot(page, testInfo, "authentication", `${role}-login`);
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-
-  const destination = role === "requester" ? "My Tickets" : role === "staff" ? "Staff Tickets" : "User Management";
+  const destination = role === "requester" || role === "requesterB" ? "My Tickets" : role === "staff" ? "Staff Tickets" : "User Management";
+  const authenticatedMarker = page.getByLabel("Authenticated user context");
   const changePassword = page.getByRole("heading", { name: "Change Password" });
-  const destinationLink = page.getByRole("link", { name: destination });
-  const requiresPasswordChange = await Promise.race([
-    changePassword.waitFor({ state: "visible", timeout: 15_000 }).then(() => true).catch(() => false),
-    destinationLink.waitFor({ state: "visible", timeout: 15_000 }).then(() => false).catch(() => false),
-  ]);
+  const destinationLink = page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: destination });
+  const submitCredentials = async (candidate: string) => {
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(candidate);
+    await page.getByRole("button", { name: "Sign in" }).click();
+  };
+  await submitCredentials(password);
+  let requiresPasswordChange = await changePassword.waitFor({ state: "visible", timeout: 5_000 }).then(() => true).catch(() => false);
+  let authenticated = await authenticatedMarker.waitFor({ state: "attached", timeout: 5_000 }).then(() => true).catch(() => false);
+  if (!requiresPasswordChange && !authenticated) {
+    await expect(page.getByRole("alert").first()).toBeVisible();
+    await submitCredentials(requiredEnv(credentials.newPassword));
+    requiresPasswordChange = await changePassword.waitFor({ state: "visible", timeout: 5_000 }).then(() => true).catch(() => false);
+    authenticated = await authenticatedMarker.waitFor({ state: "attached", timeout: 5_000 }).then(() => true).catch(() => false);
+  }
+  expect(requiresPasswordChange || authenticated, `Unable to authenticate seeded ${role} fixture`).toBeTruthy();
   if (requiresPasswordChange) {
     if (testInfo) await saveScreenshot(page, testInfo, "authentication", `${role}-change-password`);
     const nextPassword = requiredEnv(credentials.newPassword);

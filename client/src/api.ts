@@ -585,6 +585,7 @@ export async function createTicket(
     headers: {
       "Content-Type": "application/json",
       ...requesterHeaders(requesterId),
+      ...(await csrfHeaders()),
       "Idempotency-Key": idempotencyKey,
     },
     credentials: "include",
@@ -853,7 +854,7 @@ export async function uploadAttachment(
   form.append("file", file, file.name);
   const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments`, {
     method: "POST",
-    headers: requesterHeaders(requesterId),
+    headers: { ...requesterHeaders(requesterId), ...(await csrfHeaders()) },
     credentials: "include",
     body: form,
     signal,
@@ -892,7 +893,7 @@ export async function removeAttachment(
     `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}`,
     {
       method: "DELETE",
-      headers: { "Content-Type": "application/json", ...requesterHeaders(requesterId) },
+      headers: { "Content-Type": "application/json", ...requesterHeaders(requesterId), ...(await csrfHeaders()) },
       credentials: "include",
       body: JSON.stringify({ reason }),
       signal,

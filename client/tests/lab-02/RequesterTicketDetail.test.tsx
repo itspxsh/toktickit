@@ -82,7 +82,7 @@ describe("L2-07 Requester Ticket Detail", () => {
     expect(screen.getByLabelText("Summary")).toHaveValue(detail.summary);
     expect(screen.getByLabelText("Description")).toHaveValue(detail.description);
     expect(screen.getByRole("status", { name: /Status: New/i })).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: /Status: High/i })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: /Priority: High/i })).toBeInTheDocument();
     expect(screen.getByText("IT Priority: Not assigned")).toBeInTheDocument();
     expect(screen.getByText(/battery\.png — Active/)).toBeInTheDocument();
     expect(screen.getByText(/old-log\.pdf.*Removed/i)).toBeInTheDocument();

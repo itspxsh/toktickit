@@ -1,4 +1,9 @@
 import { randomBytes } from "node:crypto";
+import express from "express";
+import { mkdtemp, readdir, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import request from "supertest";
 import { PrismaClient } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { seedLab3Data, seedLab4Data } from "../../src/data-foundation.js";
@@ -8,6 +13,7 @@ import { assignTicket, claimTicket, updateTicketPriority, updateTicketStatus } f
 import type { Request } from "express";
 import { assertTestDatabaseUrl, createTestPrisma } from "../helpers/test-database.js";
 import { deployMigrationHistory, resetGuardedTestDatabase } from "../helpers/lab4-migration-fixture.js";
+import { registerAttachmentRoutes } from "../../src/routes/attachments.js";
 
 function synchronizeTransactions(clients: PrismaClient[]): PrismaClient[] {
   let entered = 0;
@@ -287,6 +293,53 @@ describe.sequential("L4-04/06 PostgreSQL workflow concurrency", () => {
       expect(afterAba).toEqual({ currentStatus: "OPEN", workflowVersion: abaTicket.workflowVersion + 2 });
     } finally {
       await Promise.all([first.$disconnect(), second.$disconnect()]);
+    }
+  });
+
+  it("T-RACE-04 permits only one concurrent upload to claim the fifth active attachment slot", async () => {
+    const ticket = await prisma.ticket.findUnique({
+      where: { clientRequestId: "lab4-seed-ticket-open" },
+      select: { id: true, ticketNumber: true, requesterId: true },
+    });
+    expect(ticket).not.toBeNull();
+    await prisma.attachment.deleteMany({ where: { ticketId: ticket!.id } });
+    await prisma.attachment.createMany({ data: Array.from({ length: 4 }, (_, index) => ({
+      ticketId: ticket!.id,
+      originalName: `existing-${index}.png`,
+      storageKey: `existing-${index}.png`,
+      mimeType: "image/png",
+      sizeBytes: 8,
+      status: "ACTIVE" as const,
+    })) });
+
+    const storage = await mkdtemp(path.join(os.tmpdir(), "toktickit-lab4-race-"));
+    const previousStorage = process.env.ATTACHMENT_STORAGE_DIR;
+    process.env.ATTACHMENT_STORAGE_DIR = storage;
+    const firstClient = new PrismaClient({ datasources: { db: { url } } });
+    const secondClient = new PrismaClient({ datasources: { db: { url } } });
+    const makeApp = (client: PrismaClient) => {
+      const app = express();
+      app.use(express.json());
+      registerAttachmentRoutes(app, () => client as never);
+      return app;
+    };
+    const apps = [makeApp(firstClient), makeApp(secondClient)];
+    const png = Buffer.from("89504e470d0a1a0a", "hex");
+
+    try {
+      const responses = await Promise.all(apps.map((app, index) => request(app)
+        .post(`/api/tickets/${encodeURIComponent(ticket!.ticketNumber)}/attachments`)
+        .set("X-Development-Requester-Id", String(ticket!.requesterId))
+        .attach("file", png, { filename: `race-${index}.png`, contentType: "image/png" })));
+      expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
+      expect(await prisma.attachment.count({ where: { ticketId: ticket!.id, status: "ACTIVE" } })).toBe(5);
+      expect(await readdir(storage)).toHaveLength(1);
+    } finally {
+      await prisma.attachment.deleteMany({ where: { ticketId: ticket!.id } });
+      if (previousStorage === undefined) delete process.env.ATTACHMENT_STORAGE_DIR;
+      else process.env.ATTACHMENT_STORAGE_DIR = previousStorage;
+      await rm(storage, { recursive: true, force: true });
+      await Promise.all([firstClient.$disconnect(), secondClient.$disconnect()]);
     }
   });
 });

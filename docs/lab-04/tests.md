@@ -49,7 +49,7 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 | T-SEC-02 | 18 | Real write wiring rejects missing/wrong CSRF and foreign Origin independently before mutation; session role change is effective on the next request. | actions-taken.api.test.ts |
 | T-SEC-03 | 03,18 | Forged creator/performer/state/parent and unknown query fields are rejected before data access; strict body allow-list, correlation-only unexpected-error logging, and secret-free response projections. Plain-text/control validation is in T-UNIT-01. | actions-taken.api.test.ts; actions.unit.test.ts |
 | T-REG-01 | 13,17 | Authenticated categories/diagnostic and anonymous401/public health; new Ticket itPriority=requestedPriority; active Admin Owner accepted. | previous-labs.api.test.ts |
-| T-REG-02 | 17 | Attachment post-removal unlink failure still success, removed file inaccessible; five-active capacity concurrency covered in T-RACE-04. | previous-labs.api.test.ts |
+| T-REG-02 | 17 | Attachment post-removal unlink failure still succeeds, ENOENT stays quiet, other cleanup errors are logged without private paths, and removed content remains inaccessible; five-active capacity concurrency is covered in T-RACE-04. | previous-labs.api.test.ts; lab-02/attachments.api.test.ts |
 
 ## 3. Real PostgreSQL integration / migration / performance
 
@@ -63,7 +63,7 @@ All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. 
 | T-RACE-01 | 09 | Two connections update same Action version: one200, one409, one revision increment, no lost content. | workflow-concurrency.integration.test.ts |
 | T-RACE-02 | 08,09 | Barrier-synchronized Action create versus resolve: serialization yields stale/read-only/gate conflict, never resolved with unfinished Action at commit. | workflow-concurrency.integration.test.ts |
 | T-RACE-03 | 09 | Competing claim/assignment/priority/status and ABA use version CAS; verify rollback/events; candidate deactivation race cannot commit an invalid new assignment. | workflow-concurrency.integration.test.ts |
-| T-RACE-04 | 17 | Two uploads competing for fifth slot produce capacity<=5 and compensate file/DB safely; no orphan objects after rejected write. | workflow-concurrency.integration.test.ts |
+| T-RACE-04 | 17 | Two uploads competing for fifth slot produce capacity<=5 and compensate file/DB safely; the integration test covers the race, while the Lab 2 API test asserts the route invokes the lock query and rejected writes leave no orphan objects. | workflow-concurrency.integration.test.ts; lab-02/attachments.api.test.ts |
 | T-DB-DASH-01 | 10,11 | Independent SQL aggregates at fixed clock reconcile API metrics and drill-down counts under same scope; repeatable snapshot race doesn't mix counts/lists. | dashboard.integration.test.ts |
 | T-PERF-01 | 20 | Dedicated fixture5000 Tickets/10000 Actions; <=8 Requester/<=14 Staff data queries per response (excluding BEGIN/COMMIT); no per-row N+1. 5 warmups+20 timed calls, p95<=500ms on recorded local machine; retain EXPLAIN ANALYZE and measured counts, don't raise budget to hide a regression. | dashboard.integration.test.ts |
 
@@ -83,10 +83,10 @@ Do not run destructive migration files concurrently against one DB. Execute sepa
 | T-UI-DS-01 | 11,14 | Staff/Admin cards/buckets/recent/urgent/My Actions pagination links, rejects unsafe pagination values before fetch, and empty/error/forbidden. | StaffDashboard.test.tsx + DashboardViews.test.tsx + DashboardHardening.test.tsx |
 | T-UI-NAV-01 | 12,13 | Server-derived role landing/guard/nav aria-current, query/hash/back/forward reload, dirty-form Back guard whose confirmation returns to the existing history entry without duplicating it, canonical URL replacement (no Back-loop), no localStorage identity. | DashboardRouting.test.tsx + DashboardHardening.test.tsx |
 | T-UI-NAV-02 | 12,14 | URL filters visibly applied/clearable/canonicalized (unknown keys, invalid UTC dates, contradictory status/group and date ranges, lower-bound requires `before`, valid before-only, future-bound limit, requester IDs/priority), search debounce, page>5 aria-current and same-path navigation. | DashboardRouting.test.tsx + DashboardViews.test.tsx |
-| T-UI-REG-01 | 13,17 | Auth first-login/session expiry/password/logout, Lab1 diagnostic, requester create/list/detail/comment/resolution/attachment and Staff/Admin representative flows. | Regression.test.tsx |
+| T-UI-REG-01 | 13,17 | Failed authentication clears the password and exposes only the safe API message; authenticated requester E2E asserts rejected and successful per-file upload outcomes, View Ticket URL, summary/description/number detail values, dirty-form Cancel URL, resolution, attachment lifecycle, and cross-requester not-found screenshot; Staff public-comment/internal-note flows remain covered by Lab 3 E2E. | Regression.test.tsx; e2e/lab-02/requester-ticket-flow.spec.ts; e2e/lab-03/staff-ticket-flow.spec.ts |
 | T-UI-REG-02 | 13,17 | Authenticated category diagnostics and Create Ticket reference requests include browser credentials required by the protected Lab3 endpoints. | previous-labs.test.tsx |
-| T-STYLE-01 | 19 | Token reuse, priority/status non-color text, shared labels/errors/read-only semantics, no placeholder controls. | VisualAccessibility.test.tsx |
-| T-A11Y-01 | 14,19 | Keyboard focus/dialog trap/Escape/restore, descriptions, live notices and metrics links accessible names. | VisualAccessibility.test.tsx |
+| T-STYLE-01 | 19 | Status and priority use distinct accessible text labels and visible non-color glyphs with the shared status-badge visual tokens; existing L1–4 tests cover labels/errors/read-only semantics and no placeholder controls. | VisualAccessibility.test.tsx; existing L1–4 client suites |
+| T-A11Y-01 | 14,19 | Keyboard focus trap, Escape, focus restoration, dialog description, live notices and metrics links accessible names. | VisualAccessibility.test.tsx; existing L1–4 client suites |
 
 ## 5. Live E2E / responsive / evidence
 
