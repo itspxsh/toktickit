@@ -8,6 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const defaultManifest = path.join(root, "artifacts/lab-04/validation/evidence-manifest.json");
 const REQUIRED_ACS = ["AC-15", "AC-16", "AC-17", "AC-18", "AC-19", "AC-20", "AC-21", "AC-22"];
 const REQUIRED_JOURNEYS = ["T-E2E-01", "T-E2E-02", "T-E2E-03"];
+const REQUIRED_RUNS = ["migrationDeploy", "integration", "serverTests", "clientTests", "lab2E2E", "lab3E2E", "lab4E2E", "contractTests"];
 
 function fail(message) { throw new Error(message); }
 
@@ -31,10 +32,12 @@ export async function validateEvidenceManifest(manifest) {
   const require = (condition, message) => { if (!condition) errors.push(message); };
   require(manifest?.schemaVersion === 1, "schemaVersion must be 1.");
   require(/^[a-f0-9]{40}$/i.test(manifest?.sourceCommit ?? ""), "sourceCommit must be a full 40-character commit SHA.");
-  require(/(^|[_-])test$/i.test(manifest?.database?.name ?? ""), "database.name must end in _test; never store its URL.");
+  require((manifest?.database?.name ?? "").toLowerCase().endsWith("_test"), "database.name must end in _test; never store its URL.");
   require(manifest?.database?.urlRecorded === false, "database.urlRecorded must be false.");
 
   const runs = manifest?.runs ?? {};
+  require(REQUIRED_RUNS.every((name) => Object.hasOwn(runs, name)), `runs must include every required execution: ${REQUIRED_RUNS.join(", ")}.`);
+  const executedTestIds = new Set();
   for (const [name, run] of Object.entries(runs)) {
     if (!run || typeof run !== "object") { errors.push(`${name} run metadata is missing.`); continue; }
     require(Number.isInteger(run.passed) && run.passed >= 0, `${name}.passed must be an actual non-negative integer.`);
@@ -43,6 +46,11 @@ export async function validateEvidenceManifest(manifest) {
     require(run.retries === 0, `${name}.retries must be zero.`);
     require(typeof run.command === "string" && run.command.length > 0, `${name}.command is required.`);
     require(!/postgres(?:ql)?:\/\/[^\s]+/i.test(run.command), `${name}.command must redact database URLs.`);
+    require(Array.isArray(run.testIds), `${name}.testIds must list test IDs exercised by this run.`);
+    for (const testId of run.testIds ?? []) {
+      if (typeof testId === "string" && /^[A-Z][A-Z0-9-]+$/.test(testId)) executedTestIds.add(testId);
+      else errors.push(`${name}.testIds contains an invalid test ID.`);
+    }
   }
 
   const matrix = manifest?.browserMatrix;
@@ -53,10 +61,16 @@ export async function validateEvidenceManifest(manifest) {
     require(actual.size === expected.size && [...expected].every((entry) => actual.has(entry)), "browserMatrix must contain exactly three journeys across desktop/tablet/mobile.");
     for (const row of matrix) {
       require(row.passed === 1 && row.failed === 0 && row.skipped === 0 && row.retries === 0, `${row.testId}/${row.project} must be one green, non-retried execution.`);
+      if (typeof row.testId === "string") executedTestIds.add(row.testId);
     }
   }
 
   require(manifest?.traceability && REQUIRED_ACS.every((ac) => Array.isArray(manifest.traceability[ac]) && manifest.traceability[ac].length > 0), "AC-15..22 must each map to executed test IDs.");
+  for (const ac of REQUIRED_ACS) {
+    for (const testId of manifest?.traceability?.[ac] ?? []) {
+      require(executedTestIds.has(testId), `${ac} maps to ${testId}, which is not present in any recorded executed run.`);
+    }
+  }
   for (const relativePath of [manifest?.migration?.log, manifest?.metrics?.report, manifest?.validation?.log]) {
     require(await fileExists(relativePath), `Required evidence file is missing: ${relativePath ?? "<unset>"}.`);
   }

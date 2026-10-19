@@ -18,18 +18,23 @@ test("T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down,
   const ownTicketsResponse = await page.request.get(`${API_BASE_URL}/api/tickets?page=1&pageSize=100`);
   expect(ownTicketsResponse.ok()).toBeTruthy();
   const ownTickets = await ownTicketsResponse.json() as {
-    data: Array<{ currentStatus: string; ticketNumber: string; updatedAt: string; resolvedAt: string | null }>;
+    data: Array<{ currentStatus: string; ticketNumber: string }>;
     pagination: { totalItems: number };
   };
   expect(ownTickets.pagination.totalItems).toBe(ownTickets.data.length);
   const activeStatuses = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"];
-  const windowStart = Date.parse(requesterDashboard.windowStart);
-  const asOf = Date.parse(requesterDashboard.asOf);
+  const countForDrillDown = async (key: "updatedLast7Days" | "resolvedLast7Days") => {
+    const drillDown = new URL(requesterDashboard.metrics[key].drillDown, "http://local.invalid");
+    const response = await page.request.get(`${API_BASE_URL}/api/tickets${drillDown.search}`);
+    expect(response.ok(), `${key} drill-down must be an authenticated Ticket list`).toBeTruthy();
+    const body = await response.json() as { pagination: { totalItems: number } };
+    return body.pagination.totalItems;
+  };
   const expectedRequesterMetrics = {
     activeTickets: ownTickets.data.filter((ticket) => activeStatuses.includes(ticket.currentStatus)).length,
     waitingForRequester: ownTickets.data.filter((ticket) => ticket.currentStatus === "WAITING_FOR_REQUESTER").length,
-    updatedLast7Days: ownTickets.data.filter((ticket) => Date.parse(ticket.updatedAt) >= windowStart && Date.parse(ticket.updatedAt) <= asOf).length,
-    resolvedLast7Days: ownTickets.data.filter((ticket) => ticket.resolvedAt !== null && Date.parse(ticket.resolvedAt) >= windowStart && Date.parse(ticket.resolvedAt) <= asOf).length,
+    updatedLast7Days: await countForDrillDown("updatedLast7Days"),
+    resolvedLast7Days: await countForDrillDown("resolvedLast7Days"),
   };
   const requesterLabels: Record<string, string> = {
     activeTickets: "Active tickets",

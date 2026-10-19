@@ -8,7 +8,7 @@ function guardedDatabaseUrl(value, variableName) {
   catch { throw new Error(`${variableName} must be a valid PostgreSQL URL; no database action was run.`); }
   if (!/^postgres(?:ql)?:$/.test(parsed.protocol)) throw new Error(`${variableName} must use PostgreSQL; no database action was run.`);
   const databaseName = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
-  if (!/(^|[_-])test$/i.test(databaseName)) throw new Error(`${variableName} must name an isolated database ending in _test; no database action was run.`);
+  if (!databaseName.toLowerCase().endsWith("_test")) throw new Error(`${variableName} must name an isolated database ending in _test; no database action was run.`);
   return { value, databaseName };
 }
 

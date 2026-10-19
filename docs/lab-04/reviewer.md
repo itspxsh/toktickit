@@ -97,3 +97,37 @@ No Lab 4 peer reviews in the partner repository have been verified or recorded y
 ## Release gate
 
 Not started. A released `main` validation, final evidence, Issue-only Kanban completion, and final report remain future work. No test, migration, screenshot, performance, or approval result is claimed by this record.
+
+### L4-09 final close-out — PR #79
+
+The earlier L4-09 open-review statements above are superseded by the verified
+merge record: [PR #79](https://github.com/itspxsh/toktickit/pull/79) was approved
+by [@justfepwx12](https://github.com/justfepwx12) on head
+[`6669b25`](https://github.com/itspxsh/toktickit/commit/6669b2555c8fd778096ef2f94edb1c369681f77c)
+([review](https://github.com/itspxsh/toktickit/pull/79#pullrequestreview-5565236566))
+and merged into `lab4-staging` at
+[`5743a90`](https://github.com/itspxsh/toktickit/commit/5743a909ade8a8ebdde1f5459c0026f84ed44c87).
+The reviewed evidence was server 175/175, client 133/133, PostgreSQL integration
+20/20, all four migrations on a guarded test database, Lab 2 E2E 3/3, Lab 3 E2E
+9/9, builds/Prisma/diff-check green, and 51 refreshed loaded-state screenshots.
+The exact run provenance is recorded in
+[`artifacts/lab-04/regression/README.md`](../../artifacts/lab-04/regression/README.md)
+and the accepted follow-up is
+[PR comment #6254969385](https://github.com/itspxsh/toktickit/pull/79#issuecomment-6254969385).
+Issue [#68](https://github.com/itspxsh/toktickit/issues/68) is now closed as
+completed and its issue-only Kanban card is Done.
+
+## L4-10 evidence work (Issue #69)
+
+Issue [#69](https://github.com/itspxsh/toktickit/issues/69) is in progress on
+`feature/lab4-10-live-evidence`, branched from the merged
+`lab4-staging@5743a90`. The tests-first commits are
+[`0135028`](https://github.com/itspxsh/toktickit/commit/0135028) and
+[`772b43c`](https://github.com/itspxsh/toktickit/commit/772b43c); implementation
+and E2E hardening is in
+[`105a281`](https://github.com/itspxsh/toktickit/commit/105a281). A focused
+regression added after the initial implementation reproduced and fixed stale
+Actions version refresh after a successful parent Ticket workflow mutation.
+The latest final evidence is being generated separately from the migration
+fixture database; the release evidence manifest and review request are pending
+until all required runs complete and the manifest verifier passes.

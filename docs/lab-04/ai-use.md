@@ -21,6 +21,7 @@ The proposals include Actions Taken, a server-enforced Ticket resolution gate, r
 | Date | Activity | Inputs | Output | Human / peer verification |
 | --- | --- | --- | --- | --- |
 | 2026-10-07 | L4-01 contract preparation | Lab 4 handout, released main, Lab 1–3 contracts, user-provided workflow prompt | Proposed six-document contract set; [public L4-01 Issue #59](https://github.com/itspxsh/toktickit/issues/59) | Peer review pending; no approval or merge yet |
+| 2026-10-19 | L4-10 live evidence and post-merge regression | Approved Issue #69, Lab 4 contracts, merged L4-09 PR #79, isolated local PostgreSQL `_test` database | TDD commits, live E2E/migration/regression evidence, screenshot manifest, and validation documentation in progress | Human peer reviewer is `justfepwx12`; no L4-10 approval/merge is claimed until the PR review occurs |
 
 ## Prompt intent and reflection
 
