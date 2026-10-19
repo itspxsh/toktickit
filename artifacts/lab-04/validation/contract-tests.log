@@ -1,14 +1,19 @@
-✔ T-CONTRACT-01: Lab 4 has an explicit Playwright suite selector and reproducible command (2.498834ms)
-✔ T-EVID-01: evidence verifier is present at the contract's canonical path (0.373458ms)
-✔ T-EVID-01 rejects manifests that do not record executed suite runs (0.657709ms)
-✔ T-EVID-01 rejects AC mappings to test IDs absent from all executed runs (0.479625ms)
-✔ T-EVID-01 database preparation guard requires the literal _test suffix (0.2595ms)
-✔ T-EVID-01 scans retained logs for raw database URLs and credentials (0.313167ms)
-ℹ tests 6
+✔ T-CONTRACT-01: Lab 4 has an explicit Playwright suite selector and reproducible command (2.551ms)
+✔ T-EVID-01: evidence verifier is present at the contract's canonical path (0.304041ms)
+✔ T-EVID-01 rejects manifests that do not record executed suite runs (1.312625ms)
+✔ T-EVID-01 rejects AC mappings to test IDs absent from all executed runs (0.777417ms)
+✔ T-EVID-01 database preparation guard requires the literal _test suffix (0.715167ms)
+✔ T-EVID-01 scans retained logs for raw database URLs and credentials (0.338167ms)
+✔ T-EVID-01 derives Vitest pass/fail/skip counts from its completed summary (0.869083ms)
+✔ T-EVID-01 derives Node test-run counts from the TAP summary (0.195584ms)
+✔ T-EVID-01 derives exactly one non-retried run per Lab 4 journey and viewport (0.124042ms)
+✔ T-EVID-01 derives migration count only from successful deploy output (0.11525ms)
+✔ T-EVID-01 rejects a manifest count that disagrees with the retained output (11.548375ms)
+ℹ tests 11
 ℹ suites 0
-ℹ pass 6
+ℹ pass 11
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 66.787875
+ℹ duration_ms 84.888209

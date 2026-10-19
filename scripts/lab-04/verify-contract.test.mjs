@@ -89,17 +89,22 @@ test("T-EVID-01 derives Node test-run counts from the TAP summary", () => {
 });
 
 test("T-EVID-01 derives exactly one non-retried run per Lab 4 journey and viewport", () => {
-  const log = [
-    "✓ 1 [desktop] › T-E2E-01 requester journey",
-    "✓ 2 [tablet] › T-E2E-01 requester journey",
-    "✓ 3 [mobile] › T-E2E-01 requester journey",
-  ].join("\n") + "\n3 passed (1m)\n";
-  assert.equal(parsePlaywrightMatrix(log).length, 3);
-  assert.throws(() => parsePlaywrightMatrix(log.replace("3 passed", "2 passed")), /summary/i);
+  const rows = ["T-E2E-01", "T-E2E-02", "T-E2E-03"].flatMap((testId) => ["desktop", "tablet", "mobile"].map((viewport) => `✓ 1 [${viewport}] › ${testId} journey`));
+  const log = `${rows.join("\n")}\n9 passed (1m)\n`;
+  assert.equal(parsePlaywrightMatrix(log).length, 9);
+  assert.throws(() => parsePlaywrightMatrix(log.replace("9 passed", "8 passed")), /summary/i);
   assert.throws(() => parsePlaywrightMatrix(`${log}  1 flaky\n`), /retry|flaky/i);
 });
 
 test("T-EVID-01 derives migration count only from successful deploy output", () => {
   assert.equal(parseMigrationDeploy("4 migrations found\nAll migrations have been successfully applied.\n"), 4);
   assert.throws(() => parseMigrationDeploy("4 migrations found\nMigration failed\n"), /success/i);
+});
+
+test("T-EVID-01 rejects a manifest count that disagrees with the retained output", async () => {
+  const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.runs.clientTests.passed += 1;
+  const errors = await validateEvidenceManifest(manifest);
+  assert.ok(errors.some((error) => error.includes("clientTests.passed") && error.includes("retained run log")), errors.join("\n"));
 });

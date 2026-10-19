@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
   "sourceCommit": "5e0912437e28cf15dfeafe8eda33656adc70c20b",
+  "validationCommit": "5e0912437e28cf15dfeafe8eda33656adc70c20b",
+  "productCommit": "88d1f0caab307e43b1dc238402f4b66f9f91aa23",
   "database": {
     "name": "toktickit_l410_final_integration_test",
     "urlRecorded": false
@@ -99,7 +101,7 @@
       ]
     },
     "contractTests": {
-      "passed": 6,
+      "passed": 11,
       "failed": 0,
       "skipped": 0,
       "retries": 0,
@@ -120,7 +122,39 @@
       "retries": 0
     },
     {
+      "testId": "T-E2E-03",
+      "project": "desktop",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-02",
+      "project": "desktop",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
       "testId": "T-E2E-01",
+      "project": "tablet",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-03",
+      "project": "tablet",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-02",
       "project": "tablet",
       "passed": 1,
       "failed": 0,
@@ -136,23 +170,7 @@
       "retries": 0
     },
     {
-      "testId": "T-E2E-02",
-      "project": "desktop",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0,
-      "retries": 0
-    },
-    {
-      "testId": "T-E2E-02",
-      "project": "tablet",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0,
-      "retries": 0
-    },
-    {
-      "testId": "T-E2E-02",
+      "testId": "T-E2E-03",
       "project": "mobile",
       "passed": 1,
       "failed": 0,
@@ -160,23 +178,7 @@
       "retries": 0
     },
     {
-      "testId": "T-E2E-03",
-      "project": "desktop",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0,
-      "retries": 0
-    },
-    {
-      "testId": "T-E2E-03",
-      "project": "tablet",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0,
-      "retries": 0
-    },
-    {
-      "testId": "T-E2E-03",
+      "testId": "T-E2E-02",
       "project": "mobile",
       "passed": 1,
       "failed": 0,

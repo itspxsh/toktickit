@@ -3,12 +3,23 @@ import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseMigrationDeploy, parseNodeTestRun, parsePlaywrightMatrix, parsePlaywrightRun, parseVitestRun } from "./parse-run-evidence.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const defaultManifest = path.join(root, "artifacts/lab-04/validation/evidence-manifest.json");
 const REQUIRED_ACS = ["AC-15", "AC-16", "AC-17", "AC-18", "AC-19", "AC-20", "AC-21", "AC-22"];
 const REQUIRED_JOURNEYS = ["T-E2E-01", "T-E2E-02", "T-E2E-03"];
 const REQUIRED_RUNS = ["migrationDeploy", "integration", "serverTests", "clientTests", "lab2E2E", "lab3E2E", "lab4E2E", "contractTests"];
+const RUN_LOGS = {
+  migrationDeploy: ["artifacts/lab-04/migration/migration.log", parseMigrationDeploy],
+  integration: ["artifacts/lab-04/validation/integration.log", parseVitestRun],
+  serverTests: ["artifacts/lab-04/validation/server-tests.log", parseVitestRun],
+  clientTests: ["artifacts/lab-04/validation/client-tests.log", parseVitestRun],
+  lab2E2E: ["artifacts/lab-04/validation/lab2-e2e.log", parsePlaywrightRun],
+  lab3E2E: ["artifacts/lab-04/validation/lab3-e2e.log", parsePlaywrightRun],
+  lab4E2E: ["artifacts/lab-04/validation/lab4-e2e.log", parsePlaywrightRun],
+  contractTests: ["artifacts/lab-04/validation/contract-tests.log", parseNodeTestRun],
+};
 
 function fail(message) { throw new Error(message); }
 
@@ -32,6 +43,9 @@ export async function validateEvidenceManifest(manifest) {
   const require = (condition, message) => { if (!condition) errors.push(message); };
   require(manifest?.schemaVersion === 1, "schemaVersion must be 1.");
   require(/^[a-f0-9]{40}$/i.test(manifest?.sourceCommit ?? ""), "sourceCommit must be a full 40-character commit SHA.");
+  require(/^[a-f0-9]{40}$/i.test(manifest?.validationCommit ?? ""), "validationCommit must identify the test/E2E harness tree with a full commit SHA.");
+  require(manifest?.sourceCommit === manifest?.validationCommit, "sourceCommit compatibility field must match validationCommit.");
+  require(/^[a-f0-9]{40}$/i.test(manifest?.productCommit ?? ""), "productCommit must identify the tested product source with a full commit SHA.");
   require((manifest?.database?.name ?? "").toLowerCase().endsWith("_test"), "database.name must end in _test; never store its URL.");
   require(manifest?.database?.urlRecorded === false, "database.urlRecorded must be false.");
 
@@ -51,6 +65,20 @@ export async function validateEvidenceManifest(manifest) {
       if (typeof testId === "string" && /^[A-Z][A-Z0-9-]+$/.test(testId)) executedTestIds.add(testId);
       else errors.push(`${name}.testIds contains an invalid test ID.`);
     }
+    const [logPath, parser] = RUN_LOGS[name] ?? [];
+    if (logPath && parser) {
+      try {
+        const output = await readFile(path.join(root, logPath), "utf8");
+        const actual = parser === parseMigrationDeploy ? parser(output) : parser(output);
+        const actualPassed = typeof actual === "number" ? actual : actual.passed;
+        require(run.passed === actualPassed, `${name}.passed (${run.passed}) does not match retained run log (${actualPassed}).`);
+        if (typeof actual === "object") {
+          require(run.failed === actual.failed && run.skipped === actual.skipped && run.retries === actual.retries, `${name} failure/skip/retry metadata does not match its retained run log.`);
+        }
+      } catch (error) {
+        errors.push(`${name} could not be verified against ${logPath}: ${error.message}`);
+      }
+    }
   }
 
   const matrix = manifest?.browserMatrix;
@@ -63,6 +91,13 @@ export async function validateEvidenceManifest(manifest) {
       require(row.passed === 1 && row.failed === 0 && row.skipped === 0 && row.retries === 0, `${row.testId}/${row.project} must be one green, non-retried execution.`);
       if (typeof row.testId === "string") executedTestIds.add(row.testId);
     }
+    try {
+      const actual = parsePlaywrightMatrix(await readFile(path.join(root, RUN_LOGS.lab4E2E[0]), "utf8"));
+      const key = ({ testId, project, passed, failed, skipped, retries }) => `${testId}:${project}:${passed}:${failed}:${skipped}:${retries}`;
+      require([...matrix].map(key).sort().join("\n") === [...actual].map(key).sort().join("\n"), "browserMatrix does not match the retained Lab 4 Playwright run log.");
+    } catch (error) {
+      errors.push(`browserMatrix could not be verified against the Lab 4 run log: ${error.message}`);
+    }
   }
 
   require(manifest?.traceability && REQUIRED_ACS.every((ac) => Array.isArray(manifest.traceability[ac]) && manifest.traceability[ac].length > 0), "AC-15..22 must each map to executed test IDs.");
@@ -74,8 +109,11 @@ export async function validateEvidenceManifest(manifest) {
   for (const relativePath of [manifest?.migration?.log, manifest?.metrics?.report, manifest?.validation?.log]) {
     require(await fileExists(relativePath), `Required evidence file is missing: ${relativePath ?? "<unset>"}.`);
   }
-  require(manifest?.migration?.appliedMigrations === 4, "All four repository migrations must be verified on the isolated database.");
-  require(manifest?.migration?.integrationPassed >= 20, "T-MIG/T-RACE integration evidence must include at least 20 passing tests.");
+  let migrationsFromLog = null;
+  try { migrationsFromLog = parseMigrationDeploy(await readFile(path.join(root, RUN_LOGS.migrationDeploy[0]), "utf8")); }
+  catch (error) { errors.push(`Migration count could not be verified from deploy log: ${error.message}`); }
+  require(manifest?.migration?.appliedMigrations === 4 && migrationsFromLog === 4, "All four repository migrations must be verified on the isolated database.");
+  require(manifest?.migration?.integrationPassed === runs.integration?.passed && runs.integration?.passed >= 20, "Integration count must match its log and include at least 20 passing tests.");
   require(manifest?.metrics?.fixtureTickets === 5000 && manifest?.metrics?.fixtureActions === 10000, "Performance fixture must be 5,000 Tickets and 10,000 Actions.");
   require(manifest?.metrics?.requesterQueries <= 8 && manifest?.metrics?.staffQueries <= 14, "Measured dashboard data-query counts exceed the contract limits.");
   require(manifest?.metrics?.p95Ms <= 500, "Measured p95 must meet the 500ms contract budget.");
@@ -129,7 +167,7 @@ async function main() {
     for (const error of errors) console.error(`- ${error}`);
     process.exitCode = 1;
   } else {
-    console.log(`L4-10 evidence verified at ${manifest.sourceCommit}: ${manifest.browserMatrix.length} browser runs, ${manifest.screenshots.length} traceable screenshots, migration/security/responsive/performance evidence present.`);
+    console.log(`L4-10 evidence verified for product ${manifest.productCommit} and validation tree ${manifest.validationCommit}: ${manifest.browserMatrix.length} browser runs, ${manifest.screenshots.length} traceable screenshots, migration/security/responsive/performance evidence present.`);
   }
 }
 

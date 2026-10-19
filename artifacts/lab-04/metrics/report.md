@@ -1,6 +1,6 @@
 # L4-10 dashboard performance evidence
 
-Source code commit: `5e0912437e28cf15dfeafe8eda33656adc70c20b`
+Product source commit: `88d1f0caab307e43b1dc238402f4b66f9f91aa23`
 Database: isolated `toktickit_l410_final_integration_test` (_test; URL redacted).
 Measurement: T-PERF-01, after five warm-up iterations and 20 measured runs per dashboard query.
 

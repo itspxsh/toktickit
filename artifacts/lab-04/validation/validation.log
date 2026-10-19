@@ -1,7 +1,17 @@
 L4-10 live-evidence and regression validation
 Date: 2026-10-19 (Asia/Bangkok)
 Product source commit: 88d1f0caab307e43b1dc238402f4b66f9f91aa23
+Playwright/test source commit: 5e0912437e28cf15dfeafe8eda33656adc70c20b (includes test-only follow-up 253d7a0)
 Database scope: isolated local PostgreSQL databases ending in _test; URLs and credentials intentionally omitted.
+
+Provenance: server/client/integration runs below were executed at 21:16–21:17
+against the unchanged product source at 88d1f0c. Later commits 253d7a0 and
+5e09124 changed only the Lab 4 E2E status-history assertion and evidence
+verification code; the Lab 4 browser matrix was rerun at 21:47 against that
+updated test/E2E tree. The post-run documentation/evidence refresh is not
+represented as a product-code validation run. The manifest records product and
+test/E2E SHAs separately and derives result counts and the viewport matrix from
+the corresponding retained logs.
 
 PostgreSQL migration deploy
 - Command: (cd server && DATABASE_URL=<redacted; toktickit_l410_final_migration2_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma)
@@ -17,7 +27,7 @@ Server and client regression
 - (cd server && npm test -- --reporter=dot): 175/175 passed across 24 files; expected EPERM cleanup failure is injected and asserted by T-REG-02, with safe server-side logging.
 - (cd client && npm test -- --reporter=dot): 134/134 passed across 30 files, including T-A11Y-01 and T-STYLE-01.
 - Server TypeScript build, Client TypeScript/Vite production build, and repository-local Prisma 5.22.0 validation all passed. Individual outputs are retained beside this file.
-- node --test scripts/lab-04/verify-contract.test.mjs: 6/6 passed; zero skipped. This includes retained-evidence privacy scanner checks for raw database URLs and credential assignments.
+- node --test scripts/lab-04/verify-contract.test.mjs: 11/11 passed; zero skipped. This includes parser checks for completed Vitest/Node/Playwright/migration summaries, exact viewport matrix, count-vs-log mismatch rejection, and retained-evidence privacy scanning.
 
 Live browser matrix
 - Lab 2 authenticated requester regression: 3/3 passed (desktop/tablet/mobile), one worker, zero retries. Output: lab2-e2e.log.
@@ -26,4 +36,4 @@ Live browser matrix
 - Viewports: desktop 1440×900, tablet 768×1024, mobile 320×800. The dashboard journeys verify exact viewport, no horizontal overflow, and visible keyboard focus; client T-A11Y-01 additionally verifies focus trapping, Escape dismissal, and focus restoration.
 - Representative loaded-state screenshots at desktop/tablet/mobile were visually inspected. The manifest records dimensions and SHA-256 for all 30 Lab 4 screenshots. Test identities use reserved .test emails and fake local-only credentials; no credential or database URL is retained here.
 
-Commands, evidence files, screenshot hashes, AC/Test traceability, and retained-text privacy scanning are validated by scripts/lab-04/verify-contract.mjs. This record describes the source tree SHA above; later evidence/documentation commits do not change that tested source.
+Commands, evidence files, screenshot hashes, AC/Test traceability, retained-text privacy scanning, and agreement between manifest counts and raw run logs are validated by scripts/lab-04/verify-contract.mjs. The product source SHA above is distinct from the later test/E2E source SHA; evidence/documentation tooling changes do not alter tested product behavior.

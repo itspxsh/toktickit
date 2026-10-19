@@ -122,7 +122,17 @@ completed and its issue-only Kanban card is Done.
 Issue [#69](https://github.com/itspxsh/toktickit/issues/69) is implemented on
 `feature/lab4-10-live-evidence`, branched from the merged
 `lab4-staging@5743a90`. The code and tests are pinned to source commit
-[`88d1f0c`](https://github.com/itspxsh/toktickit/commit/88d1f0caab307e43b1dc238402f4b66f9f91aa23).
+[`88d1f0c`](https://github.com/itspxsh/toktickit/commit/88d1f0caab307e43b1dc238402f4b66f9f91aa23)
+for product/server/client behavior. The Lab 4 Playwright assertion and retained-
+evidence test hardening were committed test-first through
+[`253d7a0`](https://github.com/itspxsh/toktickit/commit/253d7a0921b97d045a62b55436b4312b05f30d5d)
+and [`5e09124`](https://github.com/itspxsh/toktickit/commit/5e0912437e28cf15dfeafe8eda33656adc70c20b);
+the post-hardening Lab 4 browser run uses the latter test/E2E tree. The full
+server, client and PostgreSQL suites ran earlier against the same unchanged
+product source; subsequent commits in that range changed only E2E assertions,
+evidence checks, and retained artifacts. The manifest records both product and
+test/E2E source SHAs separately, and its run counts/matrix are parsed from the
+retained command output rather than synthesized.
 The tests-first commits are
 [`0135028`](https://github.com/itspxsh/toktickit/commit/0135028) and
 [`772b43c`](https://github.com/itspxsh/toktickit/commit/772b43c); implementation
@@ -141,8 +151,8 @@ and client tests passed 134/134. Lab 2 authenticated E2E passed 3/3, Lab 3 E2E
 passed 9/9, and Lab 4 E2E passed 9/9 (three journeys × desktop/tablet/mobile),
 all with one worker and zero retries. T-E2E-02 confirms the persisted
 `IN PROGRESS → RESOLVED` status event in the Requester detail. Server/client
-builds, repository-local Prisma validation, and the six contract/evidence tests
-passed. The responsive
+builds, repository-local Prisma validation, and the contract/evidence tests
+passed (the current count-derived evidence verifier suite is 11/11). The responsive
 checks used 1440×900, 768×1024, and 320×800 and asserted no horizontal overflow
 and visible keyboard focus; client accessibility tests additionally checked
 focus trapping, Escape dismissal, and focus restoration.
