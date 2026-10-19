@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+import { createHash } from "node:crypto";
+import { readFile, stat } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const defaultManifest = path.join(root, "artifacts/lab-04/validation/evidence-manifest.json");
+const REQUIRED_ACS = ["AC-15", "AC-16", "AC-17", "AC-18", "AC-19", "AC-20", "AC-21", "AC-22"];
+const REQUIRED_JOURNEYS = ["T-E2E-01", "T-E2E-02", "T-E2E-03"];
+
+function fail(message) { throw new Error(message); }
+
+async function fileExists(relativePath) {
+  if (typeof relativePath !== "string" || relativePath.startsWith("/") || relativePath.includes("..")) return false;
+  try { return (await stat(path.join(root, relativePath))).isFile(); }
+  catch { return false; }
+}
+
+async function sha256(relativePath) {
+  return createHash("sha256").update(await readFile(path.join(root, relativePath))).digest("hex");
+}
+
+function pngDimensions(buffer) {
+  if (buffer.length < 24 || buffer.toString("hex", 0, 8) !== "89504e470d0a1a0a") fail("Invalid PNG signature.");
+  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
+}
+
+export async function validateEvidenceManifest(manifest) {
+  const errors = [];
+  const require = (condition, message) => { if (!condition) errors.push(message); };
+  require(manifest?.schemaVersion === 1, "schemaVersion must be 1.");
+  require(/^[a-f0-9]{40}$/i.test(manifest?.sourceCommit ?? ""), "sourceCommit must be a full 40-character commit SHA.");
+  require(/(^|[_-])test$/i.test(manifest?.database?.name ?? ""), "database.name must end in _test; never store its URL.");
+  require(manifest?.database?.urlRecorded === false, "database.urlRecorded must be false.");
+
+  const runs = manifest?.runs ?? {};
+  for (const [name, run] of Object.entries(runs)) {
+    if (!run || typeof run !== "object") { errors.push(`${name} run metadata is missing.`); continue; }
+    require(Number.isInteger(run.passed) && run.passed >= 0, `${name}.passed must be an actual non-negative integer.`);
+    require(run.failed === 0, `${name}.failed must be zero.`);
+    require(run.skipped === 0, `${name}.skipped must be zero.`);
+    require(run.retries === 0, `${name}.retries must be zero.`);
+    require(typeof run.command === "string" && run.command.length > 0, `${name}.command is required.`);
+    require(!/postgres(?:ql)?:\/\/[^\s]+/i.test(run.command), `${name}.command must redact database URLs.`);
+  }
+
+  const matrix = manifest?.browserMatrix;
+  require(Array.isArray(matrix), "browserMatrix must be an array.");
+  if (Array.isArray(matrix)) {
+    const expected = new Set(REQUIRED_JOURNEYS.flatMap((journey) => ["desktop", "tablet", "mobile"].map((viewport) => `${journey}:${viewport}`)));
+    const actual = new Set(matrix.map((row) => `${row?.testId}:${row?.project}`));
+    require(actual.size === expected.size && [...expected].every((entry) => actual.has(entry)), "browserMatrix must contain exactly three journeys across desktop/tablet/mobile.");
+    for (const row of matrix) {
+      require(row.passed === 1 && row.failed === 0 && row.skipped === 0 && row.retries === 0, `${row.testId}/${row.project} must be one green, non-retried execution.`);
+    }
+  }
+
+  require(manifest?.traceability && REQUIRED_ACS.every((ac) => Array.isArray(manifest.traceability[ac]) && manifest.traceability[ac].length > 0), "AC-15..22 must each map to executed test IDs.");
+  for (const relativePath of [manifest?.migration?.log, manifest?.metrics?.report, manifest?.validation?.log]) {
+    require(await fileExists(relativePath), `Required evidence file is missing: ${relativePath ?? "<unset>"}.`);
+  }
+  require(manifest?.migration?.appliedMigrations === 4, "All four repository migrations must be verified on the isolated database.");
+  require(manifest?.migration?.integrationPassed >= 20, "T-MIG/T-RACE integration evidence must include at least 20 passing tests.");
+  require(manifest?.metrics?.fixtureTickets === 5000 && manifest?.metrics?.fixtureActions === 10000, "Performance fixture must be 5,000 Tickets and 10,000 Actions.");
+  require(manifest?.metrics?.requesterQueries <= 8 && manifest?.metrics?.staffQueries <= 14, "Measured dashboard data-query counts exceed the contract limits.");
+  require(manifest?.metrics?.p95Ms <= 500, "Measured p95 must meet the 500ms contract budget.");
+  require(await fileExists(manifest?.metrics?.explainPlan), "EXPLAIN ANALYZE output is missing.");
+
+  require(Array.isArray(manifest?.screenshots) && manifest.screenshots.length > 0, "At least one committed screenshot is required.");
+  for (const shot of manifest?.screenshots ?? []) {
+    const validPath = await fileExists(shot.path);
+    require(validPath, `Screenshot is missing or outside the repository: ${shot.path}.`);
+    require(/^[a-f0-9]{64}$/i.test(shot.sha256 ?? ""), `Screenshot SHA-256 is missing: ${shot.path}.`);
+    require(Array.isArray(shot.ac) && shot.ac.length > 0 && Array.isArray(shot.testIds) && shot.testIds.length > 0, `Screenshot traceability is missing: ${shot.path}.`);
+    require(shot.redacted === true && shot.loadedState === true, `Screenshot must be redacted and captured after loaded-state assertions: ${shot.path}.`);
+    if (validPath) {
+      require(await sha256(shot.path) === shot.sha256, `Screenshot hash does not match: ${shot.path}.`);
+      const dimensions = pngDimensions(await readFile(path.join(root, shot.path)));
+      require(dimensions.width === shot.width && dimensions.height === shot.height, `Screenshot dimensions do not match the manifest: ${shot.path}.`);
+      require(["desktop", "tablet", "mobile"].includes(shot.project), `Unknown screenshot viewport project: ${shot.path}.`);
+    }
+  }
+
+  const textPaths = [manifest?.migration?.log, manifest?.metrics?.report, manifest?.validation?.log];
+  for (const relativePath of textPaths) {
+    if (await fileExists(relativePath)) {
+      const contents = await readFile(path.join(root, relativePath), "utf8");
+      require(!/postgres(?:ql)?:\/\/[^\s]+/i.test(contents), `Database URL found in ${relativePath}.`);
+      require(!/E2E_(?:REQUESTER|STAFF|ADMIN)_(?:PASSWORD|NEW_PASSWORD)=\S+/i.test(contents), `Credential found in ${relativePath}.`);
+    }
+  }
+  return errors;
+}
+
+async function main() {
+  const manifestPath = process.argv[2] ? path.resolve(process.cwd(), process.argv[2]) : defaultManifest;
+  let manifest;
+  try { manifest = JSON.parse(await readFile(manifestPath, "utf8")); }
+  catch { fail(`Cannot read a valid evidence manifest at ${path.relative(root, manifestPath)}.`); }
+  const errors = await validateEvidenceManifest(manifest);
+  if (errors.length) {
+    console.error(`L4-10 evidence verification failed (${errors.length} issue${errors.length === 1 ? "" : "s"}):`);
+    for (const error of errors) console.error(`- ${error}`);
+    process.exitCode = 1;
+  } else {
+    console.log(`L4-10 evidence verified at ${manifest.sourceCommit}: ${manifest.browserMatrix.length} browser runs, ${manifest.screenshots.length} traceable screenshots, migration/security/responsive/performance evidence present.`);
+  }
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

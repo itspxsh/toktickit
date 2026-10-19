@@ -337,7 +337,7 @@ describe("L4-05 Actions Taken UI", () => {
     await waitFor(() => expect(document.getElementById("action-31")).toHaveFocus());
   });
 
-  it("refreshes the Action workflow version after a successful Ticket status change", async () => {
+  it("T-UI-ACT-05 / AC-14 refreshes the Action workflow version after a successful Ticket status change", async () => {
     const user = userEvent.setup();
     const fetchMock = setupFetch((url, init) => {
       if (url.includes("/api/staff/tickets/") && url.endsWith("/status") && init?.method === "PATCH") {

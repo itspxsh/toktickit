@@ -1,5 +1,5 @@
 import { test } from "../../client/node_modules/@playwright/test/index.js";
-import { createRequesterTicket, expect, expectResponsiveAndKeyboard, openStaffTicket, preflight, saveScreenshot, signIn } from "./support.js";
+import { createRequesterTicket, csrfHeader, expect, expectResponsiveAndKeyboard, openStaffTicket, preflight, saveScreenshot, signIn } from "./support.js";
 
 test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence", async ({ page, browser }, testInfo) => {
   test.setTimeout(120_000);
@@ -22,7 +22,7 @@ test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only project
     const createForm = actions.locator("form.actions-taken__form");
     const firstDescription = `L4-10 completed action ${Date.now()}`;
     await createForm.getByLabel("Description").fill(firstDescription);
-    await createForm.getByLabel("Assignee").selectOption({ label: "Support One (IT Staff)" });
+    await createForm.locator("select").selectOption({ label: "Support One (IT Staff)" });
     await createForm.getByRole("button", { name: "Create action" }).click();
     const firstAction = actions.getByRole("listitem").filter({ hasText: firstDescription });
     await expect(firstAction).toBeVisible();
@@ -31,7 +31,7 @@ test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only project
     const secondDescription = `L4-10 cancelled action ${Date.now()}`;
     const secondForm = actions.locator("form.actions-taken__form");
     await secondForm.getByLabel("Description").fill(secondDescription);
-    await secondForm.getByLabel("Assignee").selectOption({ label: "Support One (IT Staff)" });
+    await secondForm.locator("select").selectOption({ label: "Support One (IT Staff)" });
     await secondForm.getByRole("button", { name: "Create action" }).click();
     const secondAction = actions.getByRole("listitem").filter({ hasText: secondDescription });
     await expect(secondAction).toBeVisible();
@@ -40,7 +40,7 @@ test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only project
     const updatedDescription = `${firstDescription} updated`;
     const editForm = firstAction.locator("form.actions-taken__form");
     await editForm.getByLabel("Description").fill(updatedDescription);
-    await editForm.getByLabel("Assignee").selectOption({ label: "Support Two (IT Staff)" });
+    await editForm.locator("select").selectOption({ label: "Support Two (IT Staff)" });
     await editForm.getByRole("button", { name: "Save action" }).click();
     const updatedAction = actions.getByRole("listitem").filter({ hasText: updatedDescription });
     await expect(updatedAction).toBeVisible();

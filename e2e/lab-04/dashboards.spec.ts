@@ -16,8 +16,8 @@ test("T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down,
   }
   const ownTicketsResponse = await page.request.get(`${API_BASE_URL}/api/tickets?page=1&pageSize=100`);
   expect(ownTicketsResponse.ok()).toBeTruthy();
-  const ownTickets = await ownTicketsResponse.json() as { items: Array<{ currentStatus: string; ticketNumber: string }> };
-  const independentlyActive = ownTickets.items.filter((ticket) => ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"].includes(ticket.currentStatus)).length;
+  const ownTickets = await ownTicketsResponse.json() as { data: Array<{ currentStatus: string; ticketNumber: string }> };
+  const independentlyActive = ownTickets.data.filter((ticket) => ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"].includes(ticket.currentStatus)).length;
   expect(requesterDashboard.metrics.activeTickets?.value).toBe(independentlyActive);
   await expectResponsiveAndKeyboard(page, testInfo);
   await saveScreenshot(page, testInfo, "requester-dashboard", "loaded");

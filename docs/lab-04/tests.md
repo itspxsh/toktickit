@@ -77,6 +77,7 @@ Do not run destructive migration files concurrently against one DB. Execute sepa
 | T-UI-ACT-02 | 02,04 | Different support assignee; inactive cue/reassignment, start/complete/cancel conditions/dialogs; terminal readonly. | ActionsTaken.test.tsx |
 | T-UI-ACT-03 | 05,06 | Stable all-state list/pagination, Requester readonly and no audit/private fetch; support revision disclosure. | ActionsTaken.test.tsx |
 | T-UI-ACT-04 | 09,14 | Pending disables duplicate submit, same key on recoverable retry; 409 preserves draft and offers explicit refresh/reconcile. | ActionsTaken.test.tsx |
+| T-UI-ACT-05 | 14 | A successful parent Ticket status mutation refreshes the Actions panel's ticket version so the next Action write does not use a stale version. | ActionsTaken.test.tsx |
 | T-UI-WF-01 | 07,08 | Only permitted targets, Admin-only reopen, gate messages, close/cancel confirm and success summary refresh. | TicketWorkflow.test.tsx |
 | T-UI-WF-02 | 07,09,14 | Versioned assignment/priority/claim/status requests, stale notice reset on Ticket navigation, no overwrite of unsaved forms. | TicketWorkflow.test.tsx |
 | T-UI-DR-01 | 10,14 | Own cards/attention/recent links, exact values, malformed-payload rejection, strict UTC/calendar/range validation for server-provided drill-down dates, loading vs empty vs failure/retry/forbidden. | RequesterDashboard.test.tsx + DashboardViews.test.tsx + DashboardHardening.test.tsx |
@@ -144,7 +145,7 @@ The acceptance criteria collectively include the proposed BRs in `specification.
 | AC-11 | T-DASH-S-01..04, T-DB-DASH-01, T-UI-DS-01, T-E2E-03 |
 | AC-12 | T-UNIT-03, T-DASH-R-02, T-DASH-S-02, T-QUERY-01, T-UI-NAV-01..02, T-E2E-03 |
 | AC-13 | T-REG-01, T-UI-NAV-01, T-UI-REG-01..02, T-E2E-03 |
-| AC-14 | T-REG-01..02, T-UI-ACT-01/04, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-UI-REG-01, T-A11Y-01, T-E2E-02..03 |
+| AC-14 | T-REG-01..02, T-UI-ACT-01/04/05, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-UI-REG-01, T-A11Y-01, T-E2E-02..03 |
 | AC-15 | T-MIG-01..05, T-WF-04 |
 | AC-16 | T-MIG-03 |
 | AC-17 | T-REG-01..02, T-RACE-04, T-UI-REG-01..02, T-E2E-02..03, all existing Labs1..3 tests and adapted live browser suites |

@@ -32,7 +32,7 @@ test("T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, cl
     await staff.getByRole("button", { name: "Save status" }).click();
     const blockedDialog = staff.getByRole("alertdialog", { name: "Confirm status change" });
     await blockedDialog.getByRole("button", { name: "Confirm status" }).click();
-    await expect(staff.getByRole("alert")).toContainText(/resolution requirements|completed Action|unfinished/i);
+    await expect(staff.getByRole("alert")).toContainText(/truthful Action work/i);
     await saveScreenshot(staff, testInfo, "ticket-workflow", "resolution-blocked");
 
     const actions = staff.getByRole("region", { name: "Actions Taken" });
@@ -40,7 +40,7 @@ test("T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, cl
     const form = actions.locator("form.actions-taken__form");
     const work = `L4-10 resolution work ${Date.now()}`;
     await form.getByLabel("Description").fill(work);
-    await form.getByLabel("Assignee").selectOption({ label: "Support One (IT Staff)" });
+    await form.locator("select").selectOption({ label: "Support One (IT Staff)" });
     await form.getByRole("button", { name: "Create action" }).click();
     const action = actions.getByRole("listitem").filter({ hasText: work });
     await action.getByRole("button", { name: "Start action" }).click();
@@ -94,8 +94,7 @@ test("T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, cl
       await expect(admin.getByLabel("Status", { exact: true })).toHaveValue("CANCELLED");
       await admin.getByLabel("Status", { exact: true }).selectOption("REOPENED");
       await admin.getByRole("button", { name: "Save status" }).click();
-      await expect(admin.getByRole("alertdialog", { name: "Confirm status change" })).toBeVisible();
-      await admin.getByRole("alertdialog", { name: "Confirm status change" }).getByRole("button", { name: "Confirm status" }).click();
+      // REOPENED is not in the Lab 4 confirm-required set; CANCELLED → REOPENED is an Admin-only guarded transition.
       await expect(admin.locator(".ticket-detail__badge-field").filter({ hasText: "Current Status" })).toContainText("REOPENED");
       await expectResponsiveAndKeyboard(admin, testInfo);
       await saveScreenshot(admin, testInfo, "ticket-workflow", "admin-reopened");

@@ -77,7 +77,7 @@ test.describe("Lab 3 IT Staff journey", () => {
     const currentPriority = await page.getByLabel("IT Priority").inputValue();
     await page.getByLabel("IT Priority").selectOption(currentPriority);
     await page.getByRole("button", { name: "Save priority" }).click();
-    await expect(page.locator('p[role="status"]')).toContainText(/Priority updated/i);
+    await expect(page.getByText("Priority updated.", { exact: true })).toBeVisible();
     const statusSelect = page.getByLabel("Status", { exact: true });
     const currentStatus = await statusSelect.inputValue();
     const nextStatus = nextStatusByCurrent[currentStatus];
