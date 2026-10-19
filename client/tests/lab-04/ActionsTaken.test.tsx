@@ -337,6 +337,29 @@ describe("L4-05 Actions Taken UI", () => {
     await waitFor(() => expect(document.getElementById("action-31")).toHaveFocus());
   });
 
+  it("refreshes the Action workflow version after a successful Ticket status change", async () => {
+    const user = userEvent.setup();
+    const fetchMock = setupFetch((url, init) => {
+      if (url.includes("/api/staff/tickets/") && url.endsWith("/status") && init?.method === "PATCH") {
+        return jsonResponse({ ticket: { ...staffTicket, currentStatus: "WAITING_FOR_REQUESTER", workflowVersion: 4 } });
+      }
+      return undefined;
+    });
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValue({
+      ...staffTicket,
+      allowedTransitions: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+    });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).includes(`/api/staff/tickets/${ticketNumber}/actions?`))).toHaveLength(1));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Status" }), "WAITING_FOR_REQUESTER");
+    await user.click(screen.getByRole("button", { name: "Save status" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).includes(`/api/staff/tickets/${ticketNumber}/actions?`))).toHaveLength(2));
+    expect(section).toBeInTheDocument();
+  });
+
   it("generates a UUID request key when randomUUID is unavailable", async () => {
     const user = userEvent.setup();
     const secureRandom = globalThis.crypto.getRandomValues.bind(globalThis.crypto);
