@@ -121,7 +121,7 @@ test("T-CONTRACT-01 rejects invented test IDs and unrecognized validation comman
   manifest.runs.serverTests.command = "totally invented command";
   const errors = await validateEvidenceManifest(manifest);
   assert.ok(errors.some((error) => error.includes("T-TOTALLY-INVENTED") && /contract inventory|test file/i.test(error)), errors.join("\n"));
-  assert.ok(errors.some((error) => /command.*not.*allow|unrecognized command/i.test(error)), errors.join("\n"));
+  assert.ok(errors.some((error) => /not an approved reproducible command|unrecognized command/i.test(error)), errors.join("\n"));
 
   const validButUnexecuted = JSON.parse(await readFile(manifestPath, "utf8"));
   validButUnexecuted.runs.clientTests.testIds = ["T-MIG-01"];
