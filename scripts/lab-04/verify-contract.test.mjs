@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { scanSensitiveEvidenceText, validateEvidenceManifest } from "./verify-contract.mjs";
+import { scanSensitiveEvidenceText, validateEvidenceManifest, validateContractInventory } from "./verify-contract.mjs";
 import { parseNodeTestRun, parsePlaywrightMatrix, parseVitestRun, parseMigrationDeploy } from "./parse-run-evidence.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -112,4 +112,63 @@ test("T-EVID-01 accepts the canonical manifest and rejects counts that disagree 
   manifest.runs.clientTests.passed += 1;
   const errors = await validateEvidenceManifest(manifest);
   assert.ok(errors.some((error) => error.includes("clientTests.passed") && error.includes("retained run log")), errors.join("\n"));
+});
+
+test("T-CONTRACT-01 rejects invented test IDs and unrecognized validation commands", async () => {
+  const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.runs.serverTests.testIds = ["T-TOTALLY-INVENTED"];
+  manifest.runs.serverTests.command = "totally invented command";
+  const errors = await validateEvidenceManifest(manifest);
+  assert.ok(errors.some((error) => error.includes("T-TOTALLY-INVENTED") && /contract inventory|test file/i.test(error)), errors.join("\n"));
+  assert.ok(errors.some((error) => /command.*not.*allow|unrecognized command/i.test(error)), errors.join("\n"));
+});
+
+test("T-CONTRACT-01 resolves each requirement and test inventory row to an existing file and Issue status", async () => {
+  const errors = await validateContractInventory();
+  assert.deepEqual(errors, [], errors.join("\n"));
+  const source = await readFile(path.join(repositoryRoot, "docs/lab-04/tests.md"), "utf8");
+  assert.match(source, /\| Requirement ID \| Issue \| Implementation files \| Test IDs \| Status \|/);
+  for (const id of ["FR-01", "BR-01", "AC-01", "T-ACT-01", "RELEASE-01"]) assert.match(source, new RegExp(`\\b${id}\\b`));
+});
+
+test("T-EVID-01 screenshot manifest consumes capture assertions and review metadata instead of asserting them itself", async () => {
+  const writer = await readFile(path.join(repositoryRoot, "scripts/lab-04/write-evidence-manifest.mjs"), "utf8");
+  const support = await readFile(path.join(repositoryRoot, "e2e/lab-04/support.ts"), "utf8");
+  assert.doesNotMatch(writer, /redacted:\s*true|loadedState:\s*true/);
+  assert.match(writer, /\.evidence\.json/);
+  assert.match(support, /loadedStateAssertions/);
+  assert.match(support, /redactionReview/);
+});
+
+test("T-EVID-01 screenshot traceability is state-specific rather than assigning every journey AC to every image", async () => {
+  const writer = await readFile(path.join(repositoryRoot, "scripts/lab-04/write-evidence-manifest.mjs"), "utf8");
+  assert.match(writer, /function classifyScreenshot\(file, capture\)/);
+  assert.match(writer, /capture\.ac/);
+  assert.match(writer, /capture\.testIds/);
+});
+
+test("T-CONTRACT-01 verifies an explicit RELEASE-01 state", async () => {
+  const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  assert.ok(manifest.releaseGate, "canonical evidence must state RELEASE-01 status");
+  const errors = await validateEvidenceManifest({ ...manifest, releaseGate: undefined });
+  assert.ok(errors.some((error) => /RELEASE-01/.test(error)), errors.join("\n"));
+});
+
+test("T-E2E-02 includes a persisted public comment in the Requester-visible resolution journey", async () => {
+  const source = await readFile(path.join(repositoryRoot, "e2e/lab-04/ticket-resolution.spec.ts"), "utf8");
+  assert.match(source, /Add public comment/);
+  assert.match(source, /requester\.getByText\(.*public comment/i);
+});
+
+test("T-E2E-03 dashboard metric links use an unambiguous first match", async () => {
+  const source = await readFile(path.join(repositoryRoot, "e2e/lab-04/dashboards.spec.ts"), "utf8");
+  assert.match(source, /getByRole\("link", \{ name: `\$\{label\}: \$\{metric\.value\}`, exact: true \}\)\.first\(\)/);
+});
+
+test("T-UI-ACT-05 proves the refreshed Action version is used by the next mutation", async () => {
+  const source = await readFile(path.join(repositoryRoot, "client/tests/lab-04/ActionsTaken.test.tsx"), "utf8");
+  assert.match(source, /refreshed.*ticketVersion|ticketVersion.*refreshed/i);
+  assert.match(source, /expectedVersion.*4|expectedTicketVersion.*4/);
 });
