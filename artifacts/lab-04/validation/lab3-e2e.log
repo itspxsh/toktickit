@@ -1,0 +1,26 @@
+
+> toktickit-client@1.0.0 test:e2e:lab3
+> E2E_SUITE=lab3 playwright test -c playwright.config.ts ../e2e/lab-03 --workers=1 --retries=0
+
+[WebServer] (node:22982) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:22990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › ../e2e/lab-03/authentication.spec.ts:5:7 › Lab 3 requester authenticated journey › T-E2E-01 / AC-01, AC-02, AC-04 exercises login, ownership, API comment, resolution indication, and logout (16.0s)
+  ✓  2 [desktop] › ../e2e/lab-03/staff-ticket-flow.spec.ts:46:7 › Lab 3 IT Staff journey › T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates filters, pagination controls, priority/status updates, workflow, and isolation (31.9s)
+  ✓  3 [desktop] › ../e2e/lab-03/user-administration.spec.ts:5:7 › Lab 3 Administrator journey › T-E2E-03 / AC-03, AC-10, AC-11 validates create/edit, activation, reset, and Admin safeguards (16.4s)
+(node:23095) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 [tablet] › ../e2e/lab-03/authentication.spec.ts:5:7 › Lab 3 requester authenticated journey › T-E2E-01 / AC-01, AC-02, AC-04 exercises login, ownership, API comment, resolution indication, and logout (15.9s)
+  ✓  5 [tablet] › ../e2e/lab-03/staff-ticket-flow.spec.ts:46:7 › Lab 3 IT Staff journey › T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates filters, pagination controls, priority/status updates, workflow, and isolation (32.0s)
+  ✓  6 [tablet] › ../e2e/lab-03/user-administration.spec.ts:5:7 › Lab 3 Administrator journey › T-E2E-03 / AC-03, AC-10, AC-11 validates create/edit, activation, reset, and Admin safeguards (16.5s)
+(node:23189) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  7 [mobile] › ../e2e/lab-03/authentication.spec.ts:5:7 › Lab 3 requester authenticated journey › T-E2E-01 / AC-01, AC-02, AC-04 exercises login, ownership, API comment, resolution indication, and logout (15.8s)
+  ✓  8 [mobile] › ../e2e/lab-03/staff-ticket-flow.spec.ts:46:7 › Lab 3 IT Staff journey › T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates filters, pagination controls, priority/status updates, workflow, and isolation (31.9s)
+  ✓  9 [mobile] › ../e2e/lab-03/user-administration.spec.ts:5:7 › Lab 3 Administrator journey › T-E2E-03 / AC-03, AC-10, AC-11 validates create/edit, activation, reset, and Admin safeguards (16.5s)
+
+  9 passed (3.3m)

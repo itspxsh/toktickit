@@ -117,17 +117,46 @@ and the accepted follow-up is
 Issue [#68](https://github.com/itspxsh/toktickit/issues/68) is now closed as
 completed and its issue-only Kanban card is Done.
 
-## L4-10 evidence work (Issue #69)
+## L4-10 live evidence and regression — Issue #69
 
-Issue [#69](https://github.com/itspxsh/toktickit/issues/69) is in progress on
+Issue [#69](https://github.com/itspxsh/toktickit/issues/69) is implemented on
 `feature/lab4-10-live-evidence`, branched from the merged
-`lab4-staging@5743a90`. The tests-first commits are
+`lab4-staging@5743a90`. The code and tests are pinned to source commit
+[`88d1f0c`](https://github.com/itspxsh/toktickit/commit/88d1f0caab307e43b1dc238402f4b66f9f91aa23).
+The tests-first commits are
 [`0135028`](https://github.com/itspxsh/toktickit/commit/0135028) and
 [`772b43c`](https://github.com/itspxsh/toktickit/commit/772b43c); implementation
-and E2E hardening is in
-[`105a281`](https://github.com/itspxsh/toktickit/commit/105a281). A focused
-regression added after the initial implementation reproduced and fixed stale
-Actions version refresh after a successful parent Ticket workflow mutation.
-The latest final evidence is being generated separately from the migration
-fixture database; the release evidence manifest and review request are pending
-until all required runs complete and the manifest verifier passes.
+is in [`105a281`](https://github.com/itspxsh/toktickit/commit/105a281), followed
+by regression/evidence hardening through `88d1f0c`. The suite covers the
+Actions Taken, Ticket workflow, and role-specific dashboard journeys, plus
+responsive and keyboard behavior, isolated migration/integration safety, and
+bounded dashboard query performance. The focused Actions refresh regression
+reproduced and fixed stale child data after a successful parent workflow
+mutation.
+
+Validation was executed against isolated PostgreSQL databases whose names end
+in `_test`; no development database was used. Four migrations deployed, the
+PostgreSQL integration suite passed 20/20, the full server suite passed 175/175,
+and client tests passed 134/134. Lab 2 authenticated E2E passed 3/3, Lab 3 E2E
+passed 9/9, and Lab 4 E2E passed 9/9 (three journeys × desktop/tablet/mobile),
+all with one worker and zero retries. Server/client builds, repository-local
+Prisma validation, and the five contract/evidence tests passed. The responsive
+checks used 1440×900, 768×1024, and 320×800 and asserted no horizontal overflow
+and visible keyboard focus; client accessibility tests additionally checked
+focus trapping, Escape dismissal, and focus restoration.
+
+The 30 loaded-state Lab 4 screenshots are under
+[`artifacts/lab-04/screenshots/`](../../artifacts/lab-04/screenshots/); the
+source-pinned SHA-256/dimension and AC/Test mappings are in
+[`evidence-manifest.json`](../../artifacts/lab-04/validation/evidence-manifest.json).
+Raw redacted run output is retained under
+[`artifacts/lab-04/validation/`](../../artifacts/lab-04/validation/), migration
+output under [`artifacts/lab-04/migration/`](../../artifacts/lab-04/migration/),
+and measured query counts/p95 plus the PostgreSQL EXPLAIN JSON under
+[`artifacts/lab-04/metrics/`](../../artifacts/lab-04/metrics/). The complete
+summary is [`validation.log`](../../artifacts/lab-04/validation/validation.log).
+The manifest verifier and its tests both pass. The AI-use record is updated to
+reflect completed work without implying peer approval.
+
+L4-10 is ready for peer review; no approval or merge is claimed yet. Issue #69
+must remain open in PR Review until `justfepwx12` approves and merges the PR.

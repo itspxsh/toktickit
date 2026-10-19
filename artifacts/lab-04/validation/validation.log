@@ -1,0 +1,29 @@
+L4-10 live-evidence and regression validation
+Date: 2026-10-19 (Asia/Bangkok)
+Product source commit: 88d1f0caab307e43b1dc238402f4b66f9f91aa23
+Database scope: isolated local PostgreSQL databases ending in _test; URLs and credentials intentionally omitted.
+
+PostgreSQL migration deploy
+- Command: (cd server && DATABASE_URL=<redacted; toktickit_l410_final_migration2_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma)
+- Result: 4/4 repository migrations applied successfully. Full command output: ../migration/migration.log.
+- A separate E2E database was freshly migrated and reset/seeded; all 4 migrations applied and seed/reset reported success. Output: ../migration/e2e-preparation.log.
+
+PostgreSQL integration
+- Command: (cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_final_integration_test> npm run test:integration -- --reporter=verbose)
+- Result: 20/20 passed across 6 files; includes T-MIG-01..05, T-RACE-04, T-DB-DASH-01, and T-PERF-01. No skipped tests. Raw output: integration.log.
+- T-PERF-01: 5,000 Tickets / 10,000 Actions; query counts Requester 8 / Staff 11; p95 Requester 12.85 ms / Staff 37.74 ms. Metrics and full EXPLAIN ANALYZE JSON: ../metrics/report.md and ../metrics/explain-plan.json.
+
+Server and client regression
+- (cd server && npm test -- --reporter=dot): 175/175 passed across 24 files; expected EPERM cleanup failure is injected and asserted by T-REG-02, with safe server-side logging.
+- (cd client && npm test -- --reporter=dot): 134/134 passed across 30 files, including T-A11Y-01 and T-STYLE-01.
+- Server TypeScript build, Client TypeScript/Vite production build, and repository-local Prisma 5.22.0 validation all passed. Individual outputs are retained beside this file.
+- node --test scripts/lab-04/verify-contract.test.mjs: 5/5 passed; zero skipped.
+
+Live browser matrix
+- Lab 2 authenticated requester regression: 3/3 passed (desktop/tablet/mobile), one worker, zero retries. Output: lab2-e2e.log.
+- Lab 3 authenticated journeys: 9/9 passed (3 journeys × desktop/tablet/mobile), one worker, zero retries. Output: lab3-e2e.log.
+- Lab 4 journeys: 9/9 passed (3 journeys × desktop/tablet/mobile), one worker, zero retries. Output: lab4-e2e.log. Screenshots were captured only after loaded-state assertions under ../screenshots/.
+- Viewports: desktop 1440×900, tablet 768×1024, mobile 320×800. The dashboard journeys verify exact viewport, no horizontal overflow, and visible keyboard focus; client T-A11Y-01 additionally verifies focus trapping, Escape dismissal, and focus restoration.
+- Representative loaded-state screenshots at desktop/tablet/mobile were visually inspected. The manifest records dimensions and SHA-256 for all 30 Lab 4 screenshots. Test identities use reserved .test emails and fake local-only credentials; no credential or database URL is retained here.
+
+Commands, evidence files, screenshot hashes, and AC/Test traceability are validated by scripts/lab-04/verify-contract.mjs. This record describes the source tree SHA above; later evidence/documentation commits do not change that tested product source.
