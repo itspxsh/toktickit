@@ -62,5 +62,5 @@ test("T-EVID-01 rejects AC mappings to test IDs absent from all executed runs", 
 
 test("T-EVID-01 database preparation guard requires the literal _test suffix", async () => {
   const source = await readFile(path.join(repositoryRoot, "scripts/lab-04/prepare-test-database.mjs"), "utf8");
-  assert.match(source, /databaseName\.endsWith\("_test"\)/);
+  assert.match(source, /databaseName\.toLowerCase\(\)\.endsWith\("_test"\)/);
 });
