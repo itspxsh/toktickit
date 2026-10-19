@@ -122,6 +122,16 @@ test("T-CONTRACT-01 rejects invented test IDs and unrecognized validation comman
   const errors = await validateEvidenceManifest(manifest);
   assert.ok(errors.some((error) => error.includes("T-TOTALLY-INVENTED") && /contract inventory|test file/i.test(error)), errors.join("\n"));
   assert.ok(errors.some((error) => /command.*not.*allow|unrecognized command/i.test(error)), errors.join("\n"));
+
+  const validButUnexecuted = JSON.parse(await readFile(manifestPath, "utf8"));
+  validButUnexecuted.runs.clientTests.testIds = ["T-MIG-01"];
+  const executionErrors = await validateEvidenceManifest(validButUnexecuted);
+  assert.ok(executionErrors.some((error) => /T-MIG-01.*absent from the retained execution output/i.test(error)), executionErrors.join("\n"));
+
+  const mislabeledMigration = JSON.parse(await readFile(manifestPath, "utf8"));
+  mislabeledMigration.runs.migrationDeploy.testIds = ["T-MIG-01"];
+  const migrationErrors = await validateEvidenceManifest(mislabeledMigration);
+  assert.ok(migrationErrors.some((error) => /migrationDeploy\.testIds must be empty/i.test(error)), migrationErrors.join("\n"));
 });
 
 test("T-CONTRACT-01 resolves each requirement and test inventory row to an existing file and Issue status", async () => {
@@ -156,10 +166,20 @@ test("T-CONTRACT-01 verifies an explicit RELEASE-01 state", async () => {
   assert.ok(errors.some((error) => /RELEASE-01/.test(error)), errors.join("\n"));
 });
 
+test("T-CONTRACT-01 refuses RELEASE-01 completion without final close-out evidence", async () => {
+  const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const errors = await validateEvidenceManifest({ ...manifest, releaseGate: { id: "RELEASE-01", status: "complete" } });
+  assert.ok(errors.some((error) => /final-main validation/i.test(error)), errors.join("\n"));
+  assert.ok(errors.some((error) => /closeout PR/i.test(error)), errors.join("\n"));
+  assert.ok(errors.some((error) => /Kanban/i.test(error)), errors.join("\n"));
+  assert.ok(errors.some((error) => /report PDF/i.test(error)), errors.join("\n"));
+});
+
 test("T-E2E-02 includes a persisted public comment in the Requester-visible resolution journey", async () => {
   const source = await readFile(path.join(repositoryRoot, "e2e/lab-04/ticket-resolution.spec.ts"), "utf8");
   assert.match(source, /Add public comment/);
-  assert.match(source, /requester\.getByText\(.*public comment/i);
+  assert.match(source, /requester\.locator\("#requester-public-comments-title"\)[\s\S]*?toContainText\(publicComment\)/);
 });
 
 test("T-E2E-03 dashboard metric links use an unambiguous first match", async () => {
@@ -169,6 +189,6 @@ test("T-E2E-03 dashboard metric links use an unambiguous first match", async () 
 
 test("T-UI-ACT-05 proves the refreshed Action version is used by the next mutation", async () => {
   const source = await readFile(path.join(repositoryRoot, "client/tests/lab-04/ActionsTaken.test.tsx"), "utf8");
-  assert.match(source, /refreshed.*ticketVersion|ticketVersion.*refreshed/i);
-  assert.match(source, /expectedVersion.*4|expectedTicketVersion.*4/);
+  assert.match(source, /ticketVersion:\s*actionListReads\s*===\s*1\s*\?\s*3\s*:\s*4/);
+  assert.match(source, /expectedTicketVersion:\s*4/);
 });

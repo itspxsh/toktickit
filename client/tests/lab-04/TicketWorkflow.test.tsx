@@ -111,7 +111,7 @@ describe("L4-06 Ticket workflow UI (T-UI-WF-01..02)", () => {
     expect(fetchMock.mock.calls.some(([url, init]) => String(url).endsWith("/status") && init?.method === "PATCH")).toBe(false);
   });
 
-  it("preserves an edited priority draft when a version conflict is returned", async () => {
+  it("T-UI-WF-02 preserves an edited priority draft when a version conflict is returned", async () => {
     const user = userEvent.setup();
     const fetchMock = setupFetch((url, init) => url.endsWith("/priority") && init?.method === "PATCH"
       ? response({ error: { code: "STALE_WRITE", message: "Ticket work changed; refresh before retrying." } }, 409)

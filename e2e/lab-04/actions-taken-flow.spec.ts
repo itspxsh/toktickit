@@ -1,7 +1,7 @@
 import { test } from "../../client/node_modules/@playwright/test/index.js";
 import { createRequesterTicket, csrfHeader, expect, expectResponsiveAndKeyboard, openStaffTicket, preflight, saveScreenshot, signIn } from "./support.js";
 
-test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence", async ({ page, browser }, testInfo) => {
+test("T-E2E-01 / T-RESP-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence", async ({ page, browser }, testInfo) => {
   test.setTimeout(120_000);
   await preflight(page);
   await signIn(page, "requester");
@@ -16,7 +16,7 @@ test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only project
     const actions = staff.getByRole("region", { name: "Actions Taken" });
     await expect(actions.getByText("No Actions have been recorded for this Ticket.")).toBeVisible();
     await expectResponsiveAndKeyboard(staff, testInfo);
-    await saveScreenshot(staff, testInfo, "actions-taken", "support-empty");
+    await saveScreenshot(staff, testInfo, "actions-taken", "support-empty", { ac: ["AC-01", "AC-14", "AC-19", "AC-21"], testIds: ["T-E2E-01", "T-RESP-01"], loadedStateAssertions: ["Actions Taken region visible", "empty-state message visible", "responsive viewport and keyboard focus verified"], redactionReview: "Synthetic ticket summary and synthetic support accounts only; no credentials or private data displayed." });
 
     await actions.getByRole("button", { name: "Add action" }).click();
     const createForm = actions.locator("form.actions-taken__form");
@@ -51,7 +51,7 @@ test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only project
     await completeDialog.getByLabel("Result").fill("Verified the VPN configuration and documented the outcome.");
     await completeDialog.getByRole("button", { name: "Confirm completion" }).click();
     await expect(updatedAction.getByRole("status")).toContainText("COMPLETED");
-    await saveScreenshot(staff, testInfo, "actions-taken", "completed");
+    await saveScreenshot(staff, testInfo, "actions-taken", "completed", { ac: ["AC-01", "AC-04", "AC-05", "AC-19", "AC-21"], testIds: ["T-E2E-01", "T-RESP-01"], loadedStateAssertions: ["updated Action row visible", "IN PROGRESS status visible", "COMPLETED status visible after successful completion", "responsive viewport and keyboard focus verified"], redactionReview: "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials." });
 
     await secondAction.getByRole("button", { name: "Cancel action" }).click();
     const cancelDialog = staff.getByRole("alertdialog", { name: "Cancel Action" });
@@ -71,7 +71,7 @@ test("T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only project
       await expect(requesterActions.getByRole("button", { name: "Add action" })).toHaveCount(0);
       await expect(requesterActions.getByRole("button", { name: "Edit action" })).toHaveCount(0);
       await expectResponsiveAndKeyboard(requester, testInfo);
-      await saveScreenshot(requester, testInfo, "actions-taken", "requester-read-only");
+      await saveScreenshot(requester, testInfo, "actions-taken", "requester-read-only", { ac: ["AC-06", "AC-18", "AC-19", "AC-21"], testIds: ["T-E2E-01", "T-RESP-01"], loadedStateAssertions: ["owned Ticket heading visible", "completed and cancelled Actions visible", "Requester write controls absent", "responsive viewport and keyboard focus verified"], redactionReview: "Synthetic ticket and Action text; no real identity, credentials, or private notes." });
 
       const csrfResponse = await requester.request.get(`${process.env.E2E_API_URL ?? "http://127.0.0.1:3301"}/api/auth/csrf`);
       expect(csrfResponse.ok()).toBeTruthy();

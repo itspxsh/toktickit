@@ -1,7 +1,7 @@
 import { test } from "../../client/node_modules/@playwright/test/index.js";
 import { API_BASE_URL, expect, expectResponsiveAndKeyboard, preflight, saveScreenshot, signIn } from "./support.js";
 
-test("T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down, and current-user Actions", async ({ page, browser }, testInfo) => {
+test("T-E2E-03 / T-RESP-01 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down, and current-user Actions", async ({ page, browser }, testInfo) => {
   test.setTimeout(120_000);
   await preflight(page);
   await signIn(page, "requester");
@@ -54,7 +54,7 @@ test("T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down,
     expect(ownTickets.data.some((owned) => owned.ticketNumber === ticket.ticketNumber)).toBeTruthy();
   }
   await expectResponsiveAndKeyboard(page, testInfo);
-  await saveScreenshot(page, testInfo, "requester-dashboard", "loaded");
+  await saveScreenshot(page, testInfo, "requester-dashboard", "loaded", { ac: ["AC-10", "AC-12", "AC-14", "AC-19", "AC-21"], testIds: ["T-E2E-03", "T-RESP-01"], loadedStateAssertions: ["requester metrics reconciled with owned Ticket list", "attention and recent lists loaded", "responsive viewport and keyboard focus verified"], redactionReview: "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data." });
 
   const dashboardLink = page.getByRole("link", { name: /^Active tickets:/ }).first();
   const href = await dashboardLink.getAttribute("href");
@@ -98,7 +98,7 @@ test("T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down,
       const label = key === "unassignedActive" ? "Unassigned active tickets"
         : key === "ownedActive" ? "My active tickets"
           : key === "urgentActive" ? "Urgent active tickets" : "My unfinished actions";
-      await expect(staffPage.getByRole("link", { name: `${label}: ${metric.value}`, exact: true })).toBeVisible();
+      await expect(staffPage.getByRole("link", { name: `${label}: ${metric.value}`, exact: true }).first()).toBeVisible();
     }
     expect(staffDashboard.statusBuckets).toHaveLength(8);
     expect(staffDashboard.priorityBuckets).toHaveLength(5);
@@ -117,7 +117,7 @@ test("T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down,
     await expect(staffPage.locator("#my-actions")).toContainText(`Page ${staffDashboard.myActions.page} of ${staffDashboard.myActions.totalPages}`);
     for (const action of staffDashboard.myActions.items) await expect(staffPage.locator("#my-actions")).toContainText(action.description);
     await expectResponsiveAndKeyboard(staffPage, testInfo);
-    if (screenshot) await saveScreenshot(staffPage, testInfo, "staff-dashboard", "loaded");
+    if (screenshot) await saveScreenshot(staffPage, testInfo, "staff-dashboard", "loaded", { ac: ["AC-11", "AC-12", "AC-14", "AC-19", "AC-21"], testIds: ["T-E2E-03", "T-RESP-01"], loadedStateAssertions: [`${role} metrics reconciled with authenticated queue and current-user data`, "status and priority buckets reconciled", "recent/urgent/Action summaries loaded", "responsive viewport and keyboard focus verified"], redactionReview: "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data." });
   };
   try {
     const staff = await staffContext.newPage();

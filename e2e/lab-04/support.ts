@@ -3,18 +3,30 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { expectNoHorizontalOverflow, preflight, signIn } from "../lab-03/support.js";
 import { resolveArtifactRoot } from "../artifact-path.cjs";
+import { writeFile } from "node:fs/promises";
 
 export const API_BASE_URL = process.env.E2E_API_URL ?? "http://127.0.0.1:3000";
 const SCREENSHOT_ROOT = path.join(resolveArtifactRoot("artifacts/lab-04"), "screenshots");
 
 export { expect, expectNoHorizontalOverflow, preflight, signIn };
 
-export async function saveScreenshot(page: Page, testInfo: TestInfo, area: string, state: string): Promise<string> {
+export interface ScreenshotEvidence {
+  ac: string[];
+  testIds: string[];
+  loadedStateAssertions: string[];
+  redactionReview: string;
+}
+
+export async function saveScreenshot(page: Page, testInfo: TestInfo, area: string, state: string, evidence: ScreenshotEvidence): Promise<string> {
+  if (!evidence.ac.length || !evidence.testIds.length || !evidence.loadedStateAssertions.length || !evidence.redactionReview.trim()) {
+    throw new Error(`Screenshot ${area}/${state} requires explicit traceability, loaded-state assertions, and redaction review.`);
+  }
   const project = testInfo.project.name.replace(/[^a-z0-9-]+/gi, "-").toLowerCase();
   const directory = path.join(SCREENSHOT_ROOT, area);
   await mkdir(directory, { recursive: true });
   const file = path.join(directory, `${state}-${project}.png`);
   await page.screenshot({ path: file, fullPage: true });
+  await writeFile(`${file}.evidence.json`, `${JSON.stringify({ ...evidence, project }, null, 2)}\n`, { mode: 0o600 });
   return file;
 }
 

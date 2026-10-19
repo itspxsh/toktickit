@@ -25,16 +25,15 @@ async function pngFiles(directory) {
   return nested.flat();
 }
 
-function classifyScreenshot(file) {
+function classifyScreenshot(file, capture) {
   const rel = relative(file);
   const parts = rel.split("/");
   const section = parts[3];
   const project = path.basename(file, ".png").split("-").at(-1);
   if (!["desktop", "tablet", "mobile"].includes(project)) throw new Error(`Unknown viewport in ${rel}`);
-  if (section === "actions-taken") return { ac: ["AC-01", "AC-02", "AC-03", "AC-04", "AC-05", "AC-06", "AC-09", "AC-18"], testIds: ["T-E2E-01"] };
-  if (section === "ticket-workflow") return { ac: ["AC-07", "AC-08", "AC-09", "AC-14", "AC-17"], testIds: ["T-E2E-02"] };
-  if (["requester-dashboard", "staff-dashboard"].includes(section)) return { ac: ["AC-10", "AC-11", "AC-12", "AC-13", "AC-14", "AC-17"], testIds: ["T-E2E-03"] };
-  throw new Error(`Unknown screenshot family in ${rel}`);
+  if (!(["actions-taken", "ticket-workflow", "requester-dashboard", "staff-dashboard"].includes(section))) throw new Error(`Unknown screenshot family in ${rel}`);
+  if (!Array.isArray(capture.ac) || !Array.isArray(capture.testIds) || !Array.isArray(capture.loadedStateAssertions) || typeof capture.redactionReview !== "string") throw new Error(`Incomplete caller evidence for ${rel}`);
+  return capture;
 }
 
 const integrationLog = await readFile(path.join(root, "artifacts/lab-04/validation/integration.log"), "utf8");
@@ -54,6 +53,7 @@ const lab3Run = parsePlaywrightRun(lab3Log);
 const lab4Run = parsePlaywrightRun(lab4Log);
 const contractRun = parseNodeTestRun(contractLog);
 const browserMatrix = parsePlaywrightMatrix(lab4Log);
+const executedIds = (output) => [...new Set(output.match(/\b(?:T-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{2}|RELEASE-01)\b/g) ?? [])].sort();
 const perfLine = integrationLog.split("\n").find((line) => line.startsWith("[T-PERF-01] "));
 if (!perfLine) throw new Error("Integration log does not contain the executed T-PERF-01 output.");
 const perf = JSON.parse(perfLine.slice("[T-PERF-01] ".length));
@@ -82,19 +82,20 @@ const screenshots = [];
 for (const file of (await pngFiles(path.join(root, "artifacts/lab-04/screenshots"))).sort()) {
   const bytes = await readFile(file);
   if (bytes.length < 24 || bytes.toString("hex", 0, 8) !== "89504e470d0a1a0a") throw new Error(`Invalid PNG: ${relative(file)}`);
+  const capture = JSON.parse(await readFile(`${file}.evidence.json`, "utf8"));
   screenshots.push({
     path: relative(file),
     sha256: createHash("sha256").update(bytes).digest("hex"),
     width: bytes.readUInt32BE(16),
     height: bytes.readUInt32BE(20),
-    ...classifyScreenshot(file),
-    redacted: true,
-    loadedState: true,
+    ...classifyScreenshot(file, capture),
+    captureEvidencePath: `${relative(file)}.evidence.json`,
+    captureEvidenceSha256: createHash("sha256").update(await readFile(`${file}.evidence.json`)).digest("hex"),
     project: path.basename(file, ".png").split("-").at(-1),
   });
 }
 
-const run = (passed, command, testIds) => ({ passed, failed: 0, skipped: 0, retries: 0, command, testIds });
+const run = (passed, command, output) => ({ passed, failed: 0, skipped: 0, retries: 0, command, testIds: executedIds(output) });
 const manifest = {
   schemaVersion: 1,
   // Keep sourceCommit as a compatibility alias for the E2E/test harness tree.
@@ -102,18 +103,19 @@ const manifest = {
   validationCommit,
   productCommit,
   evidenceToolCommit,
-  database: { name: "toktickit_l410_final_integration_test", urlRecorded: false },
+  database: { name: "toktickit_l410_review_test", urlRecorded: false },
   runs: {
-    migrationDeploy: run(migrationCount, "cd server && DATABASE_URL=<redacted; toktickit_l410_final_migration2_test> prisma migrate deploy --schema prisma/schema.prisma", ["T-MIG-01"]),
-    integration: run(integrationRun.passed, "cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_final_integration_test> npm run test:integration -- --reporter=verbose", ["T-MIG-01", "T-MIG-02", "T-MIG-03", "T-MIG-04", "T-MIG-05", "T-RACE-01", "T-RACE-02", "T-RACE-03", "T-RACE-04", "T-DB-DASH-01", "T-PERF-01"]),
-    serverTests: run(serverRun.passed, "cd server && npm test -- --reporter=dot", ["T-SEC-01", "T-SEC-02", "T-SEC-03", "T-REG-01", "T-REG-02"]),
-    clientTests: run(clientRun.passed, "cd client && npm test -- --reporter=dot", ["T-A11Y-01", "T-STYLE-01", "T-UI-REG-01", "T-UI-DR-01", "T-UI-DS-01"]),
-    lab2E2E: run(lab2Run.passed, "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0", ["T-UI-REG-01"]),
-    lab3E2E: run(lab3Run.passed, "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0", ["T-REG-01", "T-UI-REG-01"]),
-    lab4E2E: run(lab4Run.passed, "cd client && npm run test:e2e:lab4 -- --workers=1 --retries=0", ["T-E2E-01", "T-E2E-02", "T-E2E-03", "T-RESP-01"]),
-    contractTests: run(contractRun.passed, "node --test scripts/lab-04/verify-contract.test.mjs", ["T-CONTRACT-01", "T-EVID-01"]),
+    migrationDeploy: run(migrationCount, "cd server && DATABASE_URL=<redacted; toktickit_l410_review_migration_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma", ""),
+    integration: run(integrationRun.passed, "cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_review_test> LAB3_INITIAL_PASSWORD=<redacted; synthetic local-only value> npm run test:integration -- --reporter=verbose", integrationLog),
+    serverTests: run(serverRun.passed, "cd server && npm test -- --reporter=verbose", serverLog),
+    clientTests: run(clientRun.passed, "cd client && npm test -- --reporter=verbose", clientLog),
+    lab2E2E: run(lab2Run.passed, "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0", lab2Log),
+    lab3E2E: run(lab3Run.passed, "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0", lab3Log),
+    lab4E2E: run(lab4Run.passed, "cd client && npm run test:e2e:lab4 -- --workers=1 --retries=0", lab4Log),
+    contractTests: run(contractRun.passed, "node --test scripts/lab-04/verify-contract.test.mjs", contractLog),
   },
   browserMatrix,
+  releaseGate: { id: "RELEASE-01", status: "awaiting_peer_review", note: "L4-10 evidence is complete for staging review; final-main promotion remains a separate approval-gated step." },
   traceability: {
     "AC-15": ["T-MIG-01", "T-MIG-02", "T-MIG-03", "T-MIG-04", "T-MIG-05"],
     "AC-16": ["T-MIG-03"],

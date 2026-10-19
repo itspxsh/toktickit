@@ -89,7 +89,7 @@ describe("L2-07 Requester Ticket Detail", () => {
     expect(screen.getByText(/old-log\.pdf.*Removed/i)).toBeInTheDocument();
     expect(screen.getByText(/Reason: Uploaded by mistake/)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Public comments" })).toBeInTheDocument();
-    expect(screen.getByText("Please include the latest troubleshooting update.")).toBeInTheDocument();
+    expect(screen.getByText(/Please include the latest troubleshooting update/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Preview battery.png" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Download battery.png" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove battery.png" })).toBeInTheDocument();

@@ -180,7 +180,7 @@ describe("L4-07 Staff dashboard API (T-DASH-S-01..03)", () => {
     expect(db.ticket.count).toHaveBeenCalledWith({ where: expectedWhere });
   });
 
-  it("keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt", async () => {
+  it("T-DASH-S-02 keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt", async () => {
     const since = "2026-10-08T12:00:00.000Z";
     const before = "2026-10-15T12:00:00.000Z";
     const response = await request(app).get(`/api/staff/tickets?statusGroup=resolved&updatedSince=${since}&before=${before}`);
