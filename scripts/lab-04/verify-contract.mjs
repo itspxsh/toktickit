@@ -46,6 +46,7 @@ export async function validateEvidenceManifest(manifest) {
   require(/^[a-f0-9]{40}$/i.test(manifest?.validationCommit ?? ""), "validationCommit must identify the test/E2E harness tree with a full commit SHA.");
   require(manifest?.sourceCommit === manifest?.validationCommit, "sourceCommit compatibility field must match validationCommit.");
   require(/^[a-f0-9]{40}$/i.test(manifest?.productCommit ?? ""), "productCommit must identify the tested product source with a full commit SHA.");
+  require(/^[a-f0-9]{40}$/i.test(manifest?.evidenceToolCommit ?? ""), "evidenceToolCommit must identify the evidence parser/verifier source with a full commit SHA.");
   require((manifest?.database?.name ?? "").toLowerCase().endsWith("_test"), "database.name must end in _test; never store its URL.");
   require(manifest?.database?.urlRecorded === false, "database.urlRecorded must be false.");
 
@@ -167,7 +168,7 @@ async function main() {
     for (const error of errors) console.error(`- ${error}`);
     process.exitCode = 1;
   } else {
-    console.log(`L4-10 evidence verified for product ${manifest.productCommit} and validation tree ${manifest.validationCommit}: ${manifest.browserMatrix.length} browser runs, ${manifest.screenshots.length} traceable screenshots, migration/security/responsive/performance evidence present.`);
+    console.log(`L4-10 evidence verified for product ${manifest.productCommit}, Playwright tree ${manifest.validationCommit}, and evidence tools ${manifest.evidenceToolCommit}: ${manifest.browserMatrix.length} browser runs, ${manifest.screenshots.length} traceable screenshots, migration/security/responsive/performance evidence present.`);
   }
 }
 

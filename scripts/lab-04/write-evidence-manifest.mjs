@@ -8,10 +8,12 @@ import { parseMigrationDeploy, parseNodeTestRun, parsePlaywrightMatrix, parsePla
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const validationCommit = process.argv[2];
 const productCommit = process.argv[3];
+const evidenceToolCommit = process.argv[4];
 if (!/^[a-f0-9]{40}$/i.test(validationCommit ?? "")) {
   throw new Error("Pass the full 40-character validation/test source commit SHA as the first argument.");
 }
 if (!/^[a-f0-9]{40}$/i.test(productCommit ?? "")) throw new Error("Pass the full 40-character product source commit SHA as the second argument.");
+if (!/^[a-f0-9]{40}$/i.test(evidenceToolCommit ?? "")) throw new Error("Pass the full 40-character evidence-tool commit SHA as the third argument.");
 
 const relative = (absolutePath) => path.relative(root, absolutePath).split(path.sep).join("/");
 async function pngFiles(directory) {
@@ -99,6 +101,7 @@ const manifest = {
   sourceCommit: validationCommit,
   validationCommit,
   productCommit,
+  evidenceToolCommit,
   database: { name: "toktickit_l410_final_integration_test", urlRecorded: false },
   runs: {
     migrationDeploy: run(migrationCount, "cd server && DATABASE_URL=<redacted; toktickit_l410_final_migration2_test> prisma migrate deploy --schema prisma/schema.prisma", ["T-MIG-01"]),
@@ -145,4 +148,4 @@ const manifest = {
 };
 
 await writeFile(path.join(root, "artifacts/lab-04/validation/evidence-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`Wrote manifest for ${screenshots.length} PNGs, product ${productCommit}, and validation tree ${validationCommit}.`);
+console.log(`Wrote manifest for ${screenshots.length} PNGs, product ${productCommit}, Playwright tree ${validationCommit}, and evidence tools ${evidenceToolCommit}.`);
