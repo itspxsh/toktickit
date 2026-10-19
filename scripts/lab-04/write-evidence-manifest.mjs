@@ -102,6 +102,23 @@ const manifest = {
   migration: { log: "artifacts/lab-04/migration/migration.log", appliedMigrations: 4, integrationPassed: 20 },
   metrics: { report: "artifacts/lab-04/metrics/report.md", explainPlan: "artifacts/lab-04/metrics/explain-plan.json", fixtureTickets: Number(perf.fixtureCounts.tickets), fixtureActions: Number(perf.fixtureCounts.actions), requesterQueries: perf.requesterQueryCount, staffQueries: perf.staffQueryCount, p95Ms: Math.max(perf.requesterP95Ms, perf.staffP95Ms) },
   validation: { log: "artifacts/lab-04/validation/validation.log" },
+  textEvidence: [
+    "artifacts/lab-04/migration/migration.log",
+    "artifacts/lab-04/migration/e2e-preparation.log",
+    "artifacts/lab-04/validation/validation.log",
+    "artifacts/lab-04/validation/integration.log",
+    "artifacts/lab-04/validation/server-tests.log",
+    "artifacts/lab-04/validation/client-tests.log",
+    "artifacts/lab-04/validation/server-build.log",
+    "artifacts/lab-04/validation/client-build.log",
+    "artifacts/lab-04/validation/prisma-validate.log",
+    "artifacts/lab-04/validation/lab2-e2e.log",
+    "artifacts/lab-04/validation/lab3-e2e.log",
+    "artifacts/lab-04/validation/lab4-e2e.log",
+    "artifacts/lab-04/validation/contract-tests.log",
+    "artifacts/lab-04/metrics/report.md",
+    "artifacts/lab-04/metrics/explain-plan.json",
+  ],
   screenshots,
 };
 

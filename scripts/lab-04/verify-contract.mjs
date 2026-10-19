@@ -96,15 +96,26 @@ export async function validateEvidenceManifest(manifest) {
     }
   }
 
-  const textPaths = [manifest?.migration?.log, manifest?.metrics?.report, manifest?.validation?.log];
-  for (const relativePath of textPaths) {
-    if (await fileExists(relativePath)) {
-      const contents = await readFile(path.join(root, relativePath), "utf8");
-      require(!/postgres(?:ql)?:\/\/[^\s]+/i.test(contents), `Database URL found in ${relativePath}.`);
-      require(!/E2E_(?:REQUESTER|STAFF|ADMIN)_(?:PASSWORD|NEW_PASSWORD)=\S+/i.test(contents), `Credential found in ${relativePath}.`);
+  require(Array.isArray(manifest?.textEvidence) && manifest.textEvidence.length > 0, "textEvidence must enumerate retained text logs and metrics for privacy scanning.");
+  for (const relativePath of manifest?.textEvidence ?? []) {
+    const exists = await fileExists(relativePath);
+    require(exists, `Text evidence is missing or outside the repository: ${relativePath}.`);
+    if (exists) {
+      const finding = scanSensitiveEvidenceText(await readFile(path.join(root, relativePath), "utf8"));
+      require(finding === null, `${finding} in ${relativePath}.`);
     }
   }
   return errors;
+}
+
+export function scanSensitiveEvidenceText(contents) {
+  if (/(?:postgres(?:ql)?:\/\/)[^\s]+/i.test(contents) || /\bDATABASE_URL(?:_TEST)?\s*=\s*(?!<redacted\b)\S+/i.test(contents)) {
+    return "Raw database URL found";
+  }
+  if (/\b(?:E2E_(?:REQUESTER|STAFF|ADMIN)_(?:PASSWORD|NEW_PASSWORD)|[A-Z0-9_]*(?:PASSWORD|SECRET|TOKEN))\s*=\s*(?!<redacted\b)\S+/i.test(contents)) {
+    return "Credential found";
+  }
+  return null;
 }
 
 async function main() {
