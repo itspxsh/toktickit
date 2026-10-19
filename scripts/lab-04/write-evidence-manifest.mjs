@@ -112,7 +112,7 @@ const manifest = {
   database: { name: "toktickit_l410_review_test", urlRecorded: false },
   runs: {
     migrationDeploy: run(migrationCount, "cd server && DATABASE_URL=<redacted; toktickit_l410_review_migration_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma", ""),
-    integration: run(integrationRun.passed, "cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_review_test> LAB3_INITIAL_PASSWORD=<redacted; synthetic local-only value> npm run test:integration -- --reporter=verbose", integrationLog),
+    integration: run(integrationRun.passed, "cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_final_integration_test> LAB3_INITIAL_PASSWORD=<redacted; synthetic local-only value> npm run test:integration -- --reporter=verbose", integrationLog),
     serverTests: run(serverRun.passed, "cd server && npm test -- --reporter=verbose", serverLog),
     clientTests: run(clientRun.passed, "cd client && npm test -- --reporter=verbose", clientLog),
     lab2E2E: run(lab2Run.passed, "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0", lab2Log),

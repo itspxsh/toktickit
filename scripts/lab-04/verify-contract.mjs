@@ -22,7 +22,7 @@ const RUN_LOGS = {
 };
 const RUN_COMMANDS = {
   migrationDeploy: "cd server && DATABASE_URL=<redacted; toktickit_l410_review_migration_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma",
-  integration: "cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_review_test> LAB3_INITIAL_PASSWORD=<redacted; synthetic local-only value> npm run test:integration -- --reporter=verbose",
+  integration: "cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_final_integration_test> LAB3_INITIAL_PASSWORD=<redacted; synthetic local-only value> npm run test:integration -- --reporter=verbose",
   serverTests: "cd server && npm test -- --reporter=verbose",
   clientTests: "cd client && npm test -- --reporter=verbose",
   lab2E2E: "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0",
