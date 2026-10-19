@@ -3,6 +3,7 @@
   "sourceCommit": "5e0912437e28cf15dfeafe8eda33656adc70c20b",
   "validationCommit": "5e0912437e28cf15dfeafe8eda33656adc70c20b",
   "productCommit": "88d1f0caab307e43b1dc238402f4b66f9f91aa23",
+  "evidenceToolCommit": "202d55e0039d666cdc73880f27e01020e58e4259",
   "database": {
     "name": "toktickit_l410_final_integration_test",
     "urlRecorded": false

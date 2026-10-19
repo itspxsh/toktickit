@@ -127,12 +127,15 @@ for product/server/client behavior. The Lab 4 Playwright assertion and retained-
 evidence test hardening were committed test-first through
 [`253d7a0`](https://github.com/itspxsh/toktickit/commit/253d7a0921b97d045a62b55436b4312b05f30d5d)
 and [`5e09124`](https://github.com/itspxsh/toktickit/commit/5e0912437e28cf15dfeafe8eda33656adc70c20b);
-the post-hardening Lab 4 browser run uses the latter test/E2E tree. The full
+the post-hardening Lab 4 browser run uses the latter Playwright tree. The
+migration parser fix is pinned to
+[`69d3622`](https://github.com/itspxsh/toktickit/commit/69d3622f530a2508931c9ea0c4a419f26bb36c3e), and the final evidence generator/verifier (including manifest tool provenance) to
+[`202d55e`](https://github.com/itspxsh/toktickit/commit/202d55e0039d666cdc73880f27e01020e58e4259). The full
 server, client and PostgreSQL suites ran earlier against the same unchanged
 product source; subsequent commits in that range changed only E2E assertions,
-evidence checks, and retained artifacts. The manifest records both product and
-test/E2E source SHAs separately, and its run counts/matrix are parsed from the
-retained command output rather than synthesized.
+evidence checks, and retained artifacts. The manifest records product,
+Playwright and final evidence-tool SHAs separately, and its run counts/matrix are
+parsed from the retained command output rather than synthesized.
 The tests-first commits are
 [`0135028`](https://github.com/itspxsh/toktickit/commit/0135028) and
 [`772b43c`](https://github.com/itspxsh/toktickit/commit/772b43c); implementation

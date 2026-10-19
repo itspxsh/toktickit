@@ -2,16 +2,22 @@ L4-10 live-evidence and regression validation
 Date: 2026-10-19 (Asia/Bangkok)
 Product source commit: 88d1f0caab307e43b1dc238402f4b66f9f91aa23
 Playwright/test source commit: 5e0912437e28cf15dfeafe8eda33656adc70c20b (includes test-only follow-up 253d7a0)
+Migration parser behavior commit: 69d3622f530a2508931c9ea0c4a419f26bb36c3e
+Final evidence generator/verifier commit: 202d55e0039d666cdc73880f27e01020e58e4259
 Database scope: isolated local PostgreSQL databases ending in _test; URLs and credentials intentionally omitted.
 
 Provenance: server/client/integration runs below were executed at 21:16–21:17
 against the unchanged product source at 88d1f0c. Later commits 253d7a0 and
-5e09124 changed only the Lab 4 E2E status-history assertion and evidence
-verification code; the Lab 4 browser matrix was rerun at 21:47 against that
-updated test/E2E tree. The post-run documentation/evidence refresh is not
-represented as a product-code validation run. The manifest records product and
-test/E2E SHAs separately and derives result counts and the viewport matrix from
-the corresponding retained logs.
+5e09124 changed the Lab 4 E2E status-history assertion and initial evidence
+checks; the Lab 4 browser matrix was rerun at 21:47 against that updated
+Playwright tree. The count/matrix parser was then tested against retained logs,
+including rejection of an already-applied migration count, under 69d3622. The
+final manifest schema records this tool SHA and is generated/verified under
+202d55e. The
+post-run documentation/evidence refresh is not represented as a product-code
+validation run. The manifest records product, Playwright, and evidence-tool
+SHAs separately and derives result counts and the viewport matrix from the
+corresponding retained logs.
 
 PostgreSQL migration deploy
 - Command: (cd server && DATABASE_URL=<redacted; toktickit_l410_final_migration2_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma)
@@ -36,4 +42,4 @@ Live browser matrix
 - Viewports: desktop 1440×900, tablet 768×1024, mobile 320×800. The dashboard journeys verify exact viewport, no horizontal overflow, and visible keyboard focus; client T-A11Y-01 additionally verifies focus trapping, Escape dismissal, and focus restoration.
 - Representative loaded-state screenshots at desktop/tablet/mobile were visually inspected. The manifest records dimensions and SHA-256 for all 30 Lab 4 screenshots. Test identities use reserved .test emails and fake local-only credentials; no credential or database URL is retained here.
 
-Commands, evidence files, screenshot hashes, AC/Test traceability, retained-text privacy scanning, and agreement between manifest counts and raw run logs are validated by scripts/lab-04/verify-contract.mjs. The product source SHA above is distinct from the later test/E2E source SHA; evidence/documentation tooling changes do not alter tested product behavior.
+Commands, evidence files, screenshot hashes, AC/Test traceability, retained-text privacy scanning, and agreement between manifest counts and raw run logs are validated by scripts/lab-04/verify-contract.mjs. Product, Playwright and evidence-tool source SHAs are recorded separately; evidence/documentation tooling changes do not alter tested product behavior.
