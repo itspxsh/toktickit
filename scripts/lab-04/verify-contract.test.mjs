@@ -97,7 +97,7 @@ test("T-EVID-01 derives exactly one non-retried run per Lab 4 journey and viewpo
 });
 
 test("T-EVID-01 derives migration count only from successful deploy output", () => {
-  const applied = "4 migrations found in prisma/migrations\nThe following migration(s) have been applied:\nmigrations/\n  └─ 20260816095224_init/\n    └─ migration.sql\n  └─ 20260906010000_lab2_data_foundation/\n    └─ migration.sql\nAll migrations have been successfully applied.\n";
+  const applied = "4 migrations found in prisma/migrations\nApplying migration `20260816095224_init`\nApplying migration `20260906010000_lab2_data_foundation`\nThe following migration(s) have been applied:\nmigrations/\n  └─ 20260816095224_init/\n    └─ migration.sql\n  └─ 20260906010000_lab2_data_foundation/\n    └─ migration.sql\nAll migrations have been successfully applied.\n";
   assert.equal(parseMigrationDeploy(applied), 2);
   assert.equal(parseMigrationDeploy("4 migrations found in prisma/migrations\nNo pending migrations to apply.\n"), 0);
   assert.throws(() => parseMigrationDeploy("4 migrations found\nMigration failed\n"), /success/i);

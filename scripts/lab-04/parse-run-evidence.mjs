@@ -52,9 +52,18 @@ export function parsePlaywrightMatrix(output) {
 }
 
 export function parseMigrationDeploy(output) {
-  const migrations = Number(requireMatch(output.match(/^\s*(\d+) migrations found(?: in .+)?\s*$/m), "migration deploy")[1]);
+  const discovered = Number(requireMatch(output.match(/^\s*(\d+) migrations found(?: in .+)?\s*$/m), "migration deploy")[1]);
+  if (/^No pending migrations to apply\.$/m.test(output)) return 0;
   if (!/All migrations have been successfully applied\./.test(output)) {
     throw new Error("Migration deploy output does not confirm successful application.");
   }
-  return migrations;
+  const applied = [...output.matchAll(/^Applying migration `([^`]+)`$/gm)].map((match) => match[1]);
+  if (applied.length === 0) throw new Error("Migration deploy output confirms success but lists no migrations applied.");
+  if (applied.length > discovered) throw new Error("Migration deploy applied more migrations than were discovered.");
+  const listedSection = output.split("The following migration(s) have been applied:")[1]?.split("All migrations have been successfully applied.")[0] ?? "";
+  const listed = [...listedSection.matchAll(/^\s*└─ ([^/\s]+)\/\s*$/gm)].map((match) => match[1]);
+  if (listed.length !== applied.length || applied.some((name) => !listed.includes(name))) {
+    throw new Error("Migration deploy applied names do not match the retained applied-migration list.");
+  }
+  return applied.length;
 }
