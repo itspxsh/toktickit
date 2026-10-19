@@ -339,9 +339,19 @@ describe("L4-05 Actions Taken UI", () => {
 
   it("T-UI-ACT-05 / AC-14 refreshes the Action workflow version after a successful Ticket status change", async () => {
     const user = userEvent.setup();
+    let actionListReads = 0;
+    let transitionBody: Record<string, unknown> | undefined;
     const fetchMock = setupFetch((url, init) => {
       if (url.includes("/api/staff/tickets/") && url.endsWith("/status") && init?.method === "PATCH") {
         return jsonResponse({ ticket: { ...staffTicket, currentStatus: "WAITING_FOR_REQUESTER", workflowVersion: 4 } });
+      }
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions?`) && !init?.method) {
+        actionListReads += 1;
+        return jsonResponse({ ...actionPage, ticketVersion: actionListReads === 1 ? 3 : 4 });
+      }
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions/31/transitions`) && init?.method === "POST") {
+        transitionBody = JSON.parse(String(init.body)) as Record<string, unknown>;
+        return jsonResponse({ action: { ...action, state: "IN_PROGRESS" }, ticketVersion: 5 });
       }
       return undefined;
     });
@@ -357,7 +367,8 @@ describe("L4-05 Actions Taken UI", () => {
     await user.click(screen.getByRole("button", { name: "Save status" }));
 
     await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).includes(`/api/staff/tickets/${ticketNumber}/actions?`))).toHaveLength(2));
-    expect(section).toBeInTheDocument();
+    await user.click(within(section).getByRole("button", { name: "Start action" }));
+    await waitFor(() => expect(transitionBody).toMatchObject({ expectedTicketVersion: 4 }));
   });
 
   it("generates a UUID request key when randomUUID is unavailable", async () => {
