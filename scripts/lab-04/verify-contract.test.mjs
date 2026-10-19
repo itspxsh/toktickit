@@ -103,9 +103,12 @@ test("T-EVID-01 derives migration count only from successful deploy output", () 
   assert.throws(() => parseMigrationDeploy("4 migrations found\nMigration failed\n"), /success/i);
 });
 
-test("T-EVID-01 rejects a manifest count that disagrees with the retained output", async () => {
+test("T-EVID-01 accepts the canonical manifest and rejects counts that disagree with retained output", async () => {
   const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const canonicalErrors = await validateEvidenceManifest(manifest);
+  assert.deepEqual(canonicalErrors, [], canonicalErrors.join("\n"));
+
   manifest.runs.clientTests.passed += 1;
   const errors = await validateEvidenceManifest(manifest);
   assert.ok(errors.some((error) => error.includes("clientTests.passed") && error.includes("retained run log")), errors.join("\n"));
