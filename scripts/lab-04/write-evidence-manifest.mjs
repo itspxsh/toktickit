@@ -4,6 +4,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseMigrationDeploy, parseNodeTestRun, parsePlaywrightMatrix, parsePlaywrightRun, parseVitestRun } from "./parse-run-evidence.mjs";
+import { filterExecutedTestIds } from "./executed-test-ids.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const validationCommit = process.argv[2];
@@ -44,6 +45,9 @@ const lab2Log = await readFile(path.join(root, "artifacts/lab-04/validation/lab2
 const lab3Log = await readFile(path.join(root, "artifacts/lab-04/validation/lab3-e2e.log"), "utf8");
 const lab4Log = await readFile(path.join(root, "artifacts/lab-04/validation/lab4-e2e.log"), "utf8");
 const contractLog = await readFile(path.join(root, "artifacts/lab-04/validation/contract-tests.log"), "utf8");
+const testContract = await readFile(path.join(root, "docs/lab-04/tests.md"), "utf8");
+const inventorySection = testContract.split("## 6. AC crosswalk")[0];
+const inventoryIds = new Set([...inventorySection.matchAll(/^\|\s*((?:T-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{2}|RELEASE-01))\s*\|/gm)].map((match) => match[1]));
 const migrationCount = parseMigrationDeploy(migrationLog);
 const integrationRun = parseVitestRun(integrationLog);
 const serverRun = parseVitestRun(serverLog);
@@ -53,7 +57,9 @@ const lab3Run = parsePlaywrightRun(lab3Log);
 const lab4Run = parsePlaywrightRun(lab4Log);
 const contractRun = parseNodeTestRun(contractLog);
 const browserMatrix = parsePlaywrightMatrix(lab4Log);
-const executedIds = (output) => [...new Set(output.match(/\b(?:T-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{2}|RELEASE-01)\b/g) ?? [])].sort();
+// Keep regression suites honest: tests from Labs 1–3 run as regressions, but
+// only IDs declared in the Lab 4 inventory are attributed to this manifest.
+const executedIds = (output) => filterExecutedTestIds(output, inventoryIds);
 const perfLine = integrationLog.split("\n").find((line) => line.startsWith("[T-PERF-01] "));
 if (!perfLine) throw new Error("Integration log does not contain the executed T-PERF-01 output.");
 const perf = JSON.parse(perfLine.slice("[T-PERF-01] ".length));
