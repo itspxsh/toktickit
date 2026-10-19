@@ -88,6 +88,14 @@ test("T-EVID-01 derives Node test-run counts from the TAP summary", () => {
   assert.throws(() => parseNodeTestRun("ℹ tests 6\nℹ pass 5\nℹ fail 1\nℹ skipped 0\n"), /failed/i);
 });
 
+test("T-EVID-01 keeps regression-run IDs within the Lab 4 inventory", async () => {
+  const { filterExecutedTestIds } = await import("./executed-test-ids.mjs");
+  assert.deepEqual(
+    filterExecutedTestIds("T-ACT-01 T-AUTH-01 T-UI-ACT-05 T-UI-02", new Set(["T-ACT-01", "T-UI-ACT-05"])),
+    ["T-ACT-01", "T-UI-ACT-05"],
+  );
+});
+
 test("T-EVID-01 derives exactly one non-retried run per Lab 4 journey and viewport", () => {
   const rows = ["T-E2E-01", "T-E2E-02", "T-E2E-03"].flatMap((testId) => ["desktop", "tablet", "mobile"].map((viewport) => `✓ 1 [${viewport}] › ${testId} journey`));
   const log = `${rows.join("\n")}\n9 passed (1m)\n`;
