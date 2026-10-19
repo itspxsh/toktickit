@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { scanSensitiveEvidenceText, validateEvidenceManifest } from "./verify-contract.mjs";
+import { parseNodeTestRun, parsePlaywrightMatrix, parseVitestRun, parseMigrationDeploy } from "./parse-run-evidence.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -70,4 +71,35 @@ test("T-EVID-01 scans retained logs for raw database URLs and credentials", () =
   assert.match(scanSensitiveEvidenceText("E2E_REQUESTER_PASSWORD=private-value"), /credential/i);
   assert.equal(scanSensitiveEvidenceText("DATABASE_URL=<redacted; isolated_test>"), null);
   assert.equal(scanSensitiveEvidenceText("all fixtures use synthetic .test identities"), null);
+});
+
+test("T-EVID-01 derives Vitest pass/fail/skip counts from its completed summary", () => {
+  assert.deepEqual(parseVitestRun("Test Files  24 passed (24)\n      Tests  175 passed (175)\n"), {
+    passed: 175, failed: 0, skipped: 0, retries: 0,
+  });
+  assert.throws(() => parseVitestRun("Tests 174 passed | 1 failed (175)"), /failed/i);
+  assert.throws(() => parseVitestRun("Tests 174 passed | 1 skipped (175)"), /skipped/i);
+});
+
+test("T-EVID-01 derives Node test-run counts from the TAP summary", () => {
+  assert.deepEqual(parseNodeTestRun("ℹ tests 6\nℹ pass 6\nℹ fail 0\nℹ skipped 0\nℹ todo 0\n"), {
+    passed: 6, failed: 0, skipped: 0, retries: 0,
+  });
+  assert.throws(() => parseNodeTestRun("ℹ tests 6\nℹ pass 5\nℹ fail 1\nℹ skipped 0\n"), /failed/i);
+});
+
+test("T-EVID-01 derives exactly one non-retried run per Lab 4 journey and viewport", () => {
+  const log = [
+    "✓ 1 [desktop] › T-E2E-01 requester journey",
+    "✓ 2 [tablet] › T-E2E-01 requester journey",
+    "✓ 3 [mobile] › T-E2E-01 requester journey",
+  ].join("\n") + "\n3 passed (1m)\n";
+  assert.equal(parsePlaywrightMatrix(log).length, 3);
+  assert.throws(() => parsePlaywrightMatrix(log.replace("3 passed", "2 passed")), /summary/i);
+  assert.throws(() => parsePlaywrightMatrix(`${log}  1 flaky\n`), /retry|flaky/i);
+});
+
+test("T-EVID-01 derives migration count only from successful deploy output", () => {
+  assert.equal(parseMigrationDeploy("4 migrations found\nAll migrations have been successfully applied.\n"), 4);
+  assert.throws(() => parseMigrationDeploy("4 migrations found\nMigration failed\n"), /success/i);
 });
