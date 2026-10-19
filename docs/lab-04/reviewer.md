@@ -139,8 +139,10 @@ in `_test`; no development database was used. Four migrations deployed, the
 PostgreSQL integration suite passed 20/20, the full server suite passed 175/175,
 and client tests passed 134/134. Lab 2 authenticated E2E passed 3/3, Lab 3 E2E
 passed 9/9, and Lab 4 E2E passed 9/9 (three journeys × desktop/tablet/mobile),
-all with one worker and zero retries. Server/client builds, repository-local
-Prisma validation, and the five contract/evidence tests passed. The responsive
+all with one worker and zero retries. T-E2E-02 confirms the persisted
+`IN PROGRESS → RESOLVED` status event in the Requester detail. Server/client
+builds, repository-local Prisma validation, and the six contract/evidence tests
+passed. The responsive
 checks used 1440×900, 768×1024, and 320×800 and asserted no horizontal overflow
 and visible keyboard focus; client accessibility tests additionally checked
 focus trapping, Escape dismissal, and focus restoration.

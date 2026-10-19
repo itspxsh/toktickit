@@ -17,13 +17,13 @@ Server and client regression
 - (cd server && npm test -- --reporter=dot): 175/175 passed across 24 files; expected EPERM cleanup failure is injected and asserted by T-REG-02, with safe server-side logging.
 - (cd client && npm test -- --reporter=dot): 134/134 passed across 30 files, including T-A11Y-01 and T-STYLE-01.
 - Server TypeScript build, Client TypeScript/Vite production build, and repository-local Prisma 5.22.0 validation all passed. Individual outputs are retained beside this file.
-- node --test scripts/lab-04/verify-contract.test.mjs: 5/5 passed; zero skipped.
+- node --test scripts/lab-04/verify-contract.test.mjs: 6/6 passed; zero skipped. This includes retained-evidence privacy scanner checks for raw database URLs and credential assignments.
 
 Live browser matrix
 - Lab 2 authenticated requester regression: 3/3 passed (desktop/tablet/mobile), one worker, zero retries. Output: lab2-e2e.log.
 - Lab 3 authenticated journeys: 9/9 passed (3 journeys × desktop/tablet/mobile), one worker, zero retries. Output: lab3-e2e.log.
-- Lab 4 journeys: 9/9 passed (3 journeys × desktop/tablet/mobile), one worker, zero retries. Output: lab4-e2e.log. Screenshots were captured only after loaded-state assertions under ../screenshots/.
+- Lab 4 journeys: 9/9 passed after the status-history assertion update (3 journeys × desktop/tablet/mobile), one worker, zero retries. Output: lab4-e2e.log. T-E2E-02 confirms the persisted `IN PROGRESS → RESOLVED` event in the Requester detail; screenshots were captured only after loaded-state assertions under ../screenshots/.
 - Viewports: desktop 1440×900, tablet 768×1024, mobile 320×800. The dashboard journeys verify exact viewport, no horizontal overflow, and visible keyboard focus; client T-A11Y-01 additionally verifies focus trapping, Escape dismissal, and focus restoration.
 - Representative loaded-state screenshots at desktop/tablet/mobile were visually inspected. The manifest records dimensions and SHA-256 for all 30 Lab 4 screenshots. Test identities use reserved .test emails and fake local-only credentials; no credential or database URL is retained here.
 
-Commands, evidence files, screenshot hashes, and AC/Test traceability are validated by scripts/lab-04/verify-contract.mjs. This record describes the source tree SHA above; later evidence/documentation commits do not change that tested product source.
+Commands, evidence files, screenshot hashes, AC/Test traceability, and retained-text privacy scanning are validated by scripts/lab-04/verify-contract.mjs. This record describes the source tree SHA above; later evidence/documentation commits do not change that tested source.

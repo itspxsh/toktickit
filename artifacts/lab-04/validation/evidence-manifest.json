@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "88d1f0caab307e43b1dc238402f4b66f9f91aa23",
+  "sourceCommit": "5e0912437e28cf15dfeafe8eda33656adc70c20b",
   "database": {
     "name": "toktickit_l410_final_integration_test",
     "urlRecorded": false
@@ -99,7 +99,7 @@
       ]
     },
     "contractTests": {
-      "passed": 5,
+      "passed": 6,
       "failed": 0,
       "skipped": 0,
       "retries": 0,
@@ -246,10 +246,27 @@
   "validation": {
     "log": "artifacts/lab-04/validation/validation.log"
   },
+  "textEvidence": [
+    "artifacts/lab-04/migration/migration.log",
+    "artifacts/lab-04/migration/e2e-preparation.log",
+    "artifacts/lab-04/validation/validation.log",
+    "artifacts/lab-04/validation/integration.log",
+    "artifacts/lab-04/validation/server-tests.log",
+    "artifacts/lab-04/validation/client-tests.log",
+    "artifacts/lab-04/validation/server-build.log",
+    "artifacts/lab-04/validation/client-build.log",
+    "artifacts/lab-04/validation/prisma-validate.log",
+    "artifacts/lab-04/validation/lab2-e2e.log",
+    "artifacts/lab-04/validation/lab3-e2e.log",
+    "artifacts/lab-04/validation/lab4-e2e.log",
+    "artifacts/lab-04/validation/contract-tests.log",
+    "artifacts/lab-04/metrics/report.md",
+    "artifacts/lab-04/metrics/explain-plan.json"
+  ],
   "screenshots": [
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/completed-desktop.png",
-      "sha256": "be616e1d26838213cce7bf8a0594519a2c64fb87ac6d32e4a1913c12e3f50135",
+      "sha256": "3f1321db2b52992f8a2fb1d36cfd0e0170aa1fee51351c60ed65aa8fa0774e9c",
       "width": 1440,
       "height": 2861,
       "ac": [
@@ -271,9 +288,9 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/completed-mobile.png",
-      "sha256": "dd2350ffd2fe8839b163c5196f8b6632674c37603dfccbb78de25b51b36faf07",
+      "sha256": "1690b314c2be81861cfd7433b7d51e39b2820f1da0e6de7dfd63b5d1f398bd48",
       "width": 320,
-      "height": 4312,
+      "height": 4284,
       "ac": [
         "AC-01",
         "AC-02",
@@ -293,7 +310,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/completed-tablet.png",
-      "sha256": "f4c2304500d6454ffce5ca34c55af43479d813281ff0c11b6df81faa9d32cbeb",
+      "sha256": "d127b39a2ab7d9b1221151e90ee8f96afc07bc476c25b93bb7ddb70d80922b6b",
       "width": 768,
       "height": 3519,
       "ac": [
@@ -315,7 +332,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-desktop.png",
-      "sha256": "2bcf7059f7bde72a4be8c003b24e15b0fe6f3b678730749cb80961414b8c059d",
+      "sha256": "06265fc08af60ac3dacab425f6f612bd14575ddf6a2e3e53c2ca026b4d3cbd27",
       "width": 1440,
       "height": 1992,
       "ac": [
@@ -337,9 +354,9 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-mobile.png",
-      "sha256": "326b89bb5279658d5a78e2754beb64b2572a5208d6f4c7da7eb644ae8ac6dd0e",
+      "sha256": "12826d569bb583ce76e46c575e0fbd3f81c239d48d30329d5a42ea1dd07b487d",
       "width": 320,
-      "height": 3865,
+      "height": 3837,
       "ac": [
         "AC-01",
         "AC-02",
@@ -359,7 +376,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-tablet.png",
-      "sha256": "34500a6c48a413a61f6feca3bdb8942f9336880b8b5f8cbc8903d9eebb503e71",
+      "sha256": "8290964e5d4907408ce7415e119f84cd18760d2c29e9f570d2e2002f654f59e2",
       "width": 768,
       "height": 3112,
       "ac": [
@@ -381,7 +398,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/support-empty-desktop.png",
-      "sha256": "f44a3d38d745286e305856a1ead7e816131b2c4f56d1f0d6ba46ae0b5f7522ca",
+      "sha256": "a658ef5ab8ae7f3f8b64bbffd6b5157fe3ab42349ccf0260c0d56817c32b0141",
       "width": 1440,
       "height": 2399,
       "ac": [
@@ -403,7 +420,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/support-empty-mobile.png",
-      "sha256": "4a31515bc25a9bd2867d4057fd8b2b872f04432441ab7e2d6ba0d497f94fe0b1",
+      "sha256": "63440d6cd83836066a3b2d2b1a18c7606d611d6c868cf68eb198ff662e592740",
       "width": 320,
       "height": 3301,
       "ac": [
@@ -425,7 +442,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/actions-taken/support-empty-tablet.png",
-      "sha256": "d7b9c90135bae62ddad45be30ce25f914d4c549618ddcee9a638e583b875fe98",
+      "sha256": "9aca8c83ddaa5d53a5c8ab981aca467f0b165d5b3d14b4bf52c361be4ac29fc0",
       "width": 768,
       "height": 2945,
       "ac": [
@@ -447,7 +464,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/requester-dashboard/loaded-desktop.png",
-      "sha256": "edd09e51d3dd8a54fe0bfdd396b7d62a13cfb9a76144b32c9d5b42b64037e23f",
+      "sha256": "84899e90f62414d7336c2644bf42b73b3fa057784f01f52022f7635e5acf6307",
       "width": 1440,
       "height": 1250,
       "ac": [
@@ -467,7 +484,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/requester-dashboard/loaded-mobile.png",
-      "sha256": "0710cf14c70ac43c91dffb5147ae152503e549ad182e4079e1cfa7be87537765",
+      "sha256": "3ebddb44c8b4509996e87f84c0a66de3b05112b21b8fb97ade97ebad8c6a323b",
       "width": 320,
       "height": 2773,
       "ac": [
@@ -487,7 +504,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/requester-dashboard/loaded-tablet.png",
-      "sha256": "d37aca328c399a576a38465bc0c33d497a077f31c0acb20e863133a679139fc4",
+      "sha256": "28d2f097515129d019e8e430b4169c017e211ca0f03d7b688d961d22b32dc8b7",
       "width": 768,
       "height": 1591,
       "ac": [
@@ -507,7 +524,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/staff-dashboard/loaded-desktop.png",
-      "sha256": "487761585dbbe1bf8cba6f2dc278dd6d4af91cd95cc9ad4c37d67251cdc9ee3f",
+      "sha256": "1e28858c04dc3c08102f194006bb725e411f24825c4856db415bc4fdb8cb915b",
       "width": 1440,
       "height": 1770,
       "ac": [
@@ -527,7 +544,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/staff-dashboard/loaded-mobile.png",
-      "sha256": "6e81c29d90c0afa34306d8fb314455b9a2ebc425b6d6bdc6965f6db5e95bcd2c",
+      "sha256": "c030e13f14d62313d2aeaff484dea10764dd45111cd8d1fd6130a25a8e49737a",
       "width": 320,
       "height": 3897,
       "ac": [
@@ -547,7 +564,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/staff-dashboard/loaded-tablet.png",
-      "sha256": "c06b15eb9bf7068784af152f3ecf036922f501feac7c0dc2ba9a499b5f1c59b2",
+      "sha256": "769b27cf67054da55d75de04d7e5c1801b90dc527e0c62d973c24af1d8049b4a",
       "width": 768,
       "height": 2150,
       "ac": [
@@ -567,7 +584,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-desktop.png",
-      "sha256": "63106ff1434dec67e1425446bdaf41b7b0fe187cb2fd840edb92f2965e35d954",
+      "sha256": "3f4d7ff3e0e7b4cbabf703292b97755857cf1d8b8cdb78ade948a974ed8da56d",
       "width": 1440,
       "height": 2498,
       "ac": [
@@ -586,7 +603,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-mobile.png",
-      "sha256": "855ad1f015669c37211f2d7ebd4c3f96947cc6e81dc45e61b1af2a01e784b804",
+      "sha256": "db3d9d48d305fbbcdfe74b25ca72c4de5851e912380292db72eab2e52670c848",
       "width": 320,
       "height": 3504,
       "ac": [
@@ -605,7 +622,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-tablet.png",
-      "sha256": "ee934a84c0174954cc0d80792a872c2bd2efc93f39de1ab6d5f476f5e6d18599",
+      "sha256": "dae542ba7753033c5ed20699aa9fa132749efb4f853a65d3f51e5351133b3484",
       "width": 768,
       "height": 3041,
       "ac": [
@@ -624,7 +641,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/closed-desktop.png",
-      "sha256": "6f1fb12da3952395315f5dc12107289567b726a560ebb6580f0b350c41f5140a",
+      "sha256": "273623bdfbad45e0f10d201eeeefdfb32d409c2ded4b190c9fbe1f013e52ba2c",
       "width": 1440,
       "height": 2752,
       "ac": [
@@ -643,9 +660,9 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/closed-mobile.png",
-      "sha256": "02f9c96e707e6e58971c4de04e2c573df277e8df3513df3af275c9d4aaea453f",
+      "sha256": "de786404c25e46ec6e472d307f496d2c441445b2510e4bd9c1e539715d41fe66",
       "width": 320,
-      "height": 4095,
+      "height": 4071,
       "ac": [
         "AC-07",
         "AC-08",
@@ -662,7 +679,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/closed-tablet.png",
-      "sha256": "81e3f3a1a3411aa63e778df50e88c755a3fd68b211f6aa81449d5d6893d79d03",
+      "sha256": "ede4115475593a7163053baf2bbf02669728b1537b699f7c846d75f006a6a088",
       "width": 768,
       "height": 3330,
       "ac": [
@@ -681,7 +698,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-desktop.png",
-      "sha256": "25bea71636cad2dc8d93001d6ac59650802c57aa5f664ec9873776339c4bf161",
+      "sha256": "d2f4fd63719c41075694f9b32890a2d14069b4cda973dc26bf62dd062d292a07",
       "width": 1440,
       "height": 1855,
       "ac": [
@@ -700,7 +717,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-mobile.png",
-      "sha256": "4b4b8b50cf97771e669da6584abadb7675ea95d2c5a243ad40d05cfbf0122399",
+      "sha256": "1c24ff7c8ec758497f9dca465936abdf62aaf1fd3a4d3c68d4374e16b18b57d0",
       "width": 320,
       "height": 3547,
       "ac": [
@@ -719,7 +736,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-tablet.png",
-      "sha256": "04d80f4aebb949fe3b2e02b30890eaf53dcb2af5d6c438f5e2f9ae314995125d",
+      "sha256": "24149eadff555d15e9df0d3e55ecf50f732a0e303122e4b1f37f9be240029169",
       "width": 768,
       "height": 2895,
       "ac": [
@@ -738,7 +755,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-desktop.png",
-      "sha256": "b0f94093835d2ff2f8cc63f9fb9df59e5830c0b77c9ea3b783f2a4dec3277f84",
+      "sha256": "aeb7dfda74ff09bec9a7dba99c2e968c16e79db7706915e53025bff2167c5a1b",
       "width": 1440,
       "height": 2495,
       "ac": [
@@ -757,9 +774,9 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-mobile.png",
-      "sha256": "e1406e1b47cf7f2b9fbc5ec2bc24c8fabc9aa3ba9d692f6385bbc6a009ed2a9c",
+      "sha256": "3a169ba434259f8d2f91c1e784964929b0c780410f3c7485bc78f86a24e85b60",
       "width": 320,
-      "height": 3541,
+      "height": 3517,
       "ac": [
         "AC-07",
         "AC-08",
@@ -776,7 +793,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-tablet.png",
-      "sha256": "96683d67905638da9aa15515152952c9a471b036dad4a1c537c32ac665a6abf7",
+      "sha256": "6a49c1201fd0464e5bb971c448e98f745b010dfeffe1aab06ea0610468e568f1",
       "width": 768,
       "height": 3041,
       "ac": [
@@ -795,7 +812,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/resolved-desktop.png",
-      "sha256": "f7cf2ef2a3ba70113c41b8b76d37123bb8a5ba4ed8022e71f9ad23fdcba61ef8",
+      "sha256": "13ab83079bce991a1f379ab70992cb5c67a00a6d2eec16c90ee1ae3b99697a90",
       "width": 1440,
       "height": 2728,
       "ac": [
@@ -814,9 +831,9 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/resolved-mobile.png",
-      "sha256": "412118db48f2e55b216613aa05d24e02be778324289165b08de8bce93d163f19",
+      "sha256": "dd52b6a2746e8636827f3a4406e013317e5e584a20b0e4968748b311d6fbe8f7",
       "width": 320,
-      "height": 4023,
+      "height": 3999,
       "ac": [
         "AC-07",
         "AC-08",
@@ -833,7 +850,7 @@
     },
     {
       "path": "artifacts/lab-04/screenshots/ticket-workflow/resolved-tablet.png",
-      "sha256": "9c63bded0f4ac8e7ecd517001bdd96ecaa892ed170f01e3b0b84e24d9027f025",
+      "sha256": "24cde81dbe496cbff5bff1e40dc8a07f24bbae6d0523900d6ad286493ba9b41a",
       "width": 768,
       "height": 3306,
       "ac": [

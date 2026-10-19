@@ -86,7 +86,7 @@ const manifest = {
     lab2E2E: run(3, "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0", ["T-UI-REG-01"]),
     lab3E2E: run(9, "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0", ["T-REG-01", "T-UI-REG-01"]),
     lab4E2E: run(9, "cd client && npm run test:e2e:lab4 -- --workers=1 --retries=0", ["T-E2E-01", "T-E2E-02", "T-E2E-03", "T-RESP-01"]),
-    contractTests: run(5, "node --test scripts/lab-04/verify-contract.test.mjs", ["T-CONTRACT-01", "T-EVID-01"]),
+    contractTests: run(6, "node --test scripts/lab-04/verify-contract.test.mjs", ["T-CONTRACT-01", "T-EVID-01"]),
   },
   browserMatrix: ["T-E2E-01", "T-E2E-02", "T-E2E-03"].flatMap((testId) => ["desktop", "tablet", "mobile"].map((project) => ({ testId, project, passed: 1, failed: 0, skipped: 0, retries: 0 }))),
   traceability: {

@@ -2,24 +2,24 @@
 > toktickit-client@1.0.0 test:e2e:lab4
 > E2E_SUITE=lab4 playwright test -c playwright.config.ts ../e2e/lab-04 --workers=1 --retries=0
 
-[WebServer] (node:22129) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (node:24813) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 [WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 Running 9 tests using 1 worker
 
-(node:22132) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:24820) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
   ✓  1 [desktop] › ../e2e/lab-04/actions-taken-flow.spec.ts:4:5 › T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence (29.1s)
   ✓  2 [desktop] › ../e2e/lab-04/dashboards.spec.ts:4:5 › T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down, and current-user Actions (36.9s)
   ✓  3 [desktop] › ../e2e/lab-04/ticket-resolution.spec.ts:16:5 › T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, close, cancel, and Admin reopen (1.3m)
-(node:22359) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:25062) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ✓  4 [tablet] › ../e2e/lab-04/actions-taken-flow.spec.ts:4:5 › T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence (48.9s)
-  ✓  5 [tablet] › ../e2e/lab-04/dashboards.spec.ts:4:5 › T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down, and current-user Actions (47.1s)
+  ✓  4 [tablet] › ../e2e/lab-04/actions-taken-flow.spec.ts:4:5 › T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence (48.7s)
+  ✓  5 [tablet] › ../e2e/lab-04/dashboards.spec.ts:4:5 › T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down, and current-user Actions (47.0s)
   ✓  6 [tablet] › ../e2e/lab-04/ticket-resolution.spec.ts:16:5 › T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, close, cancel, and Admin reopen (1.4m)
-(node:22603) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(node:25363) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 (Use `node --trace-warnings ...` to show where the warning was created)
-  ✓  7 [mobile] › ../e2e/lab-04/actions-taken-flow.spec.ts:4:5 › T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence (48.8s)
+  ✓  7 [mobile] › ../e2e/lab-04/actions-taken-flow.spec.ts:4:5 › T-E2E-01 / AC-01..06,09,18 Actions lifecycle, ownership, read-only projection, and viewport evidence (48.7s)
   ✓  8 [mobile] › ../e2e/lab-04/dashboards.spec.ts:4:5 › T-E2E-03 / AC-10..14,17 dashboard aggregates, owned isolation, drill-down, and current-user Actions (46.8s)
   ✓  9 [mobile] › ../e2e/lab-04/ticket-resolution.spec.ts:16:5 › T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, close, cancel, and Admin reopen (1.3m)
 
