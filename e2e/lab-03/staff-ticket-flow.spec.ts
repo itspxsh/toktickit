@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "../../client/node_modules/@playwright/test/index.js";
+import { expect, test, type Browser, type Page, type TestInfo } from "../../client/node_modules/@playwright/test/index.js";
 import { API_BASE_URL, expectNoHorizontalOverflow, preflight, saveScreenshot, signIn } from "./support.js";
 
 const nextStatusByCurrent: Record<string, string> = {
@@ -18,10 +18,36 @@ async function firstEditableQueueRow(page: Page) {
   return null;
 }
 
+async function createEditableTicket(browser: Browser, testInfo: TestInfo) {
+  const context = await browser.newContext({
+    baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173",
+    viewport: testInfo.project.use.viewport,
+  });
+  try {
+    const requesterPage = await context.newPage();
+    await preflight(requesterPage);
+    await signIn(requesterPage, "requester");
+    await requesterPage.goto("/create-ticket");
+    await expect(requesterPage.getByRole("heading", { name: "Create Ticket" })).toBeVisible();
+    await requesterPage.getByLabel("Category").selectOption({ index: 1 });
+    await requesterPage.getByLabel("Related System").selectOption({ index: 1 });
+    await requesterPage.getByLabel("Requested Priority").selectOption("MEDIUM");
+    await requesterPage.getByLabel("Summary").fill(`Lab 3 workflow scenario ${Date.now()}`);
+    await requesterPage.getByLabel("Description").fill("Isolated scenario Ticket for the staff workflow regression journey.");
+    await requesterPage.getByRole("button", { name: "Submit Ticket" }).click();
+    await expect(requesterPage.getByRole("heading", { name: "Ticket created successfully" })).toBeVisible();
+    return (await requesterPage.locator('[aria-labelledby="create-ticket-success-title"] strong').textContent())?.trim() ?? "";
+  } finally {
+    await context.close();
+  }
+}
+
 test.describe("Lab 3 IT Staff journey", () => {
-  test("T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates filters, pagination controls, priority/status updates, workflow, and isolation", async ({ page }, testInfo) => {
+  test("T-E2E-02 / AC-03, AC-05, AC-06, AC-07, AC-08, AC-09 validates filters, pagination controls, priority/status updates, workflow, and isolation", async ({ page, browser }, testInfo) => {
     test.setTimeout(90_000);
     await preflight(page);
+    const scenarioTicketNumber = await createEditableTicket(browser, testInfo);
+    expect(scenarioTicketNumber).toMatch(/^TKT-\d{4}-\d{6}$/);
     await signIn(page, "staff", testInfo);
     await page.goto("/admin/users");
     await expect(page.getByRole("alert")).toContainText(/Access denied/i);
@@ -59,6 +85,7 @@ test.describe("Lab 3 IT Staff journey", () => {
       await page.getByRole("button", { name: "Status: NEW ×" }).click();
       editableRow = await firstEditableQueueRow(page);
     }
+    await expect(page.getByRole("link", { name: scenarioTicketNumber, exact: true })).toBeVisible();
     if (!editableRow) throw new Error("The seeded Staff queue contains no Ticket with an editable workflow status.");
     await expect(editableRow).toBeVisible();
     await expectNoHorizontalOverflow(page);
