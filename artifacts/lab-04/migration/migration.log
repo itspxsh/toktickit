@@ -1,6 +1,6 @@
 Environment variables loaded from .env
 Prisma schema loaded from prisma/schema.prisma
-Datasource "db": PostgreSQL database "toktickit_l410_final_migration2_test", schema "public" at "127.0.0.1:55443"
+Datasource "db": PostgreSQL database "toktickit_l410_review_migration_test", schema "public" at "127.0.0.1:55439"
 
 4 migrations found in prisma/migrations
 

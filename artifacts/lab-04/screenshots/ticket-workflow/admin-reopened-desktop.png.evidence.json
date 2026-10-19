@@ -1,0 +1,18 @@
+{
+  "ac": [
+    "AC-07",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-02",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "Admin role signed in",
+    "CANCELLED Ticket reopened and REOPENED status visible",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Synthetic ticket summary and seeded synthetic Admin account; no credentials.",
+  "project": "desktop"
+}

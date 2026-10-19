@@ -1,39 +1,191 @@
 
 > toktickit-server@1.0.0 test
-> vitest run --reporter=dot
+> vitest run --reporter=verbose
 
 
  RUN  v2.1.9 /Users/posh/Study/CPE334/toktickit/server
 
- ✓ tests/lab-02/create-ticket.api.test.ts (6 tests) 47ms
- ✓ tests/lab-04/ticket-workflow.api.test.ts (8 tests) 52ms
- ✓ tests/lab-03/staff-ticket-detail.api.test.ts (6 tests) 80ms
- ✓ tests/lab-03/authorization.api.test.ts (7 tests) 72ms
- ✓ tests/lab-04/staff-dashboard.api.test.ts (9 tests) 43ms
- ✓ tests/lab-04/requester-dashboard.api.test.ts (7 tests) 70ms
- ✓ tests/lab-02/attachments.api.test.ts (8 tests) 184ms
- ✓ tests/lab-04/actions.unit.test.ts (9 tests) 8ms
- ✓ tests/lab-04/actions-taken.api.test.ts (57 tests) 301ms
- ✓ tests/lab-02/data-foundation.test.ts (6 tests) 4ms
- ✓ tests/lab-02/ticket-detail.api.test.ts (4 tests) 74ms
- ✓ tests/lab-02/my-tickets.api.test.ts (6 tests) 40ms
+ ✓ tests/lab-02/create-ticket.api.test.ts > POST /api/tickets > API-03 / AC-05: saves one NEW ticket with trimmed fields and official number
+ ✓ tests/lab-02/create-ticket.api.test.ts > POST /api/tickets > UNIT-03 / API-04 / AC-06: returns field errors and does not create invalid data
+ ✓ tests/lab-02/create-ticket.api.test.ts > POST /api/tickets > UNIT-03: accepts the documented inclusive boundaries and rejects generated fields
+ ✓ tests/lab-02/create-ticket.api.test.ts > POST /api/tickets > API-05 / UNIT-04 / AC-07: replays the same key and conflicts on a changed payload
+ ✓ tests/lab-02/create-ticket.api.test.ts > POST /api/tickets > returns documented context and key errors without touching the database
+ ✓ tests/lab-02/create-ticket.api.test.ts > POST /api/tickets > distinguishes missing and inactive requesters
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment validation > UNIT-06 / AC-14-15: accepts matching signatures and rejects unsafe metadata
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > rejects unversioned workflow writes and unknown fields before mutation
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > T-WF-03 claims atomically from the authenticated actor and increments workflowVersion
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > T-DASH-S-04 keeps direct detail reads inside the active requester-user scope
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > T-DASH-S-04 rechecks active requester-user scope after locking a workflow Ticket
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > T-WF-01 enforces the Admin-only cancelled reopen transition
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > T-WF-02 requires the Action resolution gate and explicit resolve confirmation
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > T-WF-04 records only effective transitions and updates resolvedAt
+ ✓ tests/lab-04/ticket-workflow.api.test.ts > L4-06 Ticket workflow API (T-WF-01..04) > retains a resolved timestamp on close, clears it on reopen, and never emits an event for a no-op
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts > staff ticket detail and workflow > T-DETAIL-01 / AC-07 returns controlled detail with safe comments, notes, and attachment metadata
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts > staff ticket detail and workflow > T-DETAIL-02 / AC-14 rejects malformed and foreign tickets safely
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts > staff ticket detail and workflow > T-DETAIL-03 / AC-14 requires a version and updates priority through the locked Ticket
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts > staff ticket detail and workflow > T-STAFF-03 / AC-06 claims atomically and does not overwrite an existing owner
+ ✓ tests/lab-03/authorization.api.test.ts > Lab 3 server authorization over Lab 2 requester routes > T-AUTHZ-01 returns the standard 401 envelope for anonymous protected reads
+ ✓ tests/lab-03/authorization.api.test.ts > Lab 3 server authorization over Lab 2 requester routes > T-AUTHZ-04 rejects stale sessions and inactive requester identities
+ ✓ tests/lab-03/authorization.api.test.ts > Lab 3 server authorization over Lab 2 requester routes > T-AUTHZ-05 stops after the first-login password gate
+ ✓ tests/lab-03/authorization.api.test.ts > Lab 3 server authorization over Lab 2 requester routes > requires CSRF on authenticated Lab 2 ticket creation
+ ✓ tests/lab-03/authorization.api.test.ts > Lab 3 server authorization over Lab 2 requester routes > requires CSRF before authenticated Lab 2 attachment writes
+ ✓ tests/lab-03/authorization.api.test.ts > Lab 3 server authorization over Lab 2 requester routes > T-AUTHZ-02 ignores forged Development Requester headers and scopes by session
+ ✓ tests/lab-03/authorization.api.test.ts > Lab 3 server authorization over Lab 2 requester routes > T-AUTHZ-02 rejects a foreign ticket without disclosing ownership
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-01 logs in an active user with a safe identity and opaque cookie
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > API-10 / AC-14: uploads one owned permitted file with private UUID storage
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > persists bytes before opening the capacity transaction
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts > staff ticket detail and workflow > T-STAFF-04 / AC-06 validates assignment and protects versioned workflow transitions
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts > staff ticket detail and workflow > T-COMMENT-02..05 / AC-08..09 attributes append-only comments and notes on the server
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > API-11 / AC-15: rejects invalid files and active-count overflow without rows
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > API-12 / AC-16: lists metadata, streams active content, and soft-removes with a reason
+ ✓ tests/lab-04/requester-dashboard.api.test.ts > L4-07 Requester dashboard API (T-DASH-R-01..02) > returns the exact zero-scope contract from a server-authorized identity
+ ✓ tests/lab-04/requester-dashboard.api.test.ts > L4-07 Requester dashboard API (T-DASH-R-01..02) > rejects actor-selection and unknown dashboard query keys before querying data
+ ✓ tests/lab-04/requester-dashboard.api.test.ts > L4-07 Requester dashboard API (T-DASH-R-01..02) > uses the session-linked requester for the list filter and supports resolved UTC drill-downs (T-QUERY-01)
+ ✓ tests/lab-04/requester-dashboard.api.test.ts > L4-07 Requester dashboard API (T-DASH-R-01..02) > T-DASH-R-02 keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt
+ ✓ tests/lab-04/requester-dashboard.api.test.ts > L4-07 Requester dashboard API (T-DASH-R-01..02) > rejects impossible UTC calendar dates before reading tickets
+ ✓ tests/lab-04/requester-dashboard.api.test.ts > L4-07 Requester dashboard API (T-DASH-R-01..02) > calculates all requester metrics and emits only bounded safe summaries (T-DASH-R-01..02)
+ ✓ tests/lab-04/requester-dashboard.api.test.ts > L4-07 Requester dashboard API (T-DASH-R-01..02) > does not turn an inactive or unlinked session identity into an empty dashboard
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > returns all status and priority buckets, bounded lists, and paged empty Action shape
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > rejects invalid page bounds and unknown dashboard keys before querying
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > forbids Requester access to the staff dashboard
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > keeps dashboard staff drill-down lists inside the same active requester scope (T-QUERY-01)
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > matches staff/Admin buckets, actor-owned work and safe Action pagination (T-DASH-S-01..02)
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > applies before-only, terminal status, null-priority and actor assignment filters identically to rows and count (T-QUERY-01)
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > T-DASH-S-02 keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > rejects impossible UTC calendar dates before reading Tickets
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > returns a safe service error instead of manufacturing zero counts (T-DASH-S-03)
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > API-13 / AC-17: compensates permanent storage when the metadata insert fails
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > returns safe ownership, reason, and repeated-removal errors
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > keeps a successful soft-removal response but logs non-missing file cleanup errors
+ ✓ tests/lab-02/attachments.api.test.ts > Attachment routes > keeps a successful soft-removal response but logs non-missing file cleanup errors
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-01 requires a valid session for the active support assignee lookup
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-01 defaults the Actions registrar to real fail-closed requester middleware
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-01 rejects an expired session before looking up Actions
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-01 rejects an inactive session before looking up Actions
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-01 blocks Actions for a first-login account until its password changes
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-01 rejects Requester access to support-only Actions and assignee APIs
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-06 validates Ticket Number before querying owned Action data
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > rejects an invalid action identifier before a database lookup
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-02 uses one indistinguishable 401 envelope for unknown, inactive, and wrong credentials
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-01 creates a server-attributed Action, one revision, and advances the parent version
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-DASH-S-04 rechecks active requester scope after the parent lock before Action create
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-DASH-S-04 rechecks active requester scope after the parent lock before Action edit
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-DASH-S-04 rechecks active requester scope after the parent lock before Action transition
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-02 filters assignee lookup to active IT Staff/Admin before accepting an assignee
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 rejects out-of-bound Action text before querying the Ticket
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 enforces the result maximum
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 enforces the followUpNote maximum
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 enforces the attachmentNotes maximum
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 rejects a non-boolean Follow-up Required value
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 rejects required follow-up without a valid note on create
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 rejects empty Action patches and invalid create identifiers before database access
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-07 replays an authorized matching request before checking stale versions or terminal write state
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-07 re-reads an authorized matching Action after a unique-key create race
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-07 rejects a unique-key race when the persisted fingerprint differs
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-07 detects stale Ticket and Action versions independently before writing
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 rejects Action writes when the parent Ticket is terminal
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-07 rejects same-key replay with a different normalized payload
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-07 rejects same-key replay with a different actor
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-06 scopes Requester Actions through the session-derived Requester and returns no revision data
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-06 returns byte-identical safe 404s for missing and foreign-parent Tickets
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-06 denies Requester writes to the staff Action API
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-06 returns byte-identical 404s for absent and foreign-parent Actions
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-02 checks real Origin and CSRF middleware before any Action write
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-02 applies session role changes immediately on the next request
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-03 rejects forged creator, performer, state, and parent fields before opening a write transaction
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 forbids the PLANNED-to-COMPLETED shortcut
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 rejects edits to terminal Actions
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-05 applies an effective edit once and records one immutable revision
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-05 returns a no-op without changing either version or appending a revision
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-05 combines effective content edits and reassignment into one revision
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-05 records assignment-only changes with an ASSIGN revision
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-02 rejects reassignment to an inactive or non-support account before writing
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-03 validates the merged Action when enabling follow-up without a valid note
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 completes an in-progress Action with the authenticated performer
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 cancels an Action only with confirmation and a valid reason
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 starts an Action without confirmation
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 requires confirmation before cancellation
+ ✓ tests/lab-04/actions.unit.test.ts > L4-04 Action rules (T-UNIT-01 / T-UNIT-03) > normalizes plain text, enforces boundaries, and rejects markup/control characters
+ ✓ tests/lab-04/actions.unit.test.ts > L4-04 Action rules (T-UNIT-01 / T-UNIT-03) > validates the merged follow-up rule and completion requirements
+ ✓ tests/lab-04/actions.unit.test.ts > L4-04 Action rules (T-UNIT-01 / T-UNIT-03) > permits only the two non-terminal Action transition paths
+ ✓ tests/lab-04/actions.unit.test.ts > L4-04 Action rules (T-UNIT-01 / T-UNIT-03) > fingerprints normalized content and assignee without workflow versions
+ ✓ tests/lab-04/actions.unit.test.ts > L4-04 Action rules (T-UNIT-01 / T-UNIT-03) > fails closed on unsupported server-owned fields
+ ✓ tests/lab-04/actions.unit.test.ts > L4-06 Ticket workflow rules (T-UNIT-02) > exposes only the approved transition destinations for each support role
+ ✓ tests/lab-04/actions.unit.test.ts > L4-06 Ticket workflow rules (T-UNIT-02) > requires confirmation only for the approved effective Ticket transitions
+ ✓ tests/lab-04/actions.unit.test.ts > L4-06 Ticket workflow rules (T-UNIT-02) > calculates resolution blockers from current Actions without treating cancelled work as outstanding
+ ✓ tests/lab-04/actions.unit.test.ts > L4-06 Ticket workflow rules (T-UNIT-02) > does not misreport unrelated unique conflicts as stale workflow writes
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-04 requires confirmation before completing and rejects follow-up on completion
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-05 rejects state and actor fields in an Action edit
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > returns only active support assignees with bounded deterministic paging
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-SEC-03 rejects unknown assignee query keys before reading users
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > logs a correlation-only record and returns a generic envelope for unexpected failures
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-09 rejects out-of-range Action and revision pagination before querying data
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-09 applies the documented Action list page defaults
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-09 focuses the Action list page containing the requested Action
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-09 enforces Requester Action pagination bounds and accepts pageSize 100
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-09 applies staff revision defaults and accepts the pageSize upper bound
+ ✓ tests/lab-04/actions-taken.api.test.ts > L4-04 Actions Taken API (T-ACT / T-SEC) > T-ACT-05 exposes ordered staff-only revisions without adding Action or credential fields
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-03 gates protected routes until first-login password change
+ ✓ tests/lab-02/ticket-detail.api.test.ts > GET /api/tickets/:ticketNumber > API-08 / AC-12: returns owned read-only fields, references, and attachment metadata
+ ✓ tests/lab-02/ticket-detail.api.test.ts > GET /api/tickets/:ticketNumber > API-09 / AC-13: returns the same safe 404 for missing and cross-requester tickets
+ ✓ tests/lab-02/ticket-detail.api.test.ts > GET /api/tickets/:ticketNumber > rejects malformed context or ticket numbers before querying
+ ✓ tests/lab-02/ticket-detail.api.test.ts > GET /api/tickets/:ticketNumber > returns a safe 500 envelope for unexpected database failures
+ ✓ tests/lab-02/data-foundation.test.ts > L2-02 data foundation > accepts only an explicitly test-scoped database URL
+ ✓ tests/lab-02/data-foundation.test.ts > L2-02 data foundation > keeps the required repeatable reference seed counts
+ ✓ tests/lab-02/data-foundation.test.ts > L2-02 data foundation > declares the ownership and attachment models required by the contract
+ ✓ tests/lab-02/data-foundation.test.ts > L2-02 data foundation > preserves Lab 1 categories and creates the ticket sequence in the migration
+ ✓ tests/lab-02/data-foundation.test.ts > L2-02 data foundation > upserts every stable reference key through one transaction
+ ✓ tests/lab-02/data-foundation.test.ts > L2-02 data foundation > does not reactivate or mutate existing reference rows on rerun
+ ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/tickets > API-06 / AC-09: scopes results to the requester header and ignores query ownership spoofing
+ ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/tickets > UNIT-05 / API-07 / AC-10: parses filters, search, stable sort, and pagination
+ ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/tickets > API-07 / AC-10: returns an empty page with valid metadata when page is out of range
+ ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/tickets > UNIT-05 / AC-10: rejects invalid query values with a safe 400 without querying Tickets
+ ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/tickets > returns documented errors for missing and inactive requesters
+ ✓ tests/lab-02/my-tickets.api.test.ts > GET /api/tickets > returns a safe 500 envelope when the Ticket query fails
+ ✓ tests/lab-04/previous-labs.api.test.ts > T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions > copies requester priority into the new Ticket IT priority and persists both
 stderr | tests/lab-04/previous-labs.api.test.ts > T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions > T-REG-02 / AC-17: keeps a successful soft removal successful when file cleanup fails
 Unable to remove stored Attachment file. { attachmentId: 101, code: 'EPERM' }
 
- ✓ tests/lab-03/staff-queue.api.test.ts (4 tests) 80ms
- ✓ tests/lab-04/previous-labs.api.test.ts (3 tests) 72ms
- ✓ tests/lab-03/users-admin.api.test.ts (5 tests) 145ms
- ✓ tests/lab-03/authorization.unit.test.ts (3 tests) 6ms
- ✓ tests/lab-02/ticket-number.test.ts (3 tests) 2ms
- ✓ tests/lab-03/comments-notes.api.test.ts (3 tests) 61ms
- ✓ tests/lab-01/categories.test.ts (2 tests) 145ms
- ✓ tests/lab-02/requesters.api.test.ts (3 tests) 24ms
- ✓ tests/lab-03/auth.unit.test.ts (3 tests) 94ms
- ✓ tests/lab-02/reference-data.api.test.ts (3 tests) 31ms
- ✓ tests/lab-01/health.test.ts (1 test) 9ms
- ✓ tests/lab-03/auth.api.test.ts (9 tests) 1118ms
+ ✓ tests/lab-04/previous-labs.api.test.ts > T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions > T-REG-02 / AC-17: keeps a successful soft removal successful when file cleanup fails
+ ✓ tests/lab-04/previous-labs.api.test.ts > T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions > allows an active Admin to own a Ticket while still scoping the write to the Ticket
+ ✓ tests/lab-03/users-admin.api.test.ts > L3-07 Admin user management > T-ADMIN-01 / AC-10 lists safe users with search, role, active filter, and pagination
+ ✓ tests/lab-03/users-admin.api.test.ts > L3-07 Admin user management > T-ADMIN-02 / AC-10 creates one canonical-role user without returning the password
+ ✓ tests/lab-03/staff-queue.api.test.ts > GET /api/staff/tickets > T-STAFF-01 / AC-05 applies defaults, filters, deterministic sort, and pagination
+ ✓ tests/lab-03/staff-queue.api.test.ts > GET /api/staff/tickets > T-STAFF-01 uses page 1, 20 items, and updatedAt/id descending by default
+ ✓ tests/lab-03/staff-queue.api.test.ts > GET /api/staff/tickets > T-STAFF-02 exposes only queue-safe fields and rejects invalid filters
+ ✓ tests/lab-03/staff-queue.api.test.ts > GET /api/staff/tickets > T-STAFF-02 maps an unassigned ticket to null without private fields
+ ✓ tests/lab-03/users-admin.api.test.ts > L3-07 Admin user management > T-ADMIN-02 rejects duplicate canonical email and invalid role
+ ✓ tests/lab-03/users-admin.api.test.ts > L3-07 Admin user management > T-ADMIN-03 / AC-11 blocks self and last-admin deactivation, and invalidates sessions on success
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-04 changes password, clears first-login state, and rotates the session
+ ✓ tests/lab-03/users-admin.api.test.ts > L3-07 Admin user management > T-ADMIN-04 / AC-11 resets an initial password as a hash and invalidates sessions
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-05 invalidates logout sessions and never returns a token
+ ✓ tests/lab-03/authorization.unit.test.ts > Lab 3 authorization predicates > T-UNIT-04 allows only the explicitly granted roles
+ ✓ tests/lab-03/authorization.unit.test.ts > Lab 3 authorization predicates > blocks first-login sessions before protected handlers and passes changed sessions
+ ✓ tests/lab-03/authorization.unit.test.ts > Lab 3 authorization predicates > resolves requester scope from the authenticated user, never from a header
+ ✓ tests/lab-02/reference-data.api.test.ts > Lab 2 active reference data > API-14: returns active categories ordered by name
+ ✓ tests/lab-02/reference-data.api.test.ts > Lab 2 active reference data > API-14: returns active related systems ordered by name
+ ✓ tests/lab-02/reference-data.api.test.ts > Lab 2 active reference data > uses the standard safe envelope when reference data cannot load
+ ✓ tests/lab-03/comments-notes.api.test.ts > L3-06 comments and notes boundaries > T-COMMENT-01 / AC-08 appends only to the authenticated requester's owned ticket
+ ✓ tests/lab-03/comments-notes.api.test.ts > L3-06 comments and notes boundaries > T-COMMENT-03 / AC-09 does not expose internal notes to a Requester
+ ✓ tests/lab-03/comments-notes.api.test.ts > L3-06 comments and notes boundaries > T-COMMENT-05 / AC-08..09 has no update or delete comment/note endpoints
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-06 rejects unsafe cookie-authenticated requests from a foreign origin
+ ✓ tests/lab-02/ticket-number.test.ts > Lab 2 ticket number allocation > formats one canonical official number from a sequence value
+ ✓ tests/lab-02/ticket-number.test.ts > Lab 2 ticket number allocation > allocates the sequence and formatted number together through one query
+ ✓ tests/lab-02/ticket-number.test.ts > Lab 2 ticket number allocation > rejects invalid sequence values instead of creating an ambiguous number
+ ✓ tests/lab-02/requesters.api.test.ts > GET /api/requesters > returns only active requesters ordered by name without requiring the test header
+ ✓ tests/lab-02/requesters.api.test.ts > GET /api/requesters > returns an empty list when no active requesters exist
+ ✓ tests/lab-02/requesters.api.test.ts > GET /api/requesters > returns a safe error envelope when the database fails
+ ✓ tests/lab-01/categories.test.ts > GET /api/categories > returns active categories in name order to an authenticated requester
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-06 rejects unsafe cookie-authenticated requests with a forged CSRF token
+ ✓ tests/lab-01/categories.test.ts > GET /api/categories > returns 401 to anonymous callers without querying reference data
+ ✓ tests/lab-03/auth.unit.test.ts > Lab 3 authentication primitives > T-UNIT-01 hashes passwords one-way and verifies only the matching value
+ ✓ tests/lab-03/auth.unit.test.ts > Lab 3 authentication primitives > T-UNIT-02 creates expiry-aware session metadata and never treats invalid sessions as usable
+ ✓ tests/lab-03/auth.unit.test.ts > Lab 3 authentication primitives > T-UNIT-03 rejects blank/short/reused passwords without exposing secrets
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-04 rejects invalid password changes without mutating the user
+ ✓ tests/lab-01/health.test.ts > GET /api/health > returns 200 with status ok and the service name
+ ✓ tests/lab-03/auth.api.test.ts > Lab 3 authentication API > T-AUTH-05 rejects an expired session through the API
 
  Test Files  24 passed (24)
       Tests  175 passed (175)
-   Start at  21:17:11
-   Duration  1.72s (transform 670ms, setup 0ms, collect 3.92s, tests 2.76s, environment 2ms, prepare 1.30s)
+   Start at  02:28:04
+   Duration  1.37s (transform 582ms, setup 0ms, collect 2.96s, tests 2.31s, environment 4ms, prepare 1.03s)
