@@ -1,0 +1,108 @@
+import { test } from "../../client/node_modules/@playwright/test/index.js";
+import { createRequesterTicket, expect, expectResponsiveAndKeyboard, openStaffTicket, preflight, saveScreenshot, signIn } from "./support.js";
+
+async function setStaffStatus(page: import("../../client/node_modules/@playwright/test/index.js").Page, status: string): Promise<void> {
+  const field = page.getByLabel("Status", { exact: true });
+  await field.selectOption(status);
+  await page.getByRole("button", { name: "Save status" }).click();
+  if (status === "RESOLVED" || status === "CLOSED" || status === "CANCELLED") {
+    const dialog = page.getByRole("alertdialog", { name: "Confirm status change" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Confirm status" }).click();
+  }
+  await expect(page.locator(".ticket-detail__badge-field").filter({ hasText: "Current Status" })).toContainText(status.replaceAll("_", " "));
+}
+
+test("T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, close, cancel, and Admin reopen", async ({ page, browser }, testInfo) => {
+  test.setTimeout(150_000);
+  await preflight(page);
+  await signIn(page, "requester");
+  const summary = `L4-10 resolution ${testInfo.project.name} ${Date.now()}`;
+  const ticketNumber = await createRequesterTicket(page, summary);
+
+  const staffContext = await browser.newContext({ baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5175", viewport: testInfo.project.use.viewport });
+  try {
+    const staff = await staffContext.newPage();
+    await signIn(staff, "staff");
+    await openStaffTicket(staff, summary);
+    await setStaffStatus(staff, "OPEN");
+    await setStaffStatus(staff, "IN_PROGRESS");
+    const status = staff.getByLabel("Status", { exact: true });
+    await status.selectOption("RESOLVED");
+    await staff.getByRole("button", { name: "Save status" }).click();
+    const blockedDialog = staff.getByRole("alertdialog", { name: "Confirm status change" });
+    await blockedDialog.getByRole("button", { name: "Confirm status" }).click();
+    await expect(staff.getByRole("alert")).toContainText(/resolution requirements|completed Action|unfinished/i);
+    await saveScreenshot(staff, testInfo, "ticket-workflow", "resolution-blocked");
+
+    const actions = staff.getByRole("region", { name: "Actions Taken" });
+    await actions.getByRole("button", { name: "Add action" }).click();
+    const form = actions.locator("form.actions-taken__form");
+    const work = `L4-10 resolution work ${Date.now()}`;
+    await form.getByLabel("Description").fill(work);
+    await form.getByLabel("Assignee").selectOption({ label: "Support One (IT Staff)" });
+    await form.getByRole("button", { name: "Create action" }).click();
+    const action = actions.getByRole("listitem").filter({ hasText: work });
+    await action.getByRole("button", { name: "Start action" }).click();
+    await action.getByRole("button", { name: "Complete action" }).click();
+    const completion = staff.getByRole("alertdialog", { name: "Complete Action" });
+    await completion.getByLabel("Result").fill("Completed the requested verification.");
+    await completion.getByRole("button", { name: "Confirm completion" }).click();
+    await expect(action.getByRole("status")).toContainText("COMPLETED");
+    await setStaffStatus(staff, "RESOLVED");
+    await saveScreenshot(staff, testInfo, "ticket-workflow", "resolved");
+
+    const requesterContext = await browser.newContext({ baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5175", viewport: testInfo.project.use.viewport });
+    try {
+      const requester = await requesterContext.newPage();
+      await signIn(requester, "requester");
+      await requester.goto(`/tickets/${ticketNumber}`);
+      await expect(requester.getByRole("heading", { name: `Ticket ${ticketNumber}` })).toBeVisible();
+      await expect(requester.getByText("Problem appears resolved: No")).toBeVisible();
+      await requester.getByRole("button", { name: "Problem appears resolved" }).click();
+      await expect(requester.getByText("Problem appears resolved: Yes")).toBeVisible();
+      const requesterActions = requester.getByRole("region", { name: "Actions Taken" });
+      await expect(requesterActions.getByText(work)).toBeVisible();
+      await expect(requesterActions.getByRole("button", { name: "Start action" })).toHaveCount(0);
+      await expectResponsiveAndKeyboard(requester, testInfo);
+      await saveScreenshot(requester, testInfo, "ticket-workflow", "requester-resolution-advisory");
+    } finally {
+      await requesterContext.close();
+    }
+
+    await setStaffStatus(staff, "CLOSED");
+    await saveScreenshot(staff, testInfo, "ticket-workflow", "closed");
+
+    const secondSummary = `L4-10 cancellation ${testInfo.project.name} ${Date.now()}`;
+    const requester2 = await browser.newPage({ baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5175" });
+    await signIn(requester2, "requester");
+    await createRequesterTicket(requester2, secondSummary);
+    await requester2.close();
+    await openStaffTicket(staff, secondSummary);
+    await setStaffStatus(staff, "CANCELLED");
+
+    const adminContext = await browser.newContext({ baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5175", viewport: testInfo.project.use.viewport });
+    try {
+      const admin = await adminContext.newPage();
+      await signIn(admin, "admin");
+      await admin.goto(`/staff/tickets`);
+      await admin.getByLabel("Search tickets").fill(secondSummary);
+      const row = admin.locator("tbody tr").filter({ hasText: secondSummary });
+      await expect(row).toBeVisible();
+      await row.getByRole("link", { name: /TKT-/ }).click();
+      await expect(admin.getByRole("heading", { name: "Staff Ticket Detail" })).toBeVisible();
+      await expect(admin.getByLabel("Status", { exact: true })).toHaveValue("CANCELLED");
+      await admin.getByLabel("Status", { exact: true }).selectOption("REOPENED");
+      await admin.getByRole("button", { name: "Save status" }).click();
+      await expect(admin.getByRole("alertdialog", { name: "Confirm status change" })).toBeVisible();
+      await admin.getByRole("alertdialog", { name: "Confirm status change" }).getByRole("button", { name: "Confirm status" }).click();
+      await expect(admin.locator(".ticket-detail__badge-field").filter({ hasText: "Current Status" })).toContainText("REOPENED");
+      await expectResponsiveAndKeyboard(admin, testInfo);
+      await saveScreenshot(admin, testInfo, "ticket-workflow", "admin-reopened");
+    } finally {
+      await adminContext.close();
+    }
+  } finally {
+    await staffContext.close();
+  }
+});
