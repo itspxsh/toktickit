@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateEvidenceManifest } from "./verify-contract.mjs";
+import { scanSensitiveEvidenceText, validateEvidenceManifest } from "./verify-contract.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -63,4 +63,11 @@ test("T-EVID-01 rejects AC mappings to test IDs absent from all executed runs", 
 test("T-EVID-01 database preparation guard requires the literal _test suffix", async () => {
   const source = await readFile(path.join(repositoryRoot, "scripts/lab-04/prepare-test-database.mjs"), "utf8");
   assert.match(source, /databaseName\.toLowerCase\(\)\.endsWith\("_test"\)/);
+});
+
+test("T-EVID-01 scans retained logs for raw database URLs and credentials", () => {
+  assert.match(scanSensitiveEvidenceText("DATABASE_URL=postgresql://private/db"), /database URL/i);
+  assert.match(scanSensitiveEvidenceText("E2E_REQUESTER_PASSWORD=private-value"), /credential/i);
+  assert.equal(scanSensitiveEvidenceText("DATABASE_URL=<redacted; isolated_test>"), null);
+  assert.equal(scanSensitiveEvidenceText("all fixtures use synthetic .test identities"), null);
 });

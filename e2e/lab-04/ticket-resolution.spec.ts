@@ -59,6 +59,8 @@ test("T-E2E-02 / AC-07..09,14,17 Ticket gate, resolution, Requester advisory, cl
       await requester.goto(`/tickets/${ticketNumber}`);
       await expect(requester.getByRole("heading", { name: `Ticket ${ticketNumber}` })).toBeVisible();
       await expect(requester.getByText("Problem appears resolved: No")).toBeVisible();
+      const statusHistory = requester.locator("#requester-status-history-title").locator("xpath=following-sibling::ol");
+      await expect(statusHistory).toContainText("IN PROGRESS → RESOLVED");
       await requester.getByRole("button", { name: "Problem appears resolved" }).click();
       await expect(requester.getByText("Problem appears resolved: Yes")).toBeVisible();
       const requesterActions = requester.getByRole("region", { name: "Actions Taken" });
