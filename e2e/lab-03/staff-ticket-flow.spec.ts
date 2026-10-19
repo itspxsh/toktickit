@@ -103,7 +103,7 @@ test.describe("Lab 3 IT Staff journey", () => {
     const claim = page.getByRole("button", { name: "Claim ticket" });
     if (await claim.isVisible()) {
       await claim.click();
-      await expect(page.locator('p[role="status"]')).toContainText(/Assignment updated|claimed/i);
+      await expect(page.locator('p[role="status"]').filter({ hasText: /Assignment updated|claimed/i })).toBeVisible();
       await expect(page.getByLabel("IT Priority")).toBeVisible();
     }
     const currentPriority = await page.getByLabel("IT Priority").inputValue();
@@ -116,13 +116,13 @@ test.describe("Lab 3 IT Staff journey", () => {
     if (!nextStatus) throw new Error(`Expected an editable seeded ticket status, got ${currentStatus}`);
     await statusSelect.selectOption(nextStatus);
     await page.getByRole("button", { name: "Save status" }).click();
-    await expect(page.locator('p[role="status"]')).toContainText(/Status updated/i);
+    await expect(page.getByText("Status updated.", { exact: true })).toBeVisible();
     await page.getByRole("textbox", { name: "Public comment", exact: true }).fill("Staff E2E public comment");
     await page.getByRole("button", { name: "Add public comment" }).click();
-    await expect(page.locator('p[role="status"]')).toContainText(/Comment added/i);
+    await expect(page.getByText("Comment added.", { exact: true })).toBeVisible();
     await page.getByRole("textbox", { name: "Internal note", exact: true }).fill("Staff E2E internal note");
     await page.getByRole("button", { name: "Add internal note" }).click();
-    await expect(page.locator('p[role="status"]')).toContainText(/Internal note added/i);
+    await expect(page.getByText("Internal note added.", { exact: true })).toBeVisible();
 
     const forbidden = await page.request.get(`${API_BASE_URL}/api/admin/users`);
     expect(forbidden.status()).toBe(403);
