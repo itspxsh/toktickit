@@ -36,13 +36,18 @@ test.describe("Lab 3 IT Staff journey", () => {
     const filteredRows = page.locator("tbody tr");
     const emptyFilteredState = page.getByRole("heading", { name: "Nothing here yet" });
     await expect.poll(async () => (await filteredRows.count()) > 0 || await emptyFilteredState.isVisible()).toBe(true);
-    const nextPage = page.getByRole("button", { name: "Next" });
-    if (await nextPage.isEnabled()) {
-      await nextPage.click();
-      await expect(page.getByRole("button", { name: "Previous" })).toBeEnabled();
-      await page.getByRole("button", { name: "Previous" }).click();
+    if (await filteredRows.count() > 0) {
+      const nextPage = page.getByRole("button", { name: "Next" });
+      if (await nextPage.isEnabled()) {
+        await nextPage.click();
+        await expect(page.getByRole("button", { name: "Previous" })).toBeEnabled();
+        await page.getByRole("button", { name: "Previous" }).click();
+      } else {
+        await expect(nextPage).toBeDisabled();
+      }
     } else {
-      await expect(nextPage).toBeDisabled();
+      // A successful zero-row filter intentionally renders no table paginator.
+      await expect(emptyFilteredState).toBeVisible();
     }
     // Resolve the editable row after paging so an index-based row locator can
     // never silently retarget a different page when the workflow is changed.
