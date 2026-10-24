@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseMigrationDeploy, parseNodeTestRun, parsePlaywrightMatrix, parsePlaywrightRun, parseVitestRun } from "./parse-run-evidence.mjs";
 import { filterExecutedTestIds } from "./executed-test-ids.mjs";
-import { hashEvidenceText } from "./evidence-hash.mjs";
+import { hashEvidenceFile } from "./evidence-hash.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const validationCommit = process.argv[2];
@@ -97,7 +97,7 @@ for (const file of (await pngFiles(path.join(root, "artifacts/lab-04/screenshots
     height: bytes.readUInt32BE(20),
     ...classifyScreenshot(file, capture),
     captureEvidencePath: `${relative(file)}.evidence.json`,
-    captureEvidenceSha256: hashEvidenceText(await readFile(`${file}.evidence.json`, "utf8")),
+    captureEvidenceSha256: await hashEvidenceFile(`${file}.evidence.json`),
     project: path.basename(file, ".png").split("-").at(-1),
   });
 }

@@ -4,7 +4,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseMigrationDeploy, parseNodeTestRun, parsePlaywrightMatrix, parsePlaywrightRun, parseVitestRun } from "./parse-run-evidence.mjs";
-import { hashEvidenceText } from "./evidence-hash.mjs";
+import { evidenceHashMatches } from "./evidence-hash.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const defaultManifest = path.join(root, "artifacts/lab-04/validation/evidence-manifest.json");
@@ -177,7 +177,7 @@ export async function validateEvidenceManifest(manifest) {
     require(captureExists && /^[a-f0-9]{64}$/i.test(shot.captureEvidenceSha256 ?? ""), `Screenshot capture evidence is missing or unhashed: ${shot.path}.`);
     if (captureExists) {
       const captureBytes = await readFile(path.join(root, shot.captureEvidencePath));
-      require(hashEvidenceText(captureBytes) === shot.captureEvidenceSha256, `Screenshot capture evidence hash does not match: ${shot.path}.`);
+      require(evidenceHashMatches(captureBytes, shot.captureEvidenceSha256), `Screenshot capture evidence hash does not match: ${shot.path}.`);
       try {
         const capture = JSON.parse(captureBytes.toString("utf8"));
         require(JSON.stringify(capture.ac) === JSON.stringify(shot.ac) && JSON.stringify(capture.testIds) === JSON.stringify(shot.testIds), `Screenshot traceability differs from caller capture evidence: ${shot.path}.`);

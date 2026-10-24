@@ -1,6 +1,7 @@
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import os from "node:os";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { scanSensitiveEvidenceText, validateEvidenceManifest, validateContractInventory } from "./verify-contract.mjs";
@@ -169,18 +170,27 @@ test("T-EVID-01 screenshot traceability is state-specific rather than assigning 
 test("T-EVID-01 hashes screenshot sidecars identically with LF and Windows CRLF line endings", async () => {
   const writer = await readFile(path.join(repositoryRoot, "scripts/lab-04/write-evidence-manifest.mjs"), "utf8");
   const verifier = await readFile(path.join(repositoryRoot, "scripts/lab-04/verify-contract.mjs"), "utf8");
-  assert.match(writer, /hashEvidenceText/);
-  assert.match(verifier, /hashEvidenceText/);
+  assert.match(writer, /captureEvidenceSha256:\s*await hashEvidenceFile\(`\$\{file\}\.evidence\.json`\)/);
+  assert.match(verifier, /evidenceHashMatches\(captureBytes,\s*shot\.captureEvidenceSha256\)/);
 
-  const { hashEvidenceText } = await import("./evidence-hash.mjs");
-  const manifest = JSON.parse(await readFile(path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json"), "utf8"));
-  const shot = manifest.screenshots[0];
-  const sidecar = await readFile(path.join(repositoryRoot, shot.captureEvidencePath), "utf8");
-  const expected = shot.captureEvidenceSha256;
-  assert.equal(hashEvidenceText(sidecar), expected);
-  const crlfSidecar = sidecar.replace(/\n/g, "\r\n");
-  assert.equal(hashEvidenceText(crlfSidecar), expected);
-  assert.equal(hashEvidenceText(Buffer.from(crlfSidecar, "utf8")), expected);
+  const { hashEvidenceFile, evidenceHashMatches } = await import("./evidence-hash.mjs");
+  const tempDirectory = await mkdtemp(path.join(os.tmpdir(), "lab4-evidence-hash-"));
+  try {
+    const sidecarPath = path.join(tempDirectory, "capture.evidence.json");
+    const lfSidecar = `${JSON.stringify({ ac: ["AC-21"], testIds: ["T-EVID-01"] })}\n`;
+    await writeFile(sidecarPath, lfSidecar, "utf8");
+    const expected = await hashEvidenceFile(sidecarPath);
+    const crlfSidecar = Buffer.from(lfSidecar.replace(/\n/g, "\r\n"), "utf8");
+    await writeFile(sidecarPath, crlfSidecar);
+
+    // Exercise the writer's file-reading/hash path and the verifier's byte-buffer path.
+    const recordedHash = await hashEvidenceFile(sidecarPath);
+    const verifierBytes = await readFile(sidecarPath);
+    assert.equal(recordedHash, expected);
+    assert.equal(evidenceHashMatches(verifierBytes, recordedHash), true);
+  } finally {
+    await rm(tempDirectory, { recursive: true, force: true });
+  }
 });
 
 test("T-CONTRACT-01 verifies an explicit RELEASE-01 state", async () => {
