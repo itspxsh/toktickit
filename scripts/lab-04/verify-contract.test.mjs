@@ -178,7 +178,9 @@ test("T-EVID-01 hashes screenshot sidecars identically with LF and Windows CRLF 
   const sidecar = await readFile(path.join(repositoryRoot, shot.captureEvidencePath), "utf8");
   const expected = shot.captureEvidenceSha256;
   assert.equal(hashEvidenceText(sidecar), expected);
-  assert.equal(hashEvidenceText(sidecar.replace(/\n/g, "\r\n")), expected);
+  const crlfSidecar = sidecar.replace(/\n/g, "\r\n");
+  assert.equal(hashEvidenceText(crlfSidecar), expected);
+  assert.equal(hashEvidenceText(Buffer.from(crlfSidecar, "utf8")), expected);
 });
 
 test("T-CONTRACT-01 verifies an explicit RELEASE-01 state", async () => {

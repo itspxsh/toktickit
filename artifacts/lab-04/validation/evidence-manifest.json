@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
-  "validationCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
-  "productCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
-  "evidenceToolCommit": "cb120326585a37b7f8469ce159f57df65c40cfa8",
+  "sourceCommit": "5a6d0b1a213664cc283411469b148532b8766102",
+  "validationCommit": "5a6d0b1a213664cc283411469b148532b8766102",
+  "productCommit": "88d1f0caab307e43b1dc238402f4b66f9f91aa23",
+  "evidenceToolCommit": "5a6d0b1a213664cc283411469b148532b8766102",
   "database": {
     "name": "toktickit_l410_review_test",
     "urlRecorded": false
@@ -134,7 +134,7 @@
       ]
     },
     "contractTests": {
-      "passed": 21,
+      "passed": 22,
       "failed": 0,
       "skipped": 0,
       "retries": 0,

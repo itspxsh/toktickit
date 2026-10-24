@@ -182,4 +182,27 @@ The review findings L4-10-01..06 have been addressed on PR #80. The verifier now
 
 Test-first evidence-ID scope regression: [1f50e90](https://github.com/itspxsh/toktickit/commit/1f50e90); implementation: [c26197b](https://github.com/itspxsh/toktickit/commit/c26197b). The original review fixes remain in [7441eb5](https://github.com/itspxsh/toktickit/commit/7441eb5), preceded by red-test commits [905c80b](https://github.com/itspxsh/toktickit/commit/905c80b) and [bc2b3ba](https://github.com/itspxsh/toktickit/commit/bc2b3ba); evidence-guard tests are in [6de0069](https://github.com/itspxsh/toktickit/commit/6de0069). Validation on the reviewed product tree: server 175/175, client 134/134, PostgreSQL integration 20/20, Lab 2 E2E 3/3, Lab 3 E2E 9/9, Lab 4 E2E 9/9, Prisma validation and both builds passed. The evidence verifier suite now passes 21/21 with zero skipped; its manifest records 30 loaded-state screenshots and exact Lab 4-only Test IDs. Full output, migration and performance evidence are in `artifacts/lab-04/validation/`, `artifacts/lab-04/migration/` and `artifacts/lab-04/metrics/`.
 
-The old 11/11 verifier count and earlier validation paragraph above are superseded by this rerun. The initial E2E setup log contains one invalid reset-script invocation followed by a successful package-scoped guarded migration/reset; no tests were skipped or retried. Current validation is pinned to product/Playwright tree `7441eb5` and the final evidence-tool source [`cb12032`](https://github.com/itspxsh/toktickit/commit/cb120326585a37b7f8469ce159f57df65c40cfa8) (including the Lab 4 inventory-only ID filter from `c26197b`). Reviewer approval and merge are still pending; Issue #69 remains open in PR Review.
+
+### L4-10 PR #80 CRLF portability follow-up (2026-10-24)
+
+Addressed review finding L4-10-07: screenshot sidecar hashes are now computed
+from canonical UTF-8 text with CRLF normalized to LF in both the evidence writer
+and verifier. PNG files remain binary-hashed without normalization. This makes
+the recorded sidecar hash stable across LF and Windows CRLF checkouts; no
+`.gitattributes` rule is required because normalization is explicit at both
+hashing boundaries. A regression test covers LF text, CRLF text, and CRLF bytes
+as read by Node on Windows. The test simulates those line endings locally; it is
+not a claim that the suite was run on Windows.
+
+The test-first commit is
+[`01db670`](https://github.com/itspxsh/toktickit/commit/01db670), followed by
+implementation commit
+[`5a6d0b1`](https://github.com/itspxsh/toktickit/commit/5a6d0b1a213664cc283411469b148532b8766102).
+The contract/evidence verifier suite passed 22/22 with zero failures or skips,
+and `verify-contract.mjs` accepted all 30 screenshot sidecars against the
+manifest. The updated manifest pins the product source to `88d1f0c` and the
+Playwright/evidence-tool source to `5a6d0b1`; this change only affects evidence
+hashing and does not alter product behavior or screenshot contents. Prior
+product, migration, regression, and browser validation results are unchanged.
+The latest follow-up still awaits peer re-review; Issue #69 remains open in PR
+Review until approval and merge.
