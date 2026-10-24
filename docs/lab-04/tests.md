@@ -1,6 +1,6 @@
-# TokTickIT Lab 4 Test Contract — PROPOSED FOR L4-01 PEER REVIEW
+# TokTickIT Lab 4 Test Contract — APPROVED THROUGH L4-01 PEER REVIEW
 
-All rows below are **PLANNED / NOT EXECUTED**. No final Pass count is promised. IDs are Lab 4-local. Bind each ID to an actual named `it/test` or parameterized case and exact file; retain failed-red then green output/commits. Companions `specification.md`, `api-spec.md`, `ui-spec.md` define expected behavior, not mocks. Contract tests must not pass only because of unconditional stubs.
+The contract was approved through L4-01 peer review. The inventory below defines expected behavior and its canonical test path; current execution state is recorded in `reviewer.md` and commit-pinned artifacts. IDs are Lab 4-local. Bind each test ID to an actual named `it/test` or parameterized case and exact file; retain failed-red then green output/commits. Contract tests must not pass only because of unconditional stubs.
 
 > Status: this test contract was approved through L4-01 peer review. The matrix records required behaviors and intended files; actual validation counts and red/green evidence are maintained in `reviewer.md` and the corresponding PRs.
 
@@ -77,6 +77,7 @@ Do not run destructive migration files concurrently against one DB. Execute sepa
 | T-UI-ACT-02 | 02,04 | Different support assignee; inactive cue/reassignment, start/complete/cancel conditions/dialogs; terminal readonly. | ActionsTaken.test.tsx |
 | T-UI-ACT-03 | 05,06 | Stable all-state list/pagination, Requester readonly and no audit/private fetch; support revision disclosure. | ActionsTaken.test.tsx |
 | T-UI-ACT-04 | 09,14 | Pending disables duplicate submit, same key on recoverable retry; 409 preserves draft and offers explicit refresh/reconcile. | ActionsTaken.test.tsx |
+| T-UI-ACT-05 | 14 | A successful parent Ticket status mutation refreshes the Actions panel's ticket version so the next Action write does not use a stale version. | ActionsTaken.test.tsx |
 | T-UI-WF-01 | 07,08 | Only permitted targets, Admin-only reopen, gate messages, close/cancel confirm and success summary refresh. | TicketWorkflow.test.tsx |
 | T-UI-WF-02 | 07,09,14 | Versioned assignment/priority/claim/status requests, stale notice reset on Ticket navigation, no overwrite of unsaved forms. | TicketWorkflow.test.tsx |
 | T-UI-DR-01 | 10,14 | Own cards/attention/recent links, exact values, malformed-payload rejection, strict UTC/calendar/range validation for server-provided drill-down dates, loading vs empty vs failure/retry/forbidden. | RequesterDashboard.test.tsx + DashboardViews.test.tsx + DashboardHardening.test.tsx |
@@ -93,14 +94,33 @@ Do not run destructive migration files concurrently against one DB. Execute sepa
 | ID | AC | Required executed journey/evidence | File |
 | --- | --- | --- | --- |
 | T-E2E-01 | 01..06,09,18 | Support creates multiple Actions on unique fresh Ticket, reassigns different support user, edits, starts/completes one, cancels another; Requester sees all read-only; direct unauthorized write denied. | e2e/lab-04/actions-taken-flow.spec.ts |
-| T-E2E-02 | 07..09,17 | Requester create -> support claim/work -> blocked zero/unfinished resolution -> complete work -> resolve -> requester advisory/comment/readonly -> close -> role-appropriate reopen/cancel. UI controls, real backend; compare persisted events. | e2e/lab-04/ticket-resolution.spec.ts |
-| T-E2E-03 | 10..14,17 | Requester/Staff/Admin dashboards exact independently calculated counts, current-user work, drill-down list/filter/back, owned isolation and representative auth/attachments/comments/notes/admin regression. | e2e/lab-04/dashboards.spec.ts |
-| T-RESP-01 | 19,21 | All three files on1440x900/768x1024/320x800, no page overflow and usable menu/forms/dialogs; inspect loaded PNGs, not only DOM. | e2e/lab-04/*.spec.ts |
-| T-EVID-01 | 21 | Commit-pinned redacted manifest for real screenshots/logs/migration/metrics; loaded-state assertions precede capture; no skipped/flaky/retried test masked as green. | scripts/lab-04/verify-contract.mjs + artifact inspection |
-| T-CONTRACT-01 | 22 | Every FR/BR/AC and Test ID resolves to implementation Issue/file/test and final status; no nonexistent paths or duplicate IDs. | scripts/lab-04/verify-contract.mjs |
+| T-E2E-02 | 08,09,13,14,17 | Requester create -> support work -> blocked zero/unfinished resolution -> complete work -> resolve -> support adds a persisted public comment -> Requester sees comment/advisory/read-only Actions -> close -> Admin-only CANCELLED→REOPENED. The complete transition/role matrix belongs to T-WF-01; this journey does not claim to exercise every pair. | e2e/lab-04/ticket-resolution.spec.ts |
+| T-E2E-03 | 10..14,17 | Requester dashboard all four metrics reconcile to its owned Ticket list; Staff and Admin share the support dashboard and independently reconcile current-user/unassigned/urgent metrics plus all status/priority buckets; bounded Recent/Urgent/Actions lists, role-specific UI, drill-down/back, ownership, responsive layout and visible keyboard focus. | e2e/lab-04/dashboards.spec.ts |
+| T-RESP-01 | 19,21 | All three files on1440x900/768x1024/320x800, no page overflow and usable menu/forms/dialogs; inspect loaded PNGs, not only DOM. | e2e/lab-04/actions-taken-flow.spec.ts; e2e/lab-04/ticket-resolution.spec.ts; e2e/lab-04/dashboards.spec.ts |
+| T-EVID-01 | 21 | Commit-pinned redacted manifest for real screenshots/logs/migration/metrics; loaded-state assertions precede capture; no skipped/flaky/retried test masked as green. | scripts/lab-04/verify-contract.test.mjs + artifact inspection |
+| T-CONTRACT-01 | 22 | Every FR/BR/AC and Test ID resolves to implementation Issue/file/test and final status; no nonexistent paths or duplicate IDs. | scripts/lab-04/verify-contract.test.mjs |
 | RELEASE-01 | 23,24 | Reviewed staged integration, final-main full validation at pinned product SHA, docs-only close-out verified, Issue-only Done board and single Answer Part1..9 PDF links/redactions. | scripts/lab-04/verify-contract.mjs + reviewer/QA evidence |
 
 Screenshot-only simulated failure states may use Playwright request interception **labelled simulated**; never present them as a live backend outage. Actual happy-path/race/migration evidence must use live backend/DB. E2E preserves/recreates test-scoped fixtures instead of depending on old first-login passwords or toggling a persisted boolean blindly. Use isolated scenario records and workers1/retries0. Screenshot assertions await actual rows/counts before save.
+
+## 6.1 Contract implementation index
+
+This index is a coarse but executable bridge across implementation Issues; fine-grained behavior stays in the unit/API/UI/E2E rows above and the AC crosswalk below. The verifier expands each listed requirement range and rejects missing/duplicate mappings, nonexistent paths, unknown test IDs, or absent status.
+
+| Requirement ID | Issue | Implementation files | Test IDs | Status |
+| --- | --- | --- | --- | --- |
+| FR-01..FR-08 | #62, #63, #65 | `server/src/routes/actions-taken.ts`; `server/src/routes/tickets.ts`; `client/src/actions-taken.tsx`; `client/src/requester-ticket-detail.tsx` | T-ACT-01, T-ACT-04, T-WF-01, T-UI-ACT-01, T-UI-WF-01, T-E2E-01, T-E2E-02 | Implemented; verified by named suites |
+| FR-09..FR-13 | #66, #67 | `server/src/routes/dashboards.ts`; `client/src/requester-dashboard.tsx`; `client/src/staff-dashboard.tsx`; `client/src/App.tsx` | T-DASH-R-01, T-DASH-S-01, T-QUERY-01, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-01, T-E2E-03 | Implemented; verified by named suites |
+| FR-14..FR-16 | #61, #68 | `server/prisma/schema.prisma`; `server/prisma/migrations/20261009120000_lab4_actions_workflow/migration.sql`; `server/src/routes/tickets.ts`; `server/src/routes/attachments.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-01, T-REG-02 | Implemented; verified by migration/regression suites |
+| FR-17..FR-18 | #68, #69 | `e2e/lab-04/ticket-resolution.spec.ts`; `scripts/lab-04/verify-contract.mjs`; `docs/lab-04/reviewer.md`; `artifacts/lab-04/validation/evidence-manifest.json` | T-RESP-01, T-EVID-01, T-CONTRACT-01, RELEASE-01 | Evidence/release work tracked; RELEASE-01 remains approval-gated |
+| BR-01..BR-22 | #62, #63, #65 | `server/src/routes/actions-taken.ts`; `server/src/routes/staff-ticket-detail.ts`; `server/src/auth.ts` | T-UNIT-01, T-ACT-01, T-ACT-04, T-ACT-05, T-ACT-07, T-WF-01, T-RACE-01, T-RACE-02, T-SEC-01 | Implemented; verified by named suites |
+| BR-23..BR-32 | #66, #67 | `server/src/routes/dashboards.ts`; `server/src/routes/tickets.ts`; `client/src/App.tsx` | T-DASH-R-01, T-DASH-R-02, T-DASH-S-01, T-DASH-S-02, T-QUERY-01, T-DB-DASH-01, T-PERF-01 | Implemented; verified by named suites |
+| BR-33..BR-40 | #61, #68, #69 | `server/prisma/migrations/20261009120000_lab4_actions_workflow/migration.sql`; `server/prisma/seed.ts`; `scripts/lab-04/verify-contract.mjs`; `e2e/lab-04/ticket-resolution.spec.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-02, T-EVID-01, T-CONTRACT-01 | Implemented; release evidence is review-gated |
+| AC-01..AC-09 | #62, #63, #65 | `server/tests/lab-04/actions-taken.api.test.ts`; `client/tests/lab-04/ActionsTaken.test.tsx`; `e2e/lab-04/actions-taken-flow.spec.ts` | T-ACT-01, T-ACT-04, T-WF-01, T-WF-02, T-RACE-01, T-RACE-02, T-E2E-01, T-E2E-02 | Implemented; verified by named suites |
+| AC-10..AC-14 | #66, #67 | `server/tests/lab-04/requester-dashboard.api.test.ts`; `client/tests/lab-04/RequesterDashboard.test.tsx`; `e2e/lab-04/dashboards.spec.ts` | T-DASH-R-01, T-DASH-S-01, T-QUERY-01, T-UI-DR-01, T-UI-DS-01, T-E2E-03 | Implemented; verified by named suites |
+| AC-15..AC-18 | #61, #68 | `server/tests/lab-04/migration.integration.test.ts`; `server/tests/lab-04/previous-labs.api.test.ts`; `server/tests/lab-02/attachments.api.test.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-01, T-REG-02 | Implemented; verified by named suites |
+| AC-19..AC-22 | #67, #69 | `e2e/lab-04/dashboards.spec.ts`; `scripts/lab-04/verify-contract.mjs`; `client/tests/lab-04/VisualAccessibility.test.tsx` | T-RESP-01, T-A11Y-01, T-STYLE-01, T-EVID-01, T-CONTRACT-01 | Implemented; verified by named suites |
+| AC-23..AC-24 | #69 | `docs/lab-04/reviewer.md`; `scripts/lab-04/verify-contract.mjs`; `artifacts/lab-04/validation/evidence-manifest.json` | T-CONTRACT-01, RELEASE-01 | Release-gated; final main close-out is not claimed here |
 
 ## 6. AC crosswalk
 
@@ -137,14 +157,14 @@ The acceptance criteria collectively include the proposed BRs in `specification.
 | AC-04 | T-UNIT-01, T-ACT-04, T-UI-ACT-02, T-E2E-01 |
 | AC-05 | T-ACT-05/08, T-WF-04, T-UI-ACT-03, T-E2E-01 |
 | AC-06 | T-ACT-06/09, T-SEC-01, T-UI-ACT-03, T-E2E-01 |
-| AC-07 | T-UNIT-02, T-WF-01/03, T-UI-WF-01..02, T-E2E-02 |
+| AC-07 | T-UNIT-02, T-WF-01/03, T-UI-WF-01..02 |
 | AC-08 | T-UNIT-02, T-WF-02, T-RACE-02, T-UI-WF-01, T-E2E-02 |
 | AC-09 | T-UNIT-03, T-ACT-07..08, T-WF-03, T-RACE-01..03, T-UI-ACT-04, T-UI-WF-02 |
 | AC-10 | T-DASH-R-01..02, T-DASH-S-03, T-DB-DASH-01, T-UI-DR-01, T-E2E-03 |
 | AC-11 | T-DASH-S-01..04, T-DB-DASH-01, T-UI-DS-01, T-E2E-03 |
 | AC-12 | T-UNIT-03, T-DASH-R-02, T-DASH-S-02, T-QUERY-01, T-UI-NAV-01..02, T-E2E-03 |
-| AC-13 | T-REG-01, T-UI-NAV-01, T-UI-REG-01..02, T-E2E-03 |
-| AC-14 | T-REG-01..02, T-UI-ACT-01/04, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-UI-REG-01, T-A11Y-01, T-E2E-02..03 |
+| AC-13 | T-REG-01, T-UI-NAV-01, T-UI-REG-01..02, T-E2E-02..03 |
+| AC-14 | T-REG-01..02, T-UI-ACT-01/04/05, T-UI-WF-02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-02, T-UI-REG-01, T-A11Y-01, T-E2E-02..03 |
 | AC-15 | T-MIG-01..05, T-WF-04 |
 | AC-16 | T-MIG-03 |
 | AC-17 | T-REG-01..02, T-RACE-04, T-UI-REG-01..02, T-E2E-02..03, all existing Labs1..3 tests and adapted live browser suites |

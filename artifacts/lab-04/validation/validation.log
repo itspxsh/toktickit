@@ -1,0 +1,32 @@
+L4-10 review-response validation
+Date: 2026-10-20 (Asia/Bangkok)
+Product source commit: 7441eb5c63200a196fffda92d3a845f727f8dca7
+Playwright/test source commit: 7441eb5c63200a196fffda92d3a845f727f8dca7
+Evidence verifier source commit: cb120326585a37b7f8469ce159f57df65c40cfa8
+Database scope: isolated PostgreSQL databases ending in _test; URLs and credentials are not retained.
+
+The review-fix code and tests were validated on the product source above. Subsequent change `c26197b` affects only the evidence manifest generator/verifier command metadata and Lab 4 ID scoping; the contract suite was rerun after that change. Test logs and screenshots are retained separately and pinned by `evidence-manifest.json`.
+
+PostgreSQL migration deploy
+- Command: `(cd server && DATABASE_URL=<redacted; toktickit_l410_review_migration_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma)`
+- Result: all 4 repository migrations applied successfully to an isolated `_test` database. Output: `../migration/migration.log`.
+
+PostgreSQL integration
+- Command: `(cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_final_integration_test> LAB3_INITIAL_PASSWORD=<redacted; synthetic local-only value> npm run test:integration -- --reporter=verbose)`
+- Result: 20/20 passed across 6 files, including T-MIG-01..05, T-RACE-04, T-DB-DASH-01 and T-PERF-01; no skips. Output: `integration.log`.
+- T-PERF-01: 5,000 Tickets / 10,000 Actions; query counts Requester 8 / Staff 11; p95 Requester 12.51 ms / Staff 37.26 ms. Metrics and full EXPLAIN ANALYZE JSON: `../metrics/report.md` and `../metrics/explain-plan.json`.
+
+Server and client regression
+- Server: 175/175 passed across 24 files (`server-tests.log`); expected unlink failure is injected and safely logged by T-REG-02.
+- Client: 134/134 passed across 30 files (`client-tests.log`), including accessibility and visual-contract suites.
+- Server/client builds and repository-local Prisma 5.22.0 validation passed; output is retained in this directory.
+- Contract/evidence verifier: 21/21 passed, zero skipped (`contract-tests.log`). It checks traceability IDs against the Lab 4 inventory, exact command metadata, manifest counts versus retained output, screenshot sidecars, privacy and RELEASE-01 state.
+
+Live browser matrices (one worker, zero retries)
+- Lab 2 authenticated Requester regression: 3/3, desktop/tablet/mobile (`lab2-e2e.log`).
+- Lab 3 journeys: 9/9, three journeys × desktop/tablet/mobile (`lab3-e2e.log`).
+- Lab 4 journeys: 9/9, three journeys × desktop/tablet/mobile (`lab4-e2e.log`).
+- Viewports: desktop 1440×900, tablet 768×1024, mobile 320×800. Lab 4 checks no horizontal overflow and visible keyboard focus; the client accessibility suite checks focus trapping, Escape dismissal and focus restoration.
+- Thirty loaded-state Lab 4 screenshots and per-image evidence sidecars are retained under `../screenshots/`; each is redaction-reviewed, dimensioned, hashed and mapped to the exact exercised AC/Test IDs. E2E identities use reserved `.test` emails and synthetic local-only credentials.
+
+`node scripts/lab-04/verify-contract.mjs` verifies the manifest, migration, run counts, traceability, screenshot metadata, metrics and retained-text privacy. L4-10 is ready for a new peer-review pass; this is not approval or merge evidence.

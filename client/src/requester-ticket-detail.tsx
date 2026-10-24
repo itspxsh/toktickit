@@ -217,6 +217,13 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
         {ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{displayStatus(event.fromStatus)} → {displayStatus(event.toStatus)} · {event.actor?.name ?? "Support user"} · <time dateTime={event.createdAt} title={event.createdAt}>{formatStatusEventTime(event.createdAt)}</time></li>)}</ol> : <p>No status changes recorded.</p>}
       </section>
 
+      <section className="ticket-detail__group" aria-labelledby="requester-public-comments-title">
+        <h2 id="requester-public-comments-title">Public comments</h2>
+        {ticket.publicComments?.length ? (
+          <ol>{ticket.publicComments.map((comment) => <li key={comment.id}><strong>{comment.author?.name ?? "Support user"}</strong>: {comment.body} · <time dateTime={comment.createdAt}>{formatStatusEventTime(comment.createdAt)}</time></li>)}</ol>
+        ) : <p>No public comments yet.</p>}
+      </section>
+
       <AttachmentSection
         ticketNumber={ticket.ticketNumber}
         requesterId={requesterContext.mode === "development" ? requesterContext.selectedRequesterId ?? undefined : undefined}

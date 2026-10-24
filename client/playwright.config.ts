@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
 import { resolveArtifactRoot } from "../e2e/artifact-path.cjs";
 
-const suite = process.env.E2E_SUITE === "lab3" ? "lab-03" : "lab-02";
+const suite = process.env.E2E_SUITE === "lab4" ? "lab-04" : process.env.E2E_SUITE === "lab3" ? "lab-03" : "lab-02";
 const artifactRoot = resolveArtifactRoot(`artifacts/${suite}`);
 const baseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173";
 const baseUrl = new URL(baseURL);

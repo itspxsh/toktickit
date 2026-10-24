@@ -56,6 +56,7 @@ export interface TicketAttachmentView {
 export interface TicketDetailView extends TicketView {
   attachments: TicketAttachmentView[];
   statusEvents: TicketStatusEventView[];
+  publicComments?: Array<{ id: number; body: string; createdAt: string; author: { id: number; name: string; role: AuthRole } | null }>;
 }
 
 export type StaffTicketStatus = TicketStatus;

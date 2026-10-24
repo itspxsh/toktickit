@@ -337,6 +337,40 @@ describe("L4-05 Actions Taken UI", () => {
     await waitFor(() => expect(document.getElementById("action-31")).toHaveFocus());
   });
 
+  it("T-UI-ACT-05 / AC-14 refreshes the Action workflow version after a successful Ticket status change", async () => {
+    const user = userEvent.setup();
+    let actionListReads = 0;
+    let transitionBody: Record<string, unknown> | undefined;
+    const fetchMock = setupFetch((url, init) => {
+      if (url.includes("/api/staff/tickets/") && url.endsWith("/status") && init?.method === "PATCH") {
+        return jsonResponse({ ticket: { ...staffTicket, currentStatus: "WAITING_FOR_REQUESTER", workflowVersion: 4 } });
+      }
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions?`) && !init?.method) {
+        actionListReads += 1;
+        return jsonResponse({ ...actionPage, ticketVersion: actionListReads === 1 ? 3 : 4 });
+      }
+      if (url.includes(`/api/staff/tickets/${ticketNumber}/actions/31/transitions`) && init?.method === "POST") {
+        transitionBody = JSON.parse(String(init.body)) as Record<string, unknown>;
+        return jsonResponse({ action: { ...action, state: "IN_PROGRESS" }, ticketVersion: 5 });
+      }
+      return undefined;
+    });
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValue({
+      ...staffTicket,
+      allowedTransitions: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+    });
+    render(<StaffTicketDetail ticketNumber={ticketNumber} />);
+
+    const section = await screen.findByRole("region", { name: "Actions Taken" });
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).includes(`/api/staff/tickets/${ticketNumber}/actions?`))).toHaveLength(1));
+    await user.selectOptions(screen.getByRole("combobox", { name: "Status" }), "WAITING_FOR_REQUESTER");
+    await user.click(screen.getByRole("button", { name: "Save status" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).includes(`/api/staff/tickets/${ticketNumber}/actions?`))).toHaveLength(2));
+    await user.click(within(section).getByRole("button", { name: "Start action" }));
+    await waitFor(() => expect(transitionBody).toMatchObject({ expectedTicketVersion: 4 }));
+  });
+
   it("generates a UUID request key when randomUUID is unavailable", async () => {
     const user = userEvent.setup();
     const secureRandom = globalThis.crypto.getRandomValues.bind(globalThis.crypto);

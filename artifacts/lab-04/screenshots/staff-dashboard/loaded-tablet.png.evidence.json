@@ -1,0 +1,21 @@
+{
+  "ac": [
+    "AC-11",
+    "AC-12",
+    "AC-14",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-03",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "staff metrics reconciled with authenticated queue and current-user data",
+    "status and priority buckets reconciled",
+    "recent/urgent/Action summaries loaded",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data.",
+  "project": "tablet"
+}

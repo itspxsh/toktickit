@@ -1,0 +1,22 @@
+{
+  "ac": [
+    "AC-13",
+    "AC-14",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-02",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "Requester Ticket heading visible",
+    "persisted status event visible",
+    "public comment visible",
+    "resolution advisory updates to Yes",
+    "Action list is read-only",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Synthetic ticket, public comment, and Action text; no credentials or private notes.",
+  "project": "tablet"
+}

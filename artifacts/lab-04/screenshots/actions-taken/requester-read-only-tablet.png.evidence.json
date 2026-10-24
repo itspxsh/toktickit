@@ -1,0 +1,20 @@
+{
+  "ac": [
+    "AC-06",
+    "AC-18",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-01",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "owned Ticket heading visible",
+    "completed and cancelled Actions visible",
+    "Requester write controls absent",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes.",
+  "project": "tablet"
+}

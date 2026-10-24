@@ -65,6 +65,10 @@ const TICKET_DETAIL_INCLUDE = {
     select: { id: true, fromStatus: true, toStatus: true, createdAt: true, actor: { select: { id: true, name: true, role: true } } },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   },
+  publicComments: {
+    select: { id: true, body: true, createdAt: true, author: { select: { id: true, name: true, role: true } } },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  },
 };
 
 const TICKET_LIST_SELECT = {
@@ -218,12 +222,18 @@ function serialiseTicket(row: Record<string, unknown>): Record<string, unknown> 
 function serialiseTicketDetail(row: Record<string, unknown>): Record<string, unknown> {
   const attachments = Array.isArray(row.attachments) ? row.attachments : [];
   const statusEvents = Array.isArray(row.statusEvents) ? row.statusEvents : [];
+  const publicComments = Array.isArray(row.publicComments) ? row.publicComments : [];
   return {
     ...serialiseTicket(row),
     statusEvents: statusEvents.map((entry) => {
       const event = entry as Record<string, unknown>;
       const actor = event.actor as Record<string, unknown> | undefined;
       return { id: event.id, fromStatus: event.fromStatus, toStatus: event.toStatus, createdAt: event.createdAt, actor: actor ? { id: actor.id, name: actor.name, role: actor.role } : null };
+    }),
+    publicComments: publicComments.map((entry) => {
+      const comment = entry as Record<string, unknown>;
+      const author = comment.author as Record<string, unknown> | undefined;
+      return { id: comment.id, body: comment.body, createdAt: comment.createdAt, author: author ? { id: author.id, name: author.name, role: author.role } : null };
     }),
     attachments: attachments.map((attachment) => {
       const value = attachment as Record<string, unknown>;
