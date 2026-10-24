@@ -196,12 +196,13 @@ not a claim that the suite was run on Windows.
 
 The test-first commit is
 [`01db670`](https://github.com/itspxsh/toktickit/commit/01db670), followed by
-implementation commit
-[`5a6d0b1`](https://github.com/itspxsh/toktickit/commit/5a6d0b1a213664cc283411469b148532b8766102).
+implementation commits
+[`5a6d0b1`](https://github.com/itspxsh/toktickit/commit/5a6d0b1a213664cc283411469b148532b8766102)
+and [`55b7a4a`](https://github.com/itspxsh/toktickit/commit/55b7a4a05a8205477b3b01da170595983b4c82aa).
 The contract/evidence verifier suite passed 22/22 with zero failures or skips,
 and `verify-contract.mjs` accepted all 30 screenshot sidecars against the
-manifest. The updated manifest pins the product source to `88d1f0c` and the
-Playwright/evidence-tool source to `5a6d0b1`; this change only affects evidence
+manifest. The updated manifest pins the product source to `88d1f0c`, the
+Playwright tree to `7441eb5`, and the evidence-tool source to `55b7a4a`; this change only affects evidence
 hashing and does not alter product behavior or screenshot contents. Prior
 product, migration, regression, and browser validation results are unchanged.
 The latest follow-up still awaits peer re-review; Issue #69 remains open in PR
