@@ -166,6 +166,21 @@ test("T-EVID-01 screenshot traceability is state-specific rather than assigning 
   assert.match(writer, /capture\.testIds/);
 });
 
+test("T-EVID-01 hashes screenshot sidecars identically with LF and Windows CRLF line endings", async () => {
+  const writer = await readFile(path.join(repositoryRoot, "scripts/lab-04/write-evidence-manifest.mjs"), "utf8");
+  const verifier = await readFile(path.join(repositoryRoot, "scripts/lab-04/verify-contract.mjs"), "utf8");
+  assert.match(writer, /hashEvidenceText/);
+  assert.match(verifier, /hashEvidenceText/);
+
+  const { hashEvidenceText } = await import("./evidence-hash.mjs");
+  const manifest = JSON.parse(await readFile(path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json"), "utf8"));
+  const shot = manifest.screenshots[0];
+  const sidecar = await readFile(path.join(repositoryRoot, shot.captureEvidencePath), "utf8");
+  const expected = shot.captureEvidenceSha256;
+  assert.equal(hashEvidenceText(sidecar), expected);
+  assert.equal(hashEvidenceText(sidecar.replace(/\n/g, "\r\n")), expected);
+});
+
 test("T-CONTRACT-01 verifies an explicit RELEASE-01 state", async () => {
   const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
