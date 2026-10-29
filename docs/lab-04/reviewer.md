@@ -236,3 +236,32 @@ migration fixture paths are not Windows-native. No claim of a Windows test run
 is made. AI-use provenance labels the initial SHA values as superseded. PR #80
 remains open for re-review; Issue #69 stays in PR Review until approval and
 merge.
+
+### L4-10 final close-out — PR #80 (2026-10-29)
+
+The preceding open-review status is superseded by the verified final review and
+merge. [@justfepwx12](https://github.com/justfepwx12) approved PR
+[#80](https://github.com/itspxsh/toktickit/pull/80) on head
+[`e90daa6`](https://github.com/itspxsh/toktickit/commit/e90daa6289fcafd00334e2bc59bca66f8660d138)
+([approval](https://github.com/itspxsh/toktickit/pull/80#pullrequestreview-5702426491))
+at 2026-10-29 17:49:31 UTC. It was merged into `lab4-staging` at
+[`9f91471`](https://github.com/itspxsh/toktickit/commit/9f914718b609dbc86c3f82af713a0d23f716ca8b)
+at 2026-10-29 18:19:13 UTC. Issue [#69](https://github.com/itspxsh/toktickit/issues/69)
+was closed after that merge and its Issue-only Kanban card is `Done`.
+
+The approval verified these results at `e90daa6`: evidence verifier 30/30,
+contract/evidence tests 24/24, server tests 175/175, client tests 134/134,
+PostgreSQL 16 integration 20/20, Lab 2 E2E 3/3, Lab 3 E2E 9/9, and Lab 4 E2E
+9/9 across desktop/tablet/mobile with one worker and zero retries. Server and
+client builds, repository-local Prisma validation, and `git diff --check` also
+passed. The approval and its retained evidence are the source for these counts;
+they are not represented as a new run on the merge commit.
+
+### L4-11 release preparation — Issue #70
+
+Issue [#70](https://github.com/itspxsh/toktickit/issues/70) is now unblocked:
+implementation/evidence Issues #61–#69 are closed, and the L4-10 card is `Done`.
+The release gate still requires checking that every L4 card is `Done`, staging
+and main ancestry/diff are current, and the full release evidence remains green
+on the exact staging tip before opening the promotion PR. No release approval,
+merge to `main`, or final-main validation is claimed here.
