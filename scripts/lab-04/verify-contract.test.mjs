@@ -130,6 +130,13 @@ test("T-CONTRACT-01 rejects product evidence pinned to a different source commit
   assert.ok(errors.some((error) => /productCommit.*validationCommit/i.test(error)), errors.join("\n"));
 });
 
+test("T-EVID-01 keeps regression and contract Test IDs scoped to their actual runs", async () => {
+  const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  assert.deepEqual(manifest.runs.lab3E2E.testIds, []);
+  assert.deepEqual(manifest.runs.contractTests.testIds, ["RELEASE-01", "T-CONTRACT-01", "T-EVID-01"]);
+});
+
 test("T-CONTRACT-01 rejects invented test IDs and unrecognized validation commands", async () => {
   const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
