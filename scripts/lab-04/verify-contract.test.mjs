@@ -123,6 +123,13 @@ test("T-EVID-01 accepts the canonical manifest and rejects counts that disagree 
   assert.ok(errors.some((error) => error.includes("clientTests.passed") && error.includes("retained run log")), errors.join("\n"));
 });
 
+test("T-CONTRACT-01 rejects product evidence pinned to a different source commit", async () => {
+  const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const errors = await validateEvidenceManifest({ ...manifest, productCommit: "0".repeat(40) });
+  assert.ok(errors.some((error) => /productCommit.*validationCommit/i.test(error)), errors.join("\n"));
+});
+
 test("T-CONTRACT-01 rejects invented test IDs and unrecognized validation commands", async () => {
   const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
