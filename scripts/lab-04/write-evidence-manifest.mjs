@@ -102,7 +102,11 @@ for (const file of (await pngFiles(path.join(root, "artifacts/lab-04/screenshots
   });
 }
 
-const run = (passed, command, output) => ({ passed, failed: 0, skipped: 0, retries: 0, command, testIds: executedIds(output) });
+const run = (passed, command, output, allowedTestIds = null) => {
+  const discoveredIds = executedIds(output);
+  const testIds = allowedTestIds === null ? discoveredIds : discoveredIds.filter((id) => allowedTestIds.includes(id));
+  return { passed, failed: 0, skipped: 0, retries: 0, command, testIds };
+};
 const manifest = {
   schemaVersion: 1,
   // Keep sourceCommit as a compatibility alias for the E2E/test harness tree.
@@ -117,9 +121,9 @@ const manifest = {
     serverTests: run(serverRun.passed, "cd server && npm test -- --reporter=verbose", serverLog),
     clientTests: run(clientRun.passed, "cd client && npm test -- --reporter=verbose", clientLog),
     lab2E2E: run(lab2Run.passed, "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0", lab2Log),
-    lab3E2E: run(lab3Run.passed, "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0", lab3Log),
+    lab3E2E: run(lab3Run.passed, "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0", lab3Log, []),
     lab4E2E: run(lab4Run.passed, "cd client && npm run test:e2e:lab4 -- --workers=1 --retries=0", lab4Log),
-    contractTests: run(contractRun.passed, "node --test scripts/lab-04/verify-contract.test.mjs", contractLog),
+    contractTests: run(contractRun.passed, "node --test scripts/lab-04/verify-contract.test.mjs", contractLog, ["RELEASE-01", "T-CONTRACT-01", "T-EVID-01"]),
   },
   browserMatrix,
   releaseGate: { id: "RELEASE-01", status: "awaiting_peer_review", note: "L4-10 evidence is complete for staging review; final-main promotion remains a separate approval-gated step." },

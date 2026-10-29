@@ -75,6 +75,7 @@ export async function validateEvidenceManifest(manifest) {
   require(/^[a-f0-9]{40}$/i.test(manifest?.validationCommit ?? ""), "validationCommit must identify the test/E2E harness tree with a full commit SHA.");
   require(manifest?.sourceCommit === manifest?.validationCommit, "sourceCommit compatibility field must match validationCommit.");
   require(/^[a-f0-9]{40}$/i.test(manifest?.productCommit ?? ""), "productCommit must identify the tested product source with a full commit SHA.");
+  require(manifest?.productCommit === manifest?.validationCommit, "productCommit must match validationCommit so evidence identifies the exact tested source tree.");
   require(/^[a-f0-9]{40}$/i.test(manifest?.evidenceToolCommit ?? ""), "evidenceToolCommit must identify the evidence parser/verifier source with a full commit SHA.");
   require((manifest?.database?.name ?? "").toLowerCase().endsWith("_test"), "database.name must end in _test; never store its URL.");
   require(manifest?.database?.urlRecorded === false, "database.urlRecorded must be false.");
@@ -92,6 +93,11 @@ export async function validateEvidenceManifest(manifest) {
     require(run.command === RUN_COMMANDS[name], `${name}.command is not an approved reproducible command.`);
     require(!/postgres(?:ql)?:\/\/[^\s]+/i.test(run.command), `${name}.command must redact database URLs.`);
     require(Array.isArray(run.testIds), `${name}.testIds must list test IDs exercised by this run.`);
+    if (name === "lab3E2E") require(run.testIds?.length === 0, "lab3E2E.testIds must not claim Lab 4 journey IDs for Lab 3 regression runs.");
+    if (name === "contractTests") {
+      const expectedContractIds = ["RELEASE-01", "T-CONTRACT-01", "T-EVID-01"];
+      require(JSON.stringify(run.testIds) === JSON.stringify(expectedContractIds), `contractTests.testIds must contain only contract/evidence IDs: ${expectedContractIds.join(", ")}.`);
+    }
     if (name === "migrationDeploy") require(run.testIds?.length === 0, "migrationDeploy.testIds must be empty; a migration command is not a test-runner execution.");
     const inventory = await loadTestInventory();
     for (const testId of run.testIds ?? []) {
