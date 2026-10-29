@@ -1,0 +1,17 @@
+{
+  "ac": [
+    "AC-08",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-02",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "Current Status shows CLOSED after eligible completed work",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Synthetic ticket and work text; no credentials.",
+  "project": "desktop"
+}

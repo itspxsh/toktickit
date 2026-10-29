@@ -63,13 +63,14 @@ export interface ActionsTakenProps {
   mode: Mode;
   ticketStatus?: string;
   ticketOwner?: { id: number; name: string } | null;
+  refreshKey?: number;
   initialFocusActionId?: number;
   onTicketChanged?: () => void;
   onDirtyChange?: (dirty: boolean) => void;
 }
 
 /** Current Ticket Actions. Requester mode is deliberately read-only; the API remains the authorization boundary. */
-export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, initialFocusActionId, onTicketChanged, onDirtyChange }: ActionsTakenProps) {
+export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, refreshKey, initialFocusActionId, onTicketChanged, onDirtyChange }: ActionsTakenProps) {
   const support = mode === "support";
   const terminalTicket = Boolean(ticketStatus && TERMINAL_TICKETS.has(ticketStatus));
   const [page, setPage] = useState(1);
@@ -146,7 +147,7 @@ export function ActionsTaken({ ticketNumber, mode, ticketStatus, ticketOwner, in
       setError(safeError(reason));
     }).finally(() => { if (!ignore) setLoading(false); });
     return () => { ignore = true; controller.abort(); };
-  }, [ticketNumber, page, reload, support, initialFocusActionId]);
+  }, [ticketNumber, page, reload, refreshKey, support, initialFocusActionId]);
 
   useEffect(() => {
     if (!support) return;

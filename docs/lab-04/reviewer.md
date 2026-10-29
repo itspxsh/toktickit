@@ -97,3 +97,142 @@ No Lab 4 peer reviews in the partner repository have been verified or recorded y
 ## Release gate
 
 Not started. A released `main` validation, final evidence, Issue-only Kanban completion, and final report remain future work. No test, migration, screenshot, performance, or approval result is claimed by this record.
+
+### L4-09 final close-out — PR #79
+
+The earlier L4-09 open-review statements above are superseded by the verified
+merge record: [PR #79](https://github.com/itspxsh/toktickit/pull/79) was approved
+by [@justfepwx12](https://github.com/justfepwx12) on head
+[`6669b25`](https://github.com/itspxsh/toktickit/commit/6669b2555c8fd778096ef2f94edb1c369681f77c)
+([review](https://github.com/itspxsh/toktickit/pull/79#pullrequestreview-5565236566))
+and merged into `lab4-staging` at
+[`5743a90`](https://github.com/itspxsh/toktickit/commit/5743a909ade8a8ebdde1f5459c0026f84ed44c87).
+The reviewed evidence was server 175/175, client 133/133, PostgreSQL integration
+20/20, all four migrations on a guarded test database, Lab 2 E2E 3/3, Lab 3 E2E
+9/9, builds/Prisma/diff-check green, and 51 refreshed loaded-state screenshots.
+The exact run provenance is recorded in
+[`artifacts/lab-04/regression/README.md`](../../artifacts/lab-04/regression/README.md)
+and the accepted follow-up is
+[PR comment #6254969385](https://github.com/itspxsh/toktickit/pull/79#issuecomment-6254969385).
+Issue [#68](https://github.com/itspxsh/toktickit/issues/68) is now closed as
+completed and its issue-only Kanban card is Done.
+
+## L4-10 live evidence and regression — Issue #69
+
+Issue [#69](https://github.com/itspxsh/toktickit/issues/69) is implemented on
+`feature/lab4-10-live-evidence`, branched from the merged
+`lab4-staging@5743a90`. The code and tests are pinned to source commit
+[`88d1f0c`](https://github.com/itspxsh/toktickit/commit/88d1f0caab307e43b1dc238402f4b66f9f91aa23)
+for product/server/client behavior. The Lab 4 Playwright assertion and retained-
+evidence test hardening were committed test-first through
+[`253d7a0`](https://github.com/itspxsh/toktickit/commit/253d7a0921b97d045a62b55436b4312b05f30d5d)
+and [`5e09124`](https://github.com/itspxsh/toktickit/commit/5e0912437e28cf15dfeafe8eda33656adc70c20b);
+the post-hardening Lab 4 browser run uses the latter Playwright tree. The
+migration parser fix is pinned to
+[`69d3622`](https://github.com/itspxsh/toktickit/commit/69d3622f530a2508931c9ea0c4a419f26bb36c3e), and the final evidence generator/verifier (including manifest tool provenance) to
+[`202d55e`](https://github.com/itspxsh/toktickit/commit/202d55e0039d666cdc73880f27e01020e58e4259). The full
+server, client and PostgreSQL suites ran earlier against the same unchanged
+product source; subsequent commits in that range changed only E2E assertions,
+evidence checks, and retained artifacts. The manifest records product,
+Playwright and final evidence-tool SHAs separately, and its run counts/matrix are
+parsed from the retained command output rather than synthesized.
+The tests-first commits are
+[`0135028`](https://github.com/itspxsh/toktickit/commit/0135028) and
+[`772b43c`](https://github.com/itspxsh/toktickit/commit/772b43c); implementation
+is in [`105a281`](https://github.com/itspxsh/toktickit/commit/105a281), followed
+by regression/evidence hardening through `88d1f0c`. The suite covers the
+Actions Taken, Ticket workflow, and role-specific dashboard journeys, plus
+responsive and keyboard behavior, isolated migration/integration safety, and
+bounded dashboard query performance. The focused Actions refresh regression
+reproduced and fixed stale child data after a successful parent workflow
+mutation.
+
+Validation was executed against isolated PostgreSQL databases whose names end
+in `_test`; no development database was used. Four migrations deployed, the
+PostgreSQL integration suite passed 20/20, the full server suite passed 175/175,
+and client tests passed 134/134. Lab 2 authenticated E2E passed 3/3, Lab 3 E2E
+passed 9/9, and Lab 4 E2E passed 9/9 (three journeys × desktop/tablet/mobile),
+all with one worker and zero retries. T-E2E-02 confirms the persisted
+`IN PROGRESS → RESOLVED` status event in the Requester detail. Server/client
+builds, repository-local Prisma validation, and the contract/evidence tests
+passed (the current count-derived evidence verifier suite is 11/11). The responsive
+checks used 1440×900, 768×1024, and 320×800 and asserted no horizontal overflow
+and visible keyboard focus; client accessibility tests additionally checked
+focus trapping, Escape dismissal, and focus restoration.
+
+The 30 loaded-state Lab 4 screenshots are under
+[`artifacts/lab-04/screenshots/`](../../artifacts/lab-04/screenshots/); the
+source-pinned SHA-256/dimension and AC/Test mappings are in
+[`evidence-manifest.json`](../../artifacts/lab-04/validation/evidence-manifest.json).
+Raw redacted run output is retained under
+[`artifacts/lab-04/validation/`](../../artifacts/lab-04/validation/), migration
+output under [`artifacts/lab-04/migration/`](../../artifacts/lab-04/migration/),
+and measured query counts/p95 plus the PostgreSQL EXPLAIN JSON under
+[`artifacts/lab-04/metrics/`](../../artifacts/lab-04/metrics/). The complete
+summary is [`validation.log`](../../artifacts/lab-04/validation/validation.log).
+The manifest verifier and its tests both pass. The AI-use record is updated to
+reflect completed work without implying peer approval.
+
+L4-10 is ready for peer review; no approval or merge is claimed yet. Issue #69
+must remain open in PR Review until `justfepwx12` approves and merges the PR.
+
+### L4-10 PR #80 requested-change follow-up (2026-10-20)
+
+The review findings L4-10-01..06 have been addressed on PR #80. The verifier now checks Lab 4 requirement/test inventory paths, IDs, execution commands, retained run evidence and explicit RELEASE-01 state; the manifest writer only attributes IDs declared in the Lab 4 inventory, so Lab 1–3 regression IDs are not over-credited. The dead parser branch and hard-coded screenshot state/redaction claims were removed in favor of per-capture sidecars. T-E2E-02 now exercises a persisted public comment visible from the Requester detail; the exhaustive workflow matrix remains assigned to T-WF-01. Staff dashboard links select an unambiguous target, and the Actions UI regression proves a successful parent workflow mutation refreshes the child version used by the next write.
+
+Test-first evidence-ID scope regression: [1f50e90](https://github.com/itspxsh/toktickit/commit/1f50e90); implementation: [c26197b](https://github.com/itspxsh/toktickit/commit/c26197b). The original review fixes remain in [7441eb5](https://github.com/itspxsh/toktickit/commit/7441eb5), preceded by red-test commits [905c80b](https://github.com/itspxsh/toktickit/commit/905c80b) and [bc2b3ba](https://github.com/itspxsh/toktickit/commit/bc2b3ba); evidence-guard tests are in [6de0069](https://github.com/itspxsh/toktickit/commit/6de0069). Validation on the reviewed product tree: server 175/175, client 134/134, PostgreSQL integration 20/20, Lab 2 E2E 3/3, Lab 3 E2E 9/9, Lab 4 E2E 9/9, Prisma validation and both builds passed. The evidence verifier suite now passes 21/21 with zero skipped; its manifest records 30 loaded-state screenshots and exact Lab 4-only Test IDs. Full output, migration and performance evidence are in `artifacts/lab-04/validation/`, `artifacts/lab-04/migration/` and `artifacts/lab-04/metrics/`.
+
+
+### L4-10 PR #80 CRLF portability follow-up (2026-10-24)
+
+Addressed review finding L4-10-07: screenshot sidecar hashes are now computed
+from canonical UTF-8 text with CRLF normalized to LF in both the evidence writer
+and verifier. PNG files remain binary-hashed without normalization. This makes
+the recorded sidecar hash stable across LF and Windows CRLF checkouts; no
+`.gitattributes` rule is required because normalization is explicit at both
+hashing boundaries. A regression test covers LF text, CRLF text, and CRLF bytes
+as read by Node on Windows. The test simulates those line endings locally; it is
+not a claim that the suite was run on Windows.
+
+The test-first commit is
+[`01db670`](https://github.com/itspxsh/toktickit/commit/01db670), followed by
+implementation commits
+[`5a6d0b1`](https://github.com/itspxsh/toktickit/commit/5a6d0b1a213664cc283411469b148532b8766102)
+and [`55b7a4a`](https://github.com/itspxsh/toktickit/commit/55b7a4a05a8205477b3b01da170595983b4c82aa).
+The contract/evidence verifier suite passed 22/22 with zero failures or skips,
+and `verify-contract.mjs` accepted all 30 screenshot sidecars against the
+manifest. This intermediate manifest mistakenly pinned product source to
+`88d1f0c`; the provenance reconciliation below corrects it to `7441eb5`, which
+contains the tested public-comment projection. The evidence-tool changes do not
+alter product behavior or screenshot contents.
+
+### L4-10 PR #80 provenance and suite-attribution correction (2026-10-29)
+
+The latest peer review at head `67a1008` identified three blocking provenance
+findings. The authoritative
+tested product and Playwright source is `7441eb5`; it contains the
+requester-visible public-comment projection exercised by T-E2E-02. The manifest
+and metrics report now use this same product SHA, and the verifier rejects any
+manifest where `productCommit` differs from `validationCommit`. Evidence tooling
+is separately pinned to `87082df`.
+
+Test-first commits [`693bf05`](https://github.com/itspxsh/toktickit/commit/693bf05)
+and [`3b82f69`](https://github.com/itspxsh/toktickit/commit/3b82f69) added
+regressions for mismatched product SHAs and suite-level Test ID attribution;
+the focused red runs reproduced both gaps. Implementation is in
+[`87082df`](https://github.com/itspxsh/toktickit/commit/87082df960d3b56023609d503f09eb562acf87be).
+The writer now records no Lab 4 journey IDs under the Lab 3 regression run and
+only `RELEASE-01`, `T-CONTRACT-01`, and `T-EVID-01` under contract/evidence
+tests. The verifier independently enforces those scopes.
+
+Retained validation provenance was synchronized: migration deploy 4/4,
+PostgreSQL integration 20/20, server 175/175, client 134/134, contract/evidence
+24/24, Lab 2 E2E 3/3, Lab 3 E2E 9/9, Lab 4 E2E 9/9; the manifest verifier accepts
+all 30 screenshots and sidecars. This supersedes the intermediate 21/21 and
+22/22 contract-test counts recorded earlier in this review history. The
+migration/integration gate was run in
+Linux; native Windows is outside this validation matrix because the current
+migration fixture paths are not Windows-native. No claim of a Windows test run
+is made. AI-use provenance labels the initial SHA values as superseded. PR #80
+remains open for re-review; Issue #69 stays in PR Review until approval and
+merge.

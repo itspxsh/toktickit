@@ -1,0 +1,19 @@
+{
+  "ac": [
+    "AC-08",
+    "AC-13",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-02",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "Current Status shows RESOLVED",
+    "persisted public comment appears in staff comments list",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Synthetic ticket, comment, and Action text; seeded synthetic support account; no credentials.",
+  "project": "desktop"
+}

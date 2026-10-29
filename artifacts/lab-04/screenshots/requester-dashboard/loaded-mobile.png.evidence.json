@@ -1,0 +1,20 @@
+{
+  "ac": [
+    "AC-10",
+    "AC-12",
+    "AC-14",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-03",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "requester metrics reconciled with owned Ticket list",
+    "attention and recent lists loaded",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data.",
+  "project": "mobile"
+}

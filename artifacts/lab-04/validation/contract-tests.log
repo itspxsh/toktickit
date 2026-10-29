@@ -1,0 +1,32 @@
+✔ T-CONTRACT-01: Lab 4 has an explicit Playwright suite selector and reproducible command (3.185958ms)
+✔ T-EVID-01: evidence verifier is present at the contract's canonical path (0.293667ms)
+✔ T-EVID-01 rejects manifests that do not record executed suite runs (2.313292ms)
+✔ T-EVID-01 rejects AC mappings to test IDs absent from all executed runs (0.911208ms)
+✔ T-EVID-01 database preparation guard requires the literal _test suffix (0.353084ms)
+✔ T-EVID-01 scans retained logs for raw database URLs and credentials (0.373459ms)
+✔ T-EVID-01 derives Vitest pass/fail/skip counts from its completed summary (1.059708ms)
+✔ T-EVID-01 derives Node test-run counts from the TAP summary (0.196708ms)
+✔ T-EVID-01 keeps regression-run IDs within the Lab 4 inventory (1.138084ms)
+✔ T-EVID-01 derives exactly one non-retried run per Lab 4 journey and viewport (0.236834ms)
+✔ T-EVID-01 derives migration count only from successful deploy output (0.135458ms)
+✔ T-EVID-01 accepts the canonical manifest and rejects counts that disagree with retained output (51.805792ms)
+✔ T-CONTRACT-01 rejects product evidence pinned to a different source commit (16.213167ms)
+✔ T-EVID-01 keeps regression and contract Test IDs scoped to their actual runs (40.65925ms)
+✔ T-CONTRACT-01 rejects invented test IDs and unrecognized validation commands (65.807875ms)
+✔ T-CONTRACT-01 resolves each requirement and test inventory row to an existing file and Issue status (22.044791ms)
+✔ T-EVID-01 screenshot manifest consumes capture assertions and review metadata instead of asserting them itself (0.513459ms)
+✔ T-EVID-01 screenshot traceability is state-specific rather than assigning every journey AC to every image (0.153833ms)
+✔ T-EVID-01 hashes screenshot sidecars identically with LF and Windows CRLF line endings (3.0925ms)
+✔ T-CONTRACT-01 verifies an explicit RELEASE-01 state (19.721417ms)
+✔ T-CONTRACT-01 refuses RELEASE-01 completion without final close-out evidence (24.917375ms)
+✔ T-E2E-02 includes a persisted public comment in the Requester-visible resolution journey (0.283958ms)
+✔ T-E2E-03 dashboard metric links use an unambiguous first match (0.318916ms)
+✔ T-UI-ACT-05 proves the refreshed Action version is used by the next mutation (1.323292ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 347.799125

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test -c playwright.config.ts ../e2e/lab-02",
-    "test:e2e:lab3": "E2E_SUITE=lab3 playwright test -c playwright.config.ts ../e2e/lab-03"
+    "test:e2e:lab3": "E2E_SUITE=lab3 playwright test -c playwright.config.ts ../e2e/lab-03",
+    "test:e2e:lab4": "E2E_SUITE=lab4 playwright test -c playwright.config.ts ../e2e/lab-04"
   },
   "dependencies": {
     "bootstrap": "^5.3.3",

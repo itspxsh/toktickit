@@ -100,7 +100,7 @@ describe("L4-07 Requester dashboard API (T-DASH-R-01..02)", () => {
     expect(db.ticket.count).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ requesterId: 7 }) }));
   });
 
-  it("keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt", async () => {
+  it("T-DASH-R-02 keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt", async () => {
     const response = await request(app).get(
       `/api/tickets?statusGroup=resolved&updatedSince=${WINDOW_START}&before=${AS_OF}`,
     );
