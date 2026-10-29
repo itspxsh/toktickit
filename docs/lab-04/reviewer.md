@@ -247,15 +247,21 @@ merge. [@justfepwx12](https://github.com/justfepwx12) approved PR
 at 2026-10-29 17:49:31 UTC. It was merged into `lab4-staging` at
 [`9f91471`](https://github.com/itspxsh/toktickit/commit/9f914718b609dbc86c3f82af713a0d23f716ca8b)
 at 2026-10-29 18:19:13 UTC. Issue [#69](https://github.com/itspxsh/toktickit/issues/69)
-was closed after that merge and its Issue-only Kanban card is `Done`.
+was closed after that merge.
 
-The approval verified these results at `e90daa6`: evidence verifier 30/30,
+**Approval-verified reruns at `e90daa6`:** evidence verifier 30/30,
 contract/evidence tests 24/24, server tests 175/175, client tests 134/134,
-PostgreSQL 16 integration 20/20, Lab 2 E2E 3/3, Lab 3 E2E 9/9, and Lab 4 E2E
-9/9 across desktop/tablet/mobile with one worker and zero retries. Server and
-client builds, repository-local Prisma validation, and `git diff --check` also
-passed. The approval and its retained evidence are the source for these counts;
-they are not represented as a new run on the merge commit.
+PostgreSQL 16 integration 20/20, server/client builds, and `git diff --check`
+passed.
+
+**Retained E2E evidence accepted by the approval, not rerun at `e90daa6`:**
+Lab 2 E2E 3/3, Lab 3 E2E 9/9, and Lab 4 E2E 9/9 across desktop/tablet/mobile
+with one worker and zero retries. The manifest pins the product and Playwright
+source to `7441eb5`; these counts come from the retained E2E logs, which were
+not regenerated during the approval rerun.
+
+**Prisma validation:** the retained validation record reports a pass with the
+repository-local Prisma CLI 5.22.0; it was not rerun as part of the approval.
 
 ### L4-11 release preparation — Issue #70
 
