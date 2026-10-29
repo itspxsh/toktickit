@@ -266,7 +266,7 @@ repository-local Prisma CLI 5.22.0; it was not rerun as part of the approval.
 ### L4-11 release preparation — Issue #70
 
 Issue [#70](https://github.com/itspxsh/toktickit/issues/70) is now unblocked:
-implementation/evidence Issues #61–#69 are closed, and the L4-10 card is `Done`.
+implementation/evidence Issues #61–#69 are closed.
 The release gate still requires checking that every L4 card is `Done`, staging
 and main ancestry/diff are current, and the full release evidence remains green
 on the exact staging tip before opening the promotion PR. No release approval,
