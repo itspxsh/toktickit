@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "sourceCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
   "validationCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
-  "productCommit": "88d1f0caab307e43b1dc238402f4b66f9f91aa23",
-  "evidenceToolCommit": "55b7a4a05a8205477b3b01da170595983b4c82aa",
+  "productCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
+  "evidenceToolCommit": "87082df960d3b56023609d503f09eb562acf87be",
   "database": {
     "name": "toktickit_l410_review_test",
     "urlRecorded": false
@@ -114,11 +114,7 @@
       "skipped": 0,
       "retries": 0,
       "command": "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0",
-      "testIds": [
-        "T-E2E-01",
-        "T-E2E-02",
-        "T-E2E-03"
-      ]
+      "testIds": []
     },
     "lab4E2E": {
       "passed": 9,
@@ -134,7 +130,7 @@
       ]
     },
     "contractTests": {
-      "passed": 22,
+      "passed": 24,
       "failed": 0,
       "skipped": 0,
       "retries": 0,
@@ -142,10 +138,7 @@
       "testIds": [
         "RELEASE-01",
         "T-CONTRACT-01",
-        "T-E2E-02",
-        "T-E2E-03",
-        "T-EVID-01",
-        "T-UI-ACT-05"
+        "T-EVID-01"
       ]
     }
   },

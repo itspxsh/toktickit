@@ -1,11 +1,11 @@
 L4-10 review-response validation
-Date: 2026-10-20 (Asia/Bangkok)
+Date: 2026-10-29 (Asia/Bangkok)
 Product source commit: 7441eb5c63200a196fffda92d3a845f727f8dca7
 Playwright/test source commit: 7441eb5c63200a196fffda92d3a845f727f8dca7
-Evidence verifier source commit: cb120326585a37b7f8469ce159f57df65c40cfa8
+Evidence verifier source commit: 87082df960d3b56023609d503f09eb562acf87be
 Database scope: isolated PostgreSQL databases ending in _test; URLs and credentials are not retained.
 
-The review-fix code and tests were validated on the product source above. Subsequent change `c26197b` affects only the evidence manifest generator/verifier command metadata and Lab 4 ID scoping; the contract suite was rerun after that change. Test logs and screenshots are retained separately and pinned by `evidence-manifest.json`.
+The tested product and Playwright source are both pinned to `7441eb5`; that tree contains the requester-visible public-comment projection required by T-E2E-02. Evidence tooling is pinned separately to `87082df`. Manifest values are derived from retained logs and validated against this provenance. The PostgreSQL migration/integration gate was run in Linux; native Windows is not part of this validation matrix because the existing migration fixture paths have not been made Windows-native.
 
 PostgreSQL migration deploy
 - Command: `(cd server && DATABASE_URL=<redacted; toktickit_l410_review_migration_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma)`
@@ -20,7 +20,7 @@ Server and client regression
 - Server: 175/175 passed across 24 files (`server-tests.log`); expected unlink failure is injected and safely logged by T-REG-02.
 - Client: 134/134 passed across 30 files (`client-tests.log`), including accessibility and visual-contract suites.
 - Server/client builds and repository-local Prisma 5.22.0 validation passed; output is retained in this directory.
-- Contract/evidence verifier: 21/21 passed, zero skipped (`contract-tests.log`). It checks traceability IDs against the Lab 4 inventory, exact command metadata, manifest counts versus retained output, screenshot sidecars, privacy and RELEASE-01 state.
+- Contract/evidence verifier: 24/24 passed, zero skipped (`contract-tests.log`). It checks traceability IDs against the Lab 4 inventory, exact command metadata and suite-level attribution, product/validation SHA agreement, manifest counts versus retained output, screenshot sidecars, privacy and RELEASE-01 state.
 
 Live browser matrices (one worker, zero retries)
 - Lab 2 authenticated Requester regression: 3/3, desktop/tablet/mobile (`lab2-e2e.log`).

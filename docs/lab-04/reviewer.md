@@ -201,9 +201,38 @@ implementation commits
 and [`55b7a4a`](https://github.com/itspxsh/toktickit/commit/55b7a4a05a8205477b3b01da170595983b4c82aa).
 The contract/evidence verifier suite passed 22/22 with zero failures or skips,
 and `verify-contract.mjs` accepted all 30 screenshot sidecars against the
-manifest. The updated manifest pins the product source to `88d1f0c`, the
-Playwright tree to `7441eb5`, and the evidence-tool source to `55b7a4a`; this change only affects evidence
-hashing and does not alter product behavior or screenshot contents. Prior
-product, migration, regression, and browser validation results are unchanged.
-The latest follow-up still awaits peer re-review; Issue #69 remains open in PR
-Review until approval and merge.
+manifest. This intermediate manifest mistakenly pinned product source to
+`88d1f0c`; the provenance reconciliation below corrects it to `7441eb5`, which
+contains the tested public-comment projection. The evidence-tool changes do not
+alter product behavior or screenshot contents.
+
+### L4-10 PR #80 provenance and suite-attribution correction (2026-10-29)
+
+The latest peer review at head `67a1008` identified three blocking provenance
+findings. The authoritative
+tested product and Playwright source is `7441eb5`; it contains the
+requester-visible public-comment projection exercised by T-E2E-02. The manifest
+and metrics report now use this same product SHA, and the verifier rejects any
+manifest where `productCommit` differs from `validationCommit`. Evidence tooling
+is separately pinned to `87082df`.
+
+Test-first commits [`693bf05`](https://github.com/itspxsh/toktickit/commit/693bf05)
+and [`3b82f69`](https://github.com/itspxsh/toktickit/commit/3b82f69) added
+regressions for mismatched product SHAs and suite-level Test ID attribution;
+the focused red runs reproduced both gaps. Implementation is in
+[`87082df`](https://github.com/itspxsh/toktickit/commit/87082df960d3b56023609d503f09eb562acf87be).
+The writer now records no Lab 4 journey IDs under the Lab 3 regression run and
+only `RELEASE-01`, `T-CONTRACT-01`, and `T-EVID-01` under contract/evidence
+tests. The verifier independently enforces those scopes.
+
+Retained validation provenance was synchronized: migration deploy 4/4,
+PostgreSQL integration 20/20, server 175/175, client 134/134, contract/evidence
+24/24, Lab 2 E2E 3/3, Lab 3 E2E 9/9, Lab 4 E2E 9/9; the manifest verifier accepts
+all 30 screenshots and sidecars. This supersedes the intermediate 21/21 and
+22/22 contract-test counts recorded earlier in this review history. The
+migration/integration gate was run in
+Linux; native Windows is outside this validation matrix because the current
+migration fixture paths are not Windows-native. No claim of a Windows test run
+is made. AI-use provenance labels the initial SHA values as superseded. PR #80
+remains open for re-review; Issue #69 stays in PR Review until approval and
+merge.
