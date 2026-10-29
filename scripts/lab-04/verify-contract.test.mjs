@@ -133,6 +133,20 @@ test("T-CONTRACT-01 rejects product evidence pinned to a different source commit
 test("T-EVID-01 keeps regression and contract Test IDs scoped to their actual runs", async () => {
   const manifestPath = path.join(repositoryRoot, "artifacts/lab-04/validation/evidence-manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const correctlyScoped = structuredClone(manifest);
+  correctlyScoped.runs.lab3E2E.testIds = [];
+  correctlyScoped.runs.contractTests.testIds = ["RELEASE-01", "T-CONTRACT-01", "T-EVID-01"];
+
+  const overCreditedLab3 = structuredClone(correctlyScoped);
+  overCreditedLab3.runs.lab3E2E.testIds = ["T-E2E-01"];
+  const lab3Errors = await validateEvidenceManifest(overCreditedLab3);
+  assert.ok(lab3Errors.some((error) => /lab3E2E\.testIds.*Lab 4/i.test(error)), lab3Errors.join("\n"));
+
+  const overCreditedContract = structuredClone(correctlyScoped);
+  overCreditedContract.runs.contractTests.testIds = ["T-CONTRACT-01", "T-E2E-02"];
+  const contractErrors = await validateEvidenceManifest(overCreditedContract);
+  assert.ok(contractErrors.some((error) => /contractTests\.testIds.*contract/i.test(error)), contractErrors.join("\n"));
+
   assert.deepEqual(manifest.runs.lab3E2E.testIds, []);
   assert.deepEqual(manifest.runs.contractTests.testIds, ["RELEASE-01", "T-CONTRACT-01", "T-EVID-01"]);
 });
