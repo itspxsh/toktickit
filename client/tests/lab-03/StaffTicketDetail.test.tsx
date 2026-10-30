@@ -25,6 +25,8 @@ describe("StaffTicketDetail", () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const path = String(input);
       if (path.includes("/api/auth/csrf")) return new Response(JSON.stringify({ csrfToken: "test-csrf" }), { status: 200, headers: { "Content-Type": "application/json" } });
+      if (path.includes("/api/staff/assignees")) return new Response(JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 }), { status: 200, headers: { "Content-Type": "application/json" } });
+      if (path.includes("/api/staff/tickets/") && path.includes("/actions")) return new Response(JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0, ticketVersion: 1 }), { status: 200, headers: { "Content-Type": "application/json" } });
       if (init?.method === "POST" || init?.method === "PATCH") return new Response(JSON.stringify({ ticket }), { status: 200, headers: { "Content-Type": "application/json" } });
       return new Response(JSON.stringify({ ticket }), { status: 200, headers: { "Content-Type": "application/json" } });
     }));
@@ -59,6 +61,8 @@ describe("StaffTicketDetail", () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const path = String(input);
       if (path.includes("/api/auth/csrf")) return new Response(JSON.stringify({ csrfToken: "test-csrf" }), { status: 200 });
+      if (path.includes("/api/staff/assignees")) return new Response(JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0 }), { status: 200 });
+      if (path.includes("/api/staff/tickets/") && path.includes("/actions")) return new Response(JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0, totalPages: 0, ticketVersion: 1 }), { status: 200 });
       if (init?.method === "PATCH") return new Response(JSON.stringify({ error: { code: "CONFLICT", message: "Ticket status changed; refresh and retry." } }), { status: 409 });
       return new Response(JSON.stringify({ ticket }), { status: 200 });
     }));

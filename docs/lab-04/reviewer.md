@@ -1,0 +1,273 @@
+# TokTickIT Lab 4 Peer-Review Record
+
+This is the Lab 4 review ledger. It records only verifiable events; a requested review is not an approval, and approval is not a merge. Reviewer requested for Lab 4: [@justfepwx12](https://github.com/justfepwx12).
+
+## Contract review (L4-01)
+
+| Item | Evidence | Status |
+| --- | --- | --- |
+| Issue | `[Lab 4] L4-01 - Approve Sprint 4 engineering contract (Spec-DD/Test-DD)` ([#59](https://github.com/itspxsh/toktickit/issues/59)) | Closed after approval and merge |
+| Baseline | `main` at `da689edc95c7e19a209dc20ec964c04b14590d78` when the contract was prepared | Verified locally |
+| Branch | `feature/lab4-01-engineering-contract` from `lab4-staging` at `da689edc95c7e19a209dc20ec964c04b14590d78` | Pushed; contract commit [3fd26cf](https://github.com/itspxsh/toktickit/commit/3fd26cfb817bdcb1b5d14b6e32fb3ff65052a614); review-record update [d9e0928](https://github.com/itspxsh/toktickit/commit/d9e0928c6c4748cb30f9925bc723abb046384007) |
+| Contract PR | [#60](https://github.com/itspxsh/toktickit/pull/60), base `lab4-staging` | Merged 2026-10-08 |
+| Reviewer / approval | [@justfepwx12](https://github.com/justfepwx12) approved PR #60 ([review](https://github.com/itspxsh/toktickit/pull/60#pullrequestreview-5454413837)) after verifying fix commit [3ff284b](https://github.com/itspxsh/toktickit/commit/3ff284befea6bf4dd391937fd83e9cd38c82012c) | Approved 2026-10-08 09:21:30 UTC |
+| Merge | [08cdc4d](https://github.com/itspxsh/toktickit/commit/08cdc4de01ec50eba294433f2b1afe6cd2a6b0f9), merged into `lab4-staging` | Merged 2026-10-08 09:21:52 UTC |
+
+### L4-01 review response log
+
+| Review evidence | Findings and contract response | Status |
+| --- | --- | --- |
+| [@justfepwx12 review #5440584685](https://github.com/itspxsh/toktickit/pull/60#pullrequestreview-5440584685) | Dashboard `TicketSummary` owner is omitted consistently with UI; `resolvedAt` is exposed; confirmation required for effective RESOLVED/CANCELLED and RESOLVED→CLOSED transitions; dashboard labels use Active; Actions/revisions pageSize is 1..100; before-only and unknown-query behavior clarified; assignment/priority history intentionally not audited; FR-08 traceability strengthened; `performedBy` decision was resolved in approval. | Addressed in [3ff284b](https://github.com/itspxsh/toktickit/commit/3ff284befea6bf4dd391937fd83e9cd38c82012c); approved and merged |
+
+The selected dashboard contract omits owner from summary rows to avoid expanding identity exposure. `resolvedAt` is exposed as UTC ISO or null (legacy/never resolved). The approved `performedBy` decision is: the authenticated actor who completes an Action is recorded as its performer; the assignee is a separate field and is not substituted automatically. This decision is binding for implementation Issues.
+
+The fix response is recorded in [PR comment #6044678008](https://github.com/itspxsh/toktickit/pull/60#issuecomment-6044678008); re-review was requested in [PR event #32717620441](https://github.com/itspxsh/toktickit/pull/60#event-32717620441). The later approval and merge are recorded above.
+
+### Contract review checklist
+
+- [x] Confirm all 11 specification sections against the Lab 4 handout.
+- [x] Approve the proposed Action lifecycle, ownership/assignee/performer, revision and idempotency decisions.
+- [x] Approve the Ticket transition matrix and resolution gate, including legacy Tickets without truthful completed work.
+- [x] Approve dashboard scopes, formulas, time windows, list limits and drill-down semantics.
+- [x] Verify API and UI contracts agree with the specification and contain no client-trusted authorization.
+- [x] Verify every AC maps to concrete planned tests and every Test ID maps to an intended file/behavior.
+- [x] Verify the additive migration and test strategy preserve all Lab 1–3 data, ticket numbers/sequences and attachment files.
+- [x] Approve and merge the contract PR before implementation Issues were created.
+
+## Lab 4 implementation/release review log
+
+| Issue / PR | Scope | Reviewer evidence | Approval | Merge commit |
+| --- | --- | --- | --- | --- |
+| L4-02 Issue [#61](https://github.com/itspxsh/toktickit/issues/61) / PR [#72](https://github.com/itspxsh/toktickit/pull/72) | Reconcile inherited contract and authenticated regression baseline | Base `lab4-staging` at `08cdc4d`; TDD red commits [78251f3](https://github.com/itspxsh/toktickit/commit/78251f3), [1480e30](https://github.com/itspxsh/toktickit/commit/1480e30), [5c1ff5f](https://github.com/itspxsh/toktickit/commit/5c1ff5f); implementation [24ff67e](https://github.com/itspxsh/toktickit/commit/24ff67e). Red failures reproduced: requester Ticket has null `itPriority`; Admin claim denied and Admin excluded from assignee query; protected reference fetches omit credentials. Validation: server 82/82, client 60/60, server/client builds, Prisma validation and `git diff --check` passed; no schema/migration changes. Reviewer [@justfepwx12](https://github.com/justfepwx12) [approved](https://github.com/itspxsh/toktickit/pull/72#pullrequestreview-5458518916) on commit `43f9839`; merged into `lab4-staging` at [5516376](https://github.com/itspxsh/toktickit/commit/55163763e1a777f63bceebd58ad5c03f93976f41) on 2026-10-08. Issue #61 closed after merge. |
+| L4-03 Issue [#62](https://github.com/itspxsh/toktickit/issues/62) / PR [#73](https://github.com/itspxsh/toktickit/pull/73) | Add Actions and workflow data foundation, additive migration, deterministic seed, and guarded reset support. Base `lab4-staging` at `5516376`. TDD red commit [fd32bd2](https://github.com/itspxsh/toktickit/commit/fd32bd2); test assertion/recovery refinements [d83391a](https://github.com/itspxsh/toktickit/commit/d83391a), [bb7136c](https://github.com/itspxsh/toktickit/commit/bb7136c), [0d3cd3b](https://github.com/itspxsh/toktickit/commit/0d3cd3b); implementation [0691abe](https://github.com/itspxsh/toktickit/commit/0691abe). Initial red was missing Lab 4 tables on fresh migration deployment. Final validation: serial server 82/82, PostgreSQL migration suites 11/11 (Lab 2–4, T-MIG-01..05), client 60/60, server/client builds, Prisma validation and `git diff --check` passed; final commands had no skipped tests. The redacted serial PostgreSQL 18 run on a fresh disposable guarded database is recorded in [PR #73 comment](https://github.com/itspxsh/toktickit/pull/73#issuecomment-6084720930). Reviewer [@justfepwx12](https://github.com/justfepwx12) approved PR #73 ([review](https://github.com/itspxsh/toktickit/pull/73#pullrequestreview-5473851508)); merged into `lab4-staging` at [1d9876b](https://github.com/itspxsh/toktickit/commit/1d9876bb8d5b0db4be01f38353c586b0a3c7d37c) on 2026-10-09. Issue #62 was closed after merge and moved to Kanban `Done`. |
+| L4-04 Issue [#63](https://github.com/itspxsh/toktickit/issues/63) / PR [#74](https://github.com/itspxsh/toktickit/pull/74) | Server-derived Actions Taken API, assignment, revisions/audit, and authorization safety. Base `lab4-staging` at `1d9876b`. Reviewer [@justfepwx12](https://github.com/justfepwx12) approved PR #74 ([review](https://github.com/itspxsh/toktickit/pull/74#pullrequestreview-5480363475)); merged into `lab4-staging` at [0fcf92a](https://github.com/itspxsh/toktickit/commit/0fcf92a329f66ea1c1213c33b5460b1c16b23e3f). Verified validation: server Lab 2–4 suites 141/141; isolated PostgreSQL integration 13/13 against `toktickit_lab4_integration_test`; client 60/60 and build; server build; Prisma validation; `git diff --check`. No migration/dependency changes were part of PR #74. Issue #63 is closed as completed and its Kanban card is `Done`. |
+| L4-05 Issue [#64](https://github.com/itspxsh/toktickit/issues/64) / PR [#75](https://github.com/itspxsh/toktickit/pull/75) | Shared Actions Taken UI for Staff/Admin and read-only Requester view. Branch `feature/lab4-05-actions-ui` starts at `lab4-staging` `0fcf92a`. Red tests preceded implementation. Original test-only commits include [c0e51f6](https://github.com/itspxsh/toktickit/commit/c0e51f6), [d8d674e](https://github.com/itspxsh/toktickit/commit/d8d674e), [a5f260d](https://github.com/itspxsh/toktickit/commit/a5f260d), [e09331d](https://github.com/itspxsh/toktickit/commit/e09331d), [58764fa](https://github.com/itspxsh/toktickit/commit/58764fa), [8df9780](https://github.com/itspxsh/toktickit/commit/8df9780), and [97507f7](https://github.com/itspxsh/toktickit/commit/97507f7); implementation commits are [fc4b79c](https://github.com/itspxsh/toktickit/commit/fc4b79c), [aca9482](https://github.com/itspxsh/toktickit/commit/aca9482), and [6881435](https://github.com/itspxsh/toktickit/commit/6881435). Review-fix tests were committed first in [b252882](https://github.com/itspxsh/toktickit/commit/b252882) and [3a3f2b6](https://github.com/itspxsh/toktickit/commit/3a3f2b6). Addressed all five review threads: accurate server-suite count, reverted the unrelated `TicketView.currentStatus` widening, clarified that completion clears the active follow-up while preserving the previous note in Action history and prompts Result to record verification, prevented simultaneous create/edit forms while retaining a selected assignee during empty searches, and distinguished HTTP 200 idempotent replay from HTTP 201 creation without a page jump. Validation: client 72/72 across 19 files (Actions Taken 12/12), client build, server 141/141, server build, Prisma validation, and `git diff --check` passed. No schema, migration, server, or dependency changes. Reviewer [@justfepwx12](https://github.com/justfepwx12) approved PR #75 ([review](https://github.com/itspxsh/toktickit/pull/75#pullrequestreview-5522175084)) on commit `a1f8a8f`; merged into `lab4-staging` at [a5eb403](https://github.com/itspxsh/toktickit/commit/a5eb403148178fcb1ae62e6fda9e1ae8c4299246) on 2026-10-14. Issue #64 was closed as completed after merge and its Kanban card is `Done`. |
+| L4-06 Issue [#65](https://github.com/itspxsh/toktickit/issues/65) / PR [#76](https://github.com/itspxsh/toktickit/pull/76) | Enforce final Ticket workflow, resolution gate and concurrency rules. Branch `feature/lab4-06-ticket-workflow` starts from `lab4-staging` at `a5eb403`. Scope: FR-06..08; BR-15..20, BR-22, BR-32, BR-36..37; AC-05, AC-07..09, AC-15, AC-18; T-UNIT-02, T-WF-01..04, T-RACE-02..03, T-UI-WF-01..02. Test-first commits: [2558cd7](https://github.com/itspxsh/toktickit/commit/2558cd7), [2bb8ea5](https://github.com/itspxsh/toktickit/commit/2bb8ea5), [1bd971b](https://github.com/itspxsh/toktickit/commit/1bd971b), [6405923](https://github.com/itspxsh/toktickit/commit/6405923), [fc9213a](https://github.com/itspxsh/toktickit/commit/fc9213a), [b50f01f](https://github.com/itspxsh/toktickit/commit/b50f01f), [839f4bc](https://github.com/itspxsh/toktickit/commit/839f4bc), [c3bce5e](https://github.com/itspxsh/toktickit/commit/c3bce5e), [f691b82](https://github.com/itspxsh/toktickit/commit/f691b82), and [0fe5ea9](https://github.com/itspxsh/toktickit/commit/0fe5ea9); red failures were reproduced before their corresponding fixes. Workflow rule implementation began in [e5d5197](https://github.com/itspxsh/toktickit/commit/e5d5197); final implementation and the canonical UI status-value fix are in [30a5450](https://github.com/itspxsh/toktickit/commit/30a5450). Validation: server 150/150 (22 files); serial guarded PostgreSQL integration 17/17 (5 files, including migration and real workflow/assignment races); client 77/77 (20 files); server/client builds, Prisma validation and `git diff --check` passed. No migration or dependency changes. PR #76 targets `lab4-staging`, is labeled `Lab4`, and review was requested from [@justfepwx12](https://github.com/justfepwx12); approval and merge are pending. Issue #65 remains open until peer review and merge. |
+
+### L4-06 merge status correction (2026-10-15)
+
+The pending/open status at the end of the L4-06 row and its change-request response below is superseded by the verified close-out: [@justfepwx12](https://github.com/justfepwx12) approved PR #76 on head [`b413ed2`](https://github.com/itspxsh/toktickit/commit/b413ed246fb77d8b6a60091fdb0e083a4df9bd67) ([review](https://github.com/itspxsh/toktickit/pull/76#pullrequestreview-5477100703)); PR #76 merged into `lab4-staging` at [`a8a48f4`](https://github.com/itspxsh/toktickit/commit/a8a48f49ed9dcdad5f6fb239e12eccdda6845a21) on 2026-10-15 11:01:21 UTC. Issue #65 is closed and its Issue-only Kanban card is `Done`.
+
+| L4-07 Issue [#66](https://github.com/itspxsh/toktickit/issues/66) / PR [#77](https://github.com/itspxsh/toktickit/pull/77) open; review requested from [justfepwx12](https://github.com/justfepwx12) | Scoped Requester and Staff/Admin dashboards, exact list filters/drill-downs, one repeatable-read snapshot, independent PostgreSQL reconciliation and bounded performance. Branch `feature/lab4-07-dashboards` starts at `lab4-staging` [`a8a48f4`](https://github.com/itspxsh/toktickit/commit/a8a48f49ed9dcdad5f6fb239e12eccdda6845a21). Scope: FR-09..12; BR-22..32, BR-35, BR-39; AC-10..12, AC-18, AC-20; T-DASH-R-01..02, T-DASH-S-01..04, T-QUERY-01, T-DB-DASH-01, T-PERF-01. Test-first and follow-up regression commits: [1a90768](https://github.com/itspxsh/toktickit/commit/1a90768), [839298e](https://github.com/itspxsh/toktickit/commit/839298e), [5afdc90](https://github.com/itspxsh/toktickit/commit/5afdc90), [3bd2027](https://github.com/itspxsh/toktickit/commit/3bd2027), [61cffa7](https://github.com/itspxsh/toktickit/commit/61cffa7), [24bb9ae](https://github.com/itspxsh/toktickit/commit/24bb9ae), [b7a8dd2](https://github.com/itspxsh/toktickit/commit/b7a8dd2), [8de2613](https://github.com/itspxsh/toktickit/commit/8de2613), [9fe6855](https://github.com/itspxsh/toktickit/commit/9fe6855), [390d835](https://github.com/itspxsh/toktickit/commit/390d835), and [fe2a974](https://github.com/itspxsh/toktickit/commit/fe2a974); latest TOCTOU regression tests: [551fa12](https://github.com/itspxsh/toktickit/commit/551fa12); implementation commits: [5226e31](https://github.com/itspxsh/toktickit/commit/5226e311c0506ff1bdb8b42d9b1cabc568662073), [81d99ab](https://github.com/itspxsh/toktickit/commit/81d99ab), and [0aec760](https://github.com/itspxsh/toktickit/commit/0aec760), with the locked Action-scope recheck in this commit. Review follow-up unified staff scope across dashboard/list/detail/workflow/Actions; the new Actions regression verifies create/edit/transition return the same safe 404 with no writes if the Requester becomes inactive between route authorization and the locked transaction read. The tests failed before the fix (201/200 instead of 404) and pass after it. Validation: server 172/172 (24 files); isolated PostgreSQL integration 19/19 (6 files; migrations, concurrency, independent dashboard reconciliation and performance); client 82/82 (20 files); server/client builds, Prisma validation and `git diff --check` passed. No schema, migration or dependency changes. Performance on this run: requester/staff query counts 8/11, p95 13.20/37.91 ms over 5,000 Tickets and 10,000 Actions. PR #77 is open with `Lab4` label and review requested from `justfepwx12`; Issue #66 remains open in PR Review pending approval and merge. |
+
+### L4-07 merge status correction (2026-10-16)
+
+The pending/open status at the end of the L4-07 row above is superseded by the verified close-out: [@justfepwx12](https://github.com/justfepwx12) approved [PR #77](https://github.com/itspxsh/toktickit/pull/77) on `242ba00` at 2026-10-16 04:57:51 UTC; it merged into `lab4-staging` at [`450c4c3`](https://github.com/itspxsh/toktickit/commit/450c4c386b34efab67be6673aaddc58f68fb66ab) at 2026-10-16 04:58:39 UTC. [Issue #66](https://github.com/itspxsh/toktickit/issues/66) is closed as completed and its Issue-only Kanban card is `Done`.
+
+#### PR #76 change-request response (review submitted on `23809fc`)
+
+The reviewer requested restoration of positive versioned regression coverage, consistent `VALIDATION_ERROR` handling for missing/invalid expected versions, Bangkok-local status-history timestamps, truthful assigned-owner roles, missing UI cases, preservation of operation-specific `P2002` behavior, and null-safe legacy Action results. These are addressed in the follow-up test-only commits [657a5d1](https://github.com/itspxsh/toktickit/commit/657a5d1), [ac1db49](https://github.com/itspxsh/toktickit/commit/ac1db49), [84ce47b](https://github.com/itspxsh/toktickit/commit/84ce47b), and [288a39e](https://github.com/itspxsh/toktickit/commit/288a39e), followed by implementation commit [cb63161](https://github.com/itspxsh/toktickit/commit/cb63161). The explicit status-confirmation expectation was separated into test-only commit [63ce3fa](https://github.com/itspxsh/toktickit/commit/63ce3fa) ahead of the implementation commit. A final read-only review found an edge case where unknown request keys could mask the expected-version field error; the additional red test [76a9dcf](https://github.com/itspxsh/toktickit/commit/76a9dcf) reproduced it, and [05ad236](https://github.com/itspxsh/toktickit/commit/05ad236) now validates the version before other workflow payload fields. Follow-up test-only commit [ed0aca3](https://github.com/itspxsh/toktickit/commit/ed0aca3) explicitly covers non-positive/string versions with unknown fields across assignment, priority, and status, including HTTP 400 assertions. No database schema, migration, or dependency changes were needed.
+
+Validation after the review fixes: server suite 151/151 (22 files); focused workflow API/unit tests 21/21; serial guarded PostgreSQL integration 17/17 (5 files); client suite 82/82 (20 files), including workflow UI 10/10; server and client production builds; Prisma validation; and `git diff --check` all passed with no skipped tests. The additional malformed-payload regression was first run red (1 failing test due to the missing field error), then passed (6/6 focused API tests); after that fix the complete server suite was re-run at 151/151. The PostgreSQL run used the isolated database `toktickit_lab4_workflow_test`; its redacted run summary is recorded in [PR #76 comment](https://github.com/itspxsh/toktickit/pull/76#issuecomment-6178516553). Reviewer approval and merge remain pending; Issue #65 stays open and in PR Review until merge.
+
+L4-02 validation on `feature/lab4-02-inherited-regression`: server suite 82/82; client suite 60/60; server TypeScript build passed; client build passed; `./node_modules/.bin/prisma validate --schema prisma/schema.prisma` passed from `server`; `git diff --check` passed. No tests were skipped. PostgreSQL migration integration and live E2E are out of scope because this change has no schema migration or new user journey; existing suites remain the regression gate.
+
+## L4-08 implementation status (Issue #67)
+
+Issue [#67](https://github.com/itspxsh/toktickit/issues/67), `[Lab 4] L4-08 - Integrate role dashboards, current-user work, and URL navigation`, is implemented on `feature/lab4-08-dashboard-integration` from the latest `lab4-staging` base [`450c4c3`](https://github.com/itspxsh/toktickit/commit/450c4c386b34efab67be6673aaddc58f68fb66ab). Scope is FR-09..13, BR-23..31 and BR-37..39, AC-10..14 and AC-19, with T-UI-DR-01, T-UI-DS-01 and T-UI-NAV-01..02. Test-first commits are [e3cb75e](https://github.com/itspxsh/toktickit/commit/e3cb75e), [66af11b](https://github.com/itspxsh/toktickit/commit/66af11b), [8801de6](https://github.com/itspxsh/toktickit/commit/8801de6), [dcc1f92](https://github.com/itspxsh/toktickit/commit/dcc1f92), [b75dd7e](https://github.com/itspxsh/toktickit/commit/b75dd7e), [1a88c67](https://github.com/itspxsh/toktickit/commit/1a88c67), URL-contract regression commits [f74b230](https://github.com/itspxsh/toktickit/commit/f74b230) and [4b101af](https://github.com/itspxsh/toktickit/commit/4b101af), invalid-filter regression [af7bb66](https://github.com/itspxsh/toktickit/commit/af7bb66), impossible-calendar-date regression [03fb204](https://github.com/itspxsh/toktickit/commit/03fb204), history/pagination regression [6fc2ddc](https://github.com/itspxsh/toktickit/commit/6fc2ddc), guarded-Back history regression [1712c44](https://github.com/itspxsh/toktickit/commit/1712c44), and dashboard drill-down date regression [ac1b850](https://github.com/itspxsh/toktickit/commit/ac1b850). Red runs reproduced missing dashboard APIs/rendering, drilldown query propagation, malformed success-payload acceptance, forbidden-state handling, contradictory status/date filters, unapproved dashboard URL keys, invalid requester priority/IDs/date windows, impossible dates normalized by JavaScript, offset timestamps and contradictory dashboard date windows, Back-history loops during URL canonicalization and guarded Back confirmation duplicating history, and unsafe actionPage values. Client filters now send only API-contract-safe values, including strict UTC calendar timestamps, lower/upper-bound ordering, the 60-second future limit, and valid before-only queries; dashboard links apply the same UTC calendar round-trip and date-window rules so unsafe links are not clickable. Canonicalization replaces the current history entry and dashboard pagination rejects values outside the server-safe bound. Guarded Back confirmation now returns through the restored browser history entry with a one-event guard bypass, avoiding a duplicate history entry. Dashboard links use route-specific query/anchor allowlists. Latest focused dashboard/routing/hardening suite: 22/22. Full client suite: 112/112 across 25 files. Client production build, server TypeScript build, Prisma validation, and `git diff --check` passed. The unchanged server suite passed 172/172 across 24 files when rerun with permission to bind the local Supertest listener; server schema/migrations and dependencies are unchanged. PostgreSQL migration integration is not applicable. PR [#78](https://github.com/itspxsh/toktickit/pull/78) is open into `lab4-staging`, labeled `Lab4`, with review requested from [justfepwx12](https://github.com/justfepwx12); Issue #67 remains open and its Issue-only Kanban card is in `PR Review` pending approval and merge.
+
+#### PR #78 change-request response (follow-up validation)
+
+The reviewer requested a windowed staff-queue page selector, preservation of the unsaved `ActionsTaken` draft when leaving staff Ticket detail, truthful active-filter chips, a safe bound for dashboard `actionPage`, strict dashboard payload validation, and manual responsive/keyboard evidence. All six findings are addressed in the follow-up. The staff queue now centers a five-page window around the current page; the Ticket detail route uses the guarded navigation callback and tracks unsaved Action, comment/note, priority, status, and assignee changes; filter chips derive date values from the same validation used for URL/API queries; dashboard action pages are bounded before fetch and corrected to the server's last page after the response; dashboard dates now require strict UTC calendar round-trips and metrics/buckets/pagination require safe non-negative integers with valid page bounds. A focused responsive-shell regression also records the compact navigation breakpoint through the 991px tablet width.
+
+The TDD regression commit is [`0fe7fb3`](https://github.com/itspxsh/toktickit/commit/0fe7fb3). It reproduced the review gaps before the implementation changes. Validation after all changes: client suite 124/124 across 26 files; client production build passed; server suite 172/172 across 24 files when run with permission for Supertest's local listeners; server TypeScript build passed; `npx prisma validate --schema prisma/schema.prisma` passed; and `git diff --check` passed. No server source, database schema, migration, dependency, or Lab 2/3 data changes were made. The isolated `toktickit_lab4_test` database was migrated and seeded for the manual UI checks; the development database was not used or reset.
+
+Manual UI validation used the seeded local environment. At 320px, 768px, and 1440px, Requester and Staff dashboards had no horizontal overflow; the Admin dashboard's 768px header overflow discovered during review was corrected by extending compact navigation through tablet widths, then rechecked with no overflow. Keyboard-only checks confirmed visible focus on header controls and links, and that Enter opens the mobile navigation with role-appropriate destinations. These are manual interaction observations, not a claim of a Playwright run or committed screenshot evidence. The client suite/build and unchanged server suite/build also pass; PostgreSQL migration integration was not rerun for this client-only follow-up.
+
+The prior L4-08 open-review status above is superseded by the verified close-out below: PR #78 was approved by [@justfepwx12](https://github.com/justfepwx12) on head [`2c6946d`](https://github.com/itspxsh/toktickit/commit/2c6946d45cb746b049fc1d51263629d152182b6d) ([review](https://github.com/itspxsh/toktickit/pull/78#pullrequestreview-5552399664)) and merged into `lab4-staging` at [`6dcdad0`](https://github.com/itspxsh/toktickit/commit/6dcdad074f8f5f014c09b87919a05208c575bec2). Issue #67 is closed as completed and its Issue-only Kanban status is Done. The approved review reproduced client 124/124 across 26 files, server 172/172 across 24 files, client/server builds, `npx prisma validate --schema prisma/schema.prisma`, and `git diff --check`. Seeded manual responsive checks recorded no horizontal overflow for Requester and Staff at 320/768/1440px, and Admin at 768px after the compact-nav fix; keyboard focus visibility and Enter-to-open mobile navigation were verified. PostgreSQL integration was not rerun for the client/docs/tests-only follow-up. These results are reviewer-verified evidence, not a new local run in this L4-09 task.
+
+| L4-09 Issue / PR | Scope and TDD | Validation and review status |
+| --- | --- | --- |
+| Issue [#68](https://github.com/itspxsh/toktickit/issues/68) / [PR #79](https://github.com/itspxsh/toktickit/pull/79) | Branch `feature/lab4-09-whole-product-regression` starts from `lab4-staging` [`6dcdad0`](https://github.com/itspxsh/toktickit/commit/6dcdad074f8f5f014c09b87919a05208c575bec2). Scope: FR-16..17, BR-03..05/14/22/35..39, AC-13..14/17..20; T-REG-02, T-RACE-04, T-UI-REG-01, T-STYLE-01 and T-A11Y-01, plus inherited Lab 2/Lab 3 authenticated E2E. Red commits: [945f9ae](https://github.com/itspxsh/toktickit/commit/945f9ae565852d9f0b592ff44fa6e94234d63a0e), [d761d91](https://github.com/itspxsh/toktickit/commit/d761d91878ba88bdc6245194a90e427c68e9a7d0), [9ec091f](https://github.com/itspxsh/toktickit/commit/9ec091f4cd44dbc800e1b707c420439fa8d9a7b4), [96288f4](https://github.com/itspxsh/toktickit/commit/96288f4b7008a924e6fd000269c1ce332e98669d), and [ef88dcb](https://github.com/itspxsh/toktickit/commit/ef88dcbc44e2c5db1d8c3f471ce10a607a67dab4). Implementation [cd333cd](https://github.com/itspxsh/toktickit/commit/cd333cd73beb2c53b091cbf76b5c934f68c7968f); follow-up [2217d6e](https://github.com/itspxsh/toktickit/commit/2217d6e7b6f756b57fb78c27d1fd40d63f49fe27) makes the E2E database preflight require PostgreSQL `_test`, matching client/auth origin and explicit local HTTP cookie configuration, and removes an ineffective transaction-count barrier from T-RACE-04. Validation on the final source tree: server 173/173 across 24 files; client 128/128 across 29 files; PostgreSQL integration 20/20 across 6 files (including T-RACE-04 and migration suites); fresh E2E DB migration 4/4 and seed succeeded; Lab 3 E2E 9/9 and Lab 2 authenticated E2E 3/3 on 1440×900, 768×1024, and 320×800; client/server builds, Prisma validation and `git diff --check` passed. Playwright used one worker and zero retries; test DB was `toktickit_lab4_e2e_test`. The initial sandbox-only server test attempt could not bind Supertest sockets (`EPERM`); rerun with local-listener permission passed the full suite. Screenshot and test-run provenance is in [`artifacts/lab-04/regression/README.md`](../../artifacts/lab-04/regression/README.md), with 48 loaded-state `.test` fixture screenshots. A read-only implementation review found no remaining actionable issues after commit 2217d6e. PR #79 is open into `lab4-staging`, labeled `Lab4`, and review has been requested from [@justfepwx12](https://github.com/justfepwx12); Issue #68 remains open in PR Review pending approval and merge. |
+
+### PR #79 review follow-up
+
+The TDD follow-up test commit is [`7c3bc8e`](https://github.com/itspxsh/toktickit/commit/7c3bc8e); before implementation it reproduced both reviewed gaps: upload bytes were absent when the interactive transaction began, and non-ENOENT removal cleanup errors were not logged. Implementation and regression updates are in [`e9afab1`](https://github.com/itspxsh/toktickit/commit/e9afab1). The follow-up moves disk writes before the locked transaction while retaining the in-transaction ownership recheck, logs only attachment ID/error code on non-ENOENT cleanup failures, restores the removed Lab 2 E2E assertions and cross-requester screenshot step, chooses an editable-status Staff row, centralizes absolute/relative artifact-root resolution, hardens the HTTPS cookie preflight, and shares the badge markup. The route test now asserts the lock query is invoked.
+
+Validation on `e9afab1`: server 175/175 across 24 files; client 132/132 across 30 files; server/client builds, Prisma validation, `git diff --check`, Lab 3 Playwright discovery 9 tests, and Lab 2 Playwright discovery 3 tests passed. The new E2E screenshot step and live browser journeys have **not** been rerun: `E2E_*` database/role settings are not configured in this environment and local PostgreSQL reported no response. Thus the existing 48 screenshots and prior 9/9 + 3/3 live results remain evidence for source commit `2217d6e` only; no refreshed post-fix screenshots, post-fix live run, or T-RACE-04 database rerun is claimed. The earlier AC-19 manual responsive/keyboard observations were reviewer-verified for L4-08 and were not repeated for this follow-up. Re-review may inspect the code now, but merge remains gated on rerunning the seeded Lab 2/Lab 3 browser matrix, refreshing the cross-requester screenshot, and running T-RACE-04 against isolated PostgreSQL.
+
+An additional security regression was added in red commit [`4fe471d`](https://github.com/itspxsh/toktickit/commit/4fe471d): it first reproduced that insecure cookies were accepted for arbitrary plain-HTTP hosts. Fix [`7fcb050`](https://github.com/itspxsh/toktickit/commit/7fcb050) now permits `SESSION_COOKIE_SECURE=false` only for loopback/local HTTP and rejects it for non-local HTTP as well as HTTPS. The separate-context cross-requester screenshot now inherits and asserts the active Playwright project's viewport, so its desktop/tablet/mobile artifact dimensions match the named project. Validation on `7fcb050`: client 133/133 across 30 files; client build passed; Lab 2 Playwright discovery 3/3 and Lab 3 discovery 9/9; Prisma validation and `git diff --check` passed. Server source was unchanged; its full 175/175 and build had passed on `e9afab1`, but a sandbox rerun in this turn was blocked because Supertest could not bind local listeners (`EPERM`). Live database/E2E runs and refreshed screenshots remain outstanding as noted above.
+
+The outstanding-validation statements above are superseded by the post-review rerun at [`ff08a01`](https://github.com/itspxsh/toktickit/commit/ff08a01). The Staff journey paging nit was fixed by moving editable-row selection after the Next/Previous navigation; the live matrix passed on all three viewports. In a temporary isolated PostgreSQL cluster, all four migrations deployed to `toktickit_l409_evidence_test`; PostgreSQL integration passed 20/20 across six files, including T-RACE-04 and migration tests; the full server suite passed 175/175 across 24 files; and client tests passed 133/133 across 30 files. Lab 2 authenticated E2E passed 3/3, and Lab 3 authenticated E2E passed 9/9 on 1440×900, 768×1024, and 320×800 with one worker and zero retries. Server/client builds, Prisma validation, and `git diff --check` passed. Fifty-one refreshed loaded-state screenshots are retained under `artifacts/lab-04/regression/` (36 Lab 3, 15 Lab 2, including the cross-requester not-found screenshot at each viewport); the screenshots and provenance are documented in [`artifacts/lab-04/regression/README.md`](../../artifacts/lab-04/regression/README.md). The development database was not used or reset, and fake credentials were supplied only through environment variables. A post-review evidence summary was posted as [PR comment #6254969385](https://github.com/itspxsh/toktickit/pull/79#issuecomment-6254969385), and a fresh review request was sent to [@justfepwx12](https://github.com/justfepwx12) on the PR head after the evidence was recorded. PR #79 remains open and Issue #68 remains in PR Review until approval and merge.
+
+## Reviews given to partner repository
+
+No Lab 4 peer reviews in the partner repository have been verified or recorded yet. Add entries only after checking the actual review and merge records; do not infer them from screenshots or issue titles.
+
+## Release gate
+
+Not started. A released `main` validation, final evidence, Issue-only Kanban completion, and final report remain future work. No test, migration, screenshot, performance, or approval result is claimed by this record.
+
+### L4-09 final close-out — PR #79
+
+The earlier L4-09 open-review statements above are superseded by the verified
+merge record: [PR #79](https://github.com/itspxsh/toktickit/pull/79) was approved
+by [@justfepwx12](https://github.com/justfepwx12) on head
+[`6669b25`](https://github.com/itspxsh/toktickit/commit/6669b2555c8fd778096ef2f94edb1c369681f77c)
+([review](https://github.com/itspxsh/toktickit/pull/79#pullrequestreview-5565236566))
+and merged into `lab4-staging` at
+[`5743a90`](https://github.com/itspxsh/toktickit/commit/5743a909ade8a8ebdde1f5459c0026f84ed44c87).
+The reviewed evidence was server 175/175, client 133/133, PostgreSQL integration
+20/20, all four migrations on a guarded test database, Lab 2 E2E 3/3, Lab 3 E2E
+9/9, builds/Prisma/diff-check green, and 51 refreshed loaded-state screenshots.
+The exact run provenance is recorded in
+[`artifacts/lab-04/regression/README.md`](../../artifacts/lab-04/regression/README.md)
+and the accepted follow-up is
+[PR comment #6254969385](https://github.com/itspxsh/toktickit/pull/79#issuecomment-6254969385).
+Issue [#68](https://github.com/itspxsh/toktickit/issues/68) is now closed as
+completed and its issue-only Kanban card is Done.
+
+## L4-10 live evidence and regression — Issue #69
+
+Issue [#69](https://github.com/itspxsh/toktickit/issues/69) is implemented on
+`feature/lab4-10-live-evidence`, branched from the merged
+`lab4-staging@5743a90`. The code and tests are pinned to source commit
+[`88d1f0c`](https://github.com/itspxsh/toktickit/commit/88d1f0caab307e43b1dc238402f4b66f9f91aa23)
+for product/server/client behavior. The Lab 4 Playwright assertion and retained-
+evidence test hardening were committed test-first through
+[`253d7a0`](https://github.com/itspxsh/toktickit/commit/253d7a0921b97d045a62b55436b4312b05f30d5d)
+and [`5e09124`](https://github.com/itspxsh/toktickit/commit/5e0912437e28cf15dfeafe8eda33656adc70c20b);
+the post-hardening Lab 4 browser run uses the latter Playwright tree. The
+migration parser fix is pinned to
+[`69d3622`](https://github.com/itspxsh/toktickit/commit/69d3622f530a2508931c9ea0c4a419f26bb36c3e), and the final evidence generator/verifier (including manifest tool provenance) to
+[`202d55e`](https://github.com/itspxsh/toktickit/commit/202d55e0039d666cdc73880f27e01020e58e4259). The full
+server, client and PostgreSQL suites ran earlier against the same unchanged
+product source; subsequent commits in that range changed only E2E assertions,
+evidence checks, and retained artifacts. The manifest records product,
+Playwright and final evidence-tool SHAs separately, and its run counts/matrix are
+parsed from the retained command output rather than synthesized.
+The tests-first commits are
+[`0135028`](https://github.com/itspxsh/toktickit/commit/0135028) and
+[`772b43c`](https://github.com/itspxsh/toktickit/commit/772b43c); implementation
+is in [`105a281`](https://github.com/itspxsh/toktickit/commit/105a281), followed
+by regression/evidence hardening through `88d1f0c`. The suite covers the
+Actions Taken, Ticket workflow, and role-specific dashboard journeys, plus
+responsive and keyboard behavior, isolated migration/integration safety, and
+bounded dashboard query performance. The focused Actions refresh regression
+reproduced and fixed stale child data after a successful parent workflow
+mutation.
+
+Validation was executed against isolated PostgreSQL databases whose names end
+in `_test`; no development database was used. Four migrations deployed, the
+PostgreSQL integration suite passed 20/20, the full server suite passed 175/175,
+and client tests passed 134/134. Lab 2 authenticated E2E passed 3/3, Lab 3 E2E
+passed 9/9, and Lab 4 E2E passed 9/9 (three journeys × desktop/tablet/mobile),
+all with one worker and zero retries. T-E2E-02 confirms the persisted
+`IN PROGRESS → RESOLVED` status event in the Requester detail. Server/client
+builds, repository-local Prisma validation, and the contract/evidence tests
+passed (the current count-derived evidence verifier suite is 11/11). The responsive
+checks used 1440×900, 768×1024, and 320×800 and asserted no horizontal overflow
+and visible keyboard focus; client accessibility tests additionally checked
+focus trapping, Escape dismissal, and focus restoration.
+
+The 30 loaded-state Lab 4 screenshots are under
+[`artifacts/lab-04/screenshots/`](../../artifacts/lab-04/screenshots/); the
+source-pinned SHA-256/dimension and AC/Test mappings are in
+[`evidence-manifest.json`](../../artifacts/lab-04/validation/evidence-manifest.json).
+Raw redacted run output is retained under
+[`artifacts/lab-04/validation/`](../../artifacts/lab-04/validation/), migration
+output under [`artifacts/lab-04/migration/`](../../artifacts/lab-04/migration/),
+and measured query counts/p95 plus the PostgreSQL EXPLAIN JSON under
+[`artifacts/lab-04/metrics/`](../../artifacts/lab-04/metrics/). The complete
+summary is [`validation.log`](../../artifacts/lab-04/validation/validation.log).
+The manifest verifier and its tests both pass. The AI-use record is updated to
+reflect completed work without implying peer approval.
+
+L4-10 is ready for peer review; no approval or merge is claimed yet. Issue #69
+must remain open in PR Review until `justfepwx12` approves and merges the PR.
+
+### L4-10 PR #80 requested-change follow-up (2026-10-20)
+
+The review findings L4-10-01..06 have been addressed on PR #80. The verifier now checks Lab 4 requirement/test inventory paths, IDs, execution commands, retained run evidence and explicit RELEASE-01 state; the manifest writer only attributes IDs declared in the Lab 4 inventory, so Lab 1–3 regression IDs are not over-credited. The dead parser branch and hard-coded screenshot state/redaction claims were removed in favor of per-capture sidecars. T-E2E-02 now exercises a persisted public comment visible from the Requester detail; the exhaustive workflow matrix remains assigned to T-WF-01. Staff dashboard links select an unambiguous target, and the Actions UI regression proves a successful parent workflow mutation refreshes the child version used by the next write.
+
+Test-first evidence-ID scope regression: [1f50e90](https://github.com/itspxsh/toktickit/commit/1f50e90); implementation: [c26197b](https://github.com/itspxsh/toktickit/commit/c26197b). The original review fixes remain in [7441eb5](https://github.com/itspxsh/toktickit/commit/7441eb5), preceded by red-test commits [905c80b](https://github.com/itspxsh/toktickit/commit/905c80b) and [bc2b3ba](https://github.com/itspxsh/toktickit/commit/bc2b3ba); evidence-guard tests are in [6de0069](https://github.com/itspxsh/toktickit/commit/6de0069). Validation on the reviewed product tree: server 175/175, client 134/134, PostgreSQL integration 20/20, Lab 2 E2E 3/3, Lab 3 E2E 9/9, Lab 4 E2E 9/9, Prisma validation and both builds passed. The evidence verifier suite now passes 21/21 with zero skipped; its manifest records 30 loaded-state screenshots and exact Lab 4-only Test IDs. Full output, migration and performance evidence are in `artifacts/lab-04/validation/`, `artifacts/lab-04/migration/` and `artifacts/lab-04/metrics/`.
+
+
+### L4-10 PR #80 CRLF portability follow-up (2026-10-24)
+
+Addressed review finding L4-10-07: screenshot sidecar hashes are now computed
+from canonical UTF-8 text with CRLF normalized to LF in both the evidence writer
+and verifier. PNG files remain binary-hashed without normalization. This makes
+the recorded sidecar hash stable across LF and Windows CRLF checkouts; no
+`.gitattributes` rule is required because normalization is explicit at both
+hashing boundaries. A regression test covers LF text, CRLF text, and CRLF bytes
+as read by Node on Windows. The test simulates those line endings locally; it is
+not a claim that the suite was run on Windows.
+
+The test-first commit is
+[`01db670`](https://github.com/itspxsh/toktickit/commit/01db670), followed by
+implementation commits
+[`5a6d0b1`](https://github.com/itspxsh/toktickit/commit/5a6d0b1a213664cc283411469b148532b8766102)
+and [`55b7a4a`](https://github.com/itspxsh/toktickit/commit/55b7a4a05a8205477b3b01da170595983b4c82aa).
+The contract/evidence verifier suite passed 22/22 with zero failures or skips,
+and `verify-contract.mjs` accepted all 30 screenshot sidecars against the
+manifest. This intermediate manifest mistakenly pinned product source to
+`88d1f0c`; the provenance reconciliation below corrects it to `7441eb5`, which
+contains the tested public-comment projection. The evidence-tool changes do not
+alter product behavior or screenshot contents.
+
+### L4-10 PR #80 provenance and suite-attribution correction (2026-10-29)
+
+The latest peer review at head `67a1008` identified three blocking provenance
+findings. The authoritative
+tested product and Playwright source is `7441eb5`; it contains the
+requester-visible public-comment projection exercised by T-E2E-02. The manifest
+and metrics report now use this same product SHA, and the verifier rejects any
+manifest where `productCommit` differs from `validationCommit`. Evidence tooling
+is separately pinned to `87082df`.
+
+Test-first commits [`693bf05`](https://github.com/itspxsh/toktickit/commit/693bf05)
+and [`3b82f69`](https://github.com/itspxsh/toktickit/commit/3b82f69) added
+regressions for mismatched product SHAs and suite-level Test ID attribution;
+the focused red runs reproduced both gaps. Implementation is in
+[`87082df`](https://github.com/itspxsh/toktickit/commit/87082df960d3b56023609d503f09eb562acf87be).
+The writer now records no Lab 4 journey IDs under the Lab 3 regression run and
+only `RELEASE-01`, `T-CONTRACT-01`, and `T-EVID-01` under contract/evidence
+tests. The verifier independently enforces those scopes.
+
+Retained validation provenance was synchronized: migration deploy 4/4,
+PostgreSQL integration 20/20, server 175/175, client 134/134, contract/evidence
+24/24, Lab 2 E2E 3/3, Lab 3 E2E 9/9, Lab 4 E2E 9/9; the manifest verifier accepts
+all 30 screenshots and sidecars. This supersedes the intermediate 21/21 and
+22/22 contract-test counts recorded earlier in this review history. The
+migration/integration gate was run in
+Linux; native Windows is outside this validation matrix because the current
+migration fixture paths are not Windows-native. No claim of a Windows test run
+is made. AI-use provenance labels the initial SHA values as superseded. PR #80
+remains open for re-review; Issue #69 stays in PR Review until approval and
+merge.
+
+### L4-10 final close-out — PR #80 (2026-10-29)
+
+The preceding open-review status is superseded by the verified final review and
+merge. [@justfepwx12](https://github.com/justfepwx12) approved PR
+[#80](https://github.com/itspxsh/toktickit/pull/80) on head
+[`e90daa6`](https://github.com/itspxsh/toktickit/commit/e90daa6289fcafd00334e2bc59bca66f8660d138)
+([approval](https://github.com/itspxsh/toktickit/pull/80#pullrequestreview-5702426491))
+at 2026-10-29 17:49:31 UTC. It was merged into `lab4-staging` at
+[`9f91471`](https://github.com/itspxsh/toktickit/commit/9f914718b609dbc86c3f82af713a0d23f716ca8b)
+at 2026-10-29 18:19:13 UTC. Issue [#69](https://github.com/itspxsh/toktickit/issues/69)
+was closed after that merge.
+
+**Approval-verified reruns at `e90daa6`:** evidence verifier 30/30,
+contract/evidence tests 24/24, server tests 175/175, client tests 134/134,
+PostgreSQL 16 integration 20/20, server/client builds, and `git diff --check`
+passed.
+
+**Retained E2E evidence accepted by the approval, not rerun at `e90daa6`:**
+Lab 2 E2E 3/3, Lab 3 E2E 9/9, and Lab 4 E2E 9/9 across desktop/tablet/mobile
+with one worker and zero retries. The manifest pins the product and Playwright
+source to `7441eb5`; these counts come from the retained E2E logs, which were
+not regenerated during the approval rerun.
+
+**Prisma validation:** the retained validation record reports a pass with the
+repository-local Prisma CLI 5.22.0; it was not rerun as part of the approval.
+
+### L4-11 release preparation — Issue #70
+
+Issue [#70](https://github.com/itspxsh/toktickit/issues/70) is now unblocked:
+implementation/evidence Issues #61–#69 are closed.
+The release gate still requires checking that every L4 card is `Done`, staging
+and main ancestry/diff are current, and the full release evidence remains green
+on the exact staging tip before opening the promotion PR. No release approval,
+merge to `main`, or final-main validation is claimed here.

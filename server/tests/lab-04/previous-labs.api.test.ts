@@ -1,0 +1,157 @@
+import express, { type RequestHandler } from "express";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import request from "supertest";
+import { describe, expect, it, vi } from "vitest";
+import { registerAttachmentRoutes } from "../../src/routes/attachments.js";
+import { registerTicketRoutes } from "../../src/routes/tickets.js";
+import { registerStaffTicketDetailRoutes } from "../../src/routes/staff-ticket-detail.js";
+
+const requester = { id: 1, name: "Regression Requester", isActive: true };
+const category = { id: 2, name: "Hardware", isActive: true };
+const relatedSystem = { id: 7, name: "Corporate Laptop", isActive: true };
+const ticketKey = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+const adminAuth: RequestHandler = (req, _res, next) => {
+  (req as any).auth = {
+    user: { id: 42, name: "Active Administrator", email: "admin@example.test", role: "ADMIN", isActive: true, mustChangePassword: false },
+    session: { id: 5, userId: 42, tokenHash: "redacted-hash", expiresAt: new Date(Date.now() + 60_000), invalidatedAt: null },
+    tokenHash: "redacted-hash",
+  };
+  next();
+};
+
+describe("T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions", () => {
+  it("copies requester priority into the new Ticket IT priority and persists both", async () => {
+    const create = vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({
+      id: 10,
+      ticketNumber: data.ticketNumber,
+      ticketDate: new Date("2026-10-08T00:00:00.000Z"),
+      requester,
+      category,
+      relatedSystem,
+      summary: data.summary,
+      requestedPriority: data.requestedPriority,
+      description: data.description,
+      itPriority: data.itPriority,
+      currentStatus: data.currentStatus,
+      createdAt: new Date("2026-10-08T00:00:00.000Z"),
+      updatedAt: new Date("2026-10-08T00:00:00.000Z"),
+    }));
+    const app = express();
+    app.use(express.json());
+    registerTicketRoutes(app, () => ({
+      requester: { findUnique: vi.fn(async () => requester) },
+      category: { findUnique: vi.fn(async () => category) },
+      relatedSystem: { findUnique: vi.fn(async () => relatedSystem) },
+      ticket: { findUnique: vi.fn(async () => null), findFirst: vi.fn(), findMany: vi.fn(), count: vi.fn(), create },
+      $queryRaw: vi.fn(async () => [{ sequence: 101n }]),
+    }) as never);
+
+    const response = await request(app)
+      .post("/api/tickets")
+      .set("X-Development-Requester-Id", "1")
+      .set("Idempotency-Key", ticketKey)
+      .send({
+        categoryId: 2,
+        relatedSystemId: 7,
+        summary: "New laptop request",
+        requestedPriority: "URGENT",
+        description: "The laptop is needed for an urgent customer issue.",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.data).toMatchObject({ requestedPriority: "URGENT", itPriority: "URGENT" });
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ requestedPriority: "URGENT", itPriority: "URGENT" }),
+    }));
+  });
+
+  it("T-REG-02 / AC-17: keeps a successful soft removal successful when file cleanup fails", async () => {
+    const storage = await mkdtemp(path.join(os.tmpdir(), "toktickit-regression-remove-"));
+    const storageKey = "blocked-cleanup.png";
+    const originalStorageDirectory = process.env.ATTACHMENT_STORAGE_DIR;
+    process.env.ATTACHMENT_STORAGE_DIR = storage;
+    await mkdir(path.join(storage, storageKey));
+    const update = vi.fn(async () => ({
+      id: 101,
+      originalName: storageKey,
+      mimeType: "image/png",
+      sizeBytes: 8,
+      status: "REMOVED",
+      removedAt: new Date("2026-10-18T00:00:00.000Z"),
+      removalReason: "No longer required",
+      createdAt: new Date("2026-10-17T00:00:00.000Z"),
+    }));
+    const app = express();
+    app.use(express.json());
+    registerAttachmentRoutes(app, () => ({
+      ticket: { findFirst: vi.fn(async () => ({ id: 42 })) },
+      attachment: {
+        findFirst: vi.fn(async () => ({ id: 101, status: "ACTIVE", storageKey })),
+        update,
+      },
+    }) as never);
+
+    try {
+      const response = await request(app)
+        .delete(`/api/tickets/TKT-2026-000042/attachments/101`)
+        .set("X-Development-Requester-Id", "1")
+        .send({ reason: "No longer required" });
+      expect(response.status).toBe(200);
+      expect(response.body.data.status).toBe("REMOVED");
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { id: 101 },
+        data: expect.objectContaining({ status: "REMOVED", removalReason: "No longer required" }),
+      }));
+    } finally {
+      if (originalStorageDirectory === undefined) delete process.env.ATTACHMENT_STORAGE_DIR;
+      else process.env.ATTACHMENT_STORAGE_DIR = originalStorageDirectory;
+      await rm(storage, { recursive: true, force: true });
+    }
+  });
+
+  it("allows an active Admin to own a Ticket while still scoping the write to the Ticket", async () => {
+    const ticket = { id: 77, ticketNumber: "TKT-2026-000077", workflowVersion: 1, currentStatus: "OPEN", assignedStaffId: null, resolvedAt: null, itPriority: "MEDIUM" };
+    const findFirst = vi.fn(async () => ticket);
+    const findAdmin = vi.fn(async () => ({ id: 42, name: "Active Administrator", role: "ADMIN", isActive: true }));
+    const updateMany = vi.fn(async () => ({ count: 1 }));
+    const tx = {
+      ticket: { findFirst, updateMany },
+      user: { findFirst: findAdmin },
+      actionTaken: { findMany: vi.fn(async () => []) },
+      $queryRaw: vi.fn(async () => [{ id: ticket.id }]),
+    };
+    const app = express();
+    app.use(express.json());
+    registerStaffTicketDetailRoutes(app, () => ({
+      ...tx,
+      $transaction: vi.fn(async (callback: (value: typeof tx) => unknown) => callback(tx)),
+      ticket: { ...tx.ticket, findUnique: vi.fn(), findMany: vi.fn(), count: vi.fn(), create: vi.fn(), update: vi.fn() },
+      user: { findFirst: findAdmin },
+      publicComment: { create: vi.fn() },
+      internalNote: { create: vi.fn() },
+    }) as never, adminAuth, ((_req, _res, next) => next()) as RequestHandler);
+
+    const claimed = await request(app)
+      .post("/api/staff/tickets/TKT-2026-000077/claim")
+      .send({ expectedTicketVersion: 1 });
+    expect(claimed.status).toBe(200);
+    expect(claimed.body).toMatchObject({ assignedStaff: { id: 42 }, ticketVersion: 2 });
+    expect(updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: ticket.id, workflowVersion: 1, assignedStaffId: null }, data: { assignedStaffId: 42, workflowVersion: { increment: 1 } } }));
+
+    const response = await request(app)
+      .patch("/api/staff/tickets/TKT-2026-000077/assignment")
+      .send({ expectedTicketVersion: 1, assignedStaffId: 42 });
+
+    expect(response.status).toBe(200);
+    expect(findAdmin).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 42, role: { in: ["IT_STAFF", "ADMIN"] }, isActive: true },
+    }));
+    expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: { ticketNumber: "TKT-2026-000077", requester: { is: { isActive: true, user: { is: { role: "REQUESTER", isActive: true } } } } },
+    }));
+    expect(updateMany).toHaveBeenCalledTimes(2);
+  });
+});

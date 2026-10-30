@@ -1,0 +1,49 @@
+Preparing isolated PostgreSQL database: toktickit_l410_review_test
+
+> toktickit-server@1.0.0 prisma:migrate
+> prisma migrate deploy
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "toktickit_l410_review_test", schema "public" at "127.0.0.1:55439"
+
+4 migrations found in prisma/migrations
+
+Applying migration `20260816095224_init`
+Applying migration `20260906010000_lab2_data_foundation`
+Applying migration `20260915150000_lab3_data_foundation`
+Applying migration `20261009120000_lab4_actions_workflow`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20260816095224_init/
+    └─ migration.sql
+  └─ 20260906010000_lab2_data_foundation/
+    └─ migration.sql
+  └─ 20260915150000_lab3_data_foundation/
+    └─ migration.sql
+  └─ 20261009120000_lab4_actions_workflow/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+
+> toktickit-server@1.0.0 db:test:reset
+> tsx scripts/reset-test-database.ts
+
+Test database reset and seeded successfully.
+npm error Missing script: "db:test:reset"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /Users/posh/.npm/_logs/2026-10-19T19_35_02_732Z-debug-0.log
+
+> toktickit-server@1.0.0 db:test:reset
+> tsx scripts/reset-test-database.ts
+
+Test database reset and seeded successfully.
+
+> toktickit-server@1.0.0 db:test:reset
+> tsx scripts/reset-test-database.ts
+
+Test database reset and seeded successfully.

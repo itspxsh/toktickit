@@ -125,10 +125,11 @@ export function Forbidden() { return <section className="card stack" role="alert
 export function AuthLoading() { return <LoadingState label="Loading session…" />; }
 
 function roleAllowsPath(role: AuthRole, path: string): boolean {
-  if (path === "/change-password" || path === "/" || path === "") return true;
-  if (role === "REQUESTER") return path === "/tickets" || path.startsWith("/tickets/") || path === "/create-ticket";
-  if (role === "IT_STAFF") return path === "/staff/tickets" || path.startsWith("/staff/tickets/");
-  return path === "/staff/tickets" || path.startsWith("/staff/tickets/") || path === "/admin/users";
+  const pathname = path.split(/[?#]/, 1)[0] || "/";
+  if (pathname === "/change-password" || pathname === "/" || pathname === "/service-status") return true;
+  if (role === "REQUESTER") return pathname === "/dashboard" || pathname === "/tickets" || pathname.startsWith("/tickets/") || pathname === "/create-ticket";
+  if (role === "IT_STAFF") return pathname === "/staff/dashboard" || pathname === "/staff/tickets" || pathname.startsWith("/staff/tickets/");
+  return pathname === "/staff/dashboard" || pathname === "/staff/tickets" || pathname.startsWith("/staff/tickets/") || pathname === "/admin/users";
 }
 
 export function RoleGuard({ role, path, children }: { role: AuthRole; path: string; children: ReactNode }) {

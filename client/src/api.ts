@@ -11,6 +11,7 @@ export interface RelatedSystem {
 }
 
 export type RequestedPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type TicketStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
 
 export interface CreateTicketPayload {
   categoryId: number;
@@ -31,7 +32,9 @@ export interface TicketView {
   requestedPriority: RequestedPriority;
   description: string;
   itPriority: string | null;
-  currentStatus: "NEW";
+  currentStatus: TicketStatus;
+  resolvedAt?: string | null;
+  workflowVersion?: number;
   appearsResolved?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -52,10 +55,15 @@ export interface TicketAttachmentView {
 
 export interface TicketDetailView extends TicketView {
   attachments: TicketAttachmentView[];
+  statusEvents: TicketStatusEventView[];
+  publicComments?: Array<{ id: number; body: string; createdAt: string; author: { id: number; name: string; role: AuthRole } | null }>;
 }
 
-export type StaffTicketStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
+export type StaffTicketStatus = TicketStatus;
 export type StaffTicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type TicketResolutionBlocker = "ZERO_COMPLETED" | "UNFINISHED_ACTIONS" | "FOLLOW_UP_REQUIRED";
+export interface TicketStatusEventView { id: number; fromStatus: StaffTicketStatus; toStatus: StaffTicketStatus; createdAt: string; actor: { id: number; name: string; role: AuthRole } | null }
+export interface TicketResolutionGate { canResolve: boolean; blockers: TicketResolutionBlocker[] }
 export interface StaffPerson { id: number; name: string; role?: string }
 export interface StaffComment { id: number; author: StaffPerson; body: string; createdAt: string }
 export interface StaffTicketDetailView {
@@ -66,12 +74,56 @@ export interface StaffTicketDetailView {
   requestedPriority: RequestedPriority;
   itPriority: StaffTicketPriority | null;
   currentStatus: StaffTicketStatus;
+  workflowVersion: number;
+  resolvedAt: string | null;
+  allowedTransitions: StaffTicketStatus[];
+  resolutionGate: TicketResolutionGate;
+  statusEvents: TicketStatusEventView[];
   appearsResolved: boolean;
   requester: { id: number; name: string; email: string };
-  assignedStaff: { id: number; name: string } | null;
+  assignedStaff: { id: number; name: string; role?: AuthRole } | null;
   attachments: TicketAttachmentView[];
   publicComments: StaffComment[];
   internalNotes: StaffComment[];
+}
+
+export type ActionState = "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+export interface ActionPerson { id: number; name: string; role: AuthRole; isActive: boolean }
+export interface ActionView {
+  id: number; description: string; result: string; attachmentNotes: string;
+  followUpRequired: boolean; followUpNote: string; state: ActionState;
+  createdBy: ActionPerson; assignee: ActionPerson; performedBy: ActionPerson | null;
+  createdAt: string; updatedAt: string; completedAt: string | null;
+  cancelledAt: string | null; cancellationReason: string | null; version: number;
+}
+export interface ActionPage {
+  items: ActionView[]; page: number; pageSize: number; total: number; totalPages: number; ticketVersion: number;
+}
+export interface AssigneePage {
+  items: ActionPerson[]; page: number; pageSize: number; total: number; totalPages: number;
+}
+export interface ActionContent {
+  description: string; result: string; followUpRequired: boolean;
+  followUpNote: string; attachmentNotes: string;
+}
+export interface CreateActionPayload extends ActionContent {
+  clientRequestId: string; expectedTicketVersion: number; assigneeId: number;
+}
+export interface EditActionPayload extends Partial<ActionContent> {
+  expectedTicketVersion: number; expectedVersion: number; assigneeId?: number;
+}
+export interface ActionTransitionPayload {
+  expectedTicketVersion: number; expectedVersion: number; state: "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  confirm?: true; result?: string; followUpRequired?: boolean; followUpNote?: string; reason?: string;
+}
+export interface ActionWriteResult { action: ActionView; ticketVersion: number }
+export interface CreateActionWriteResult extends ActionWriteResult { responseStatus: number }
+export interface ActionRevisionView {
+  version: number; kind: string; actor: ActionPerson; createdAt: string;
+  snapshot: Record<string, string | number | boolean | null>;
+}
+export interface ActionRevisionPage {
+  items: ActionRevisionView[]; page: number; pageSize: number; total: number; totalPages: number;
 }
 
 export type AdminUserRole = "REQUESTER" | "IT_STAFF" | "ADMIN";
@@ -113,7 +165,11 @@ export interface TicketListQuery {
   categoryId?: number;
   relatedSystemId?: number;
   requestedPriority?: RequestedPriority;
-  status?: "NEW";
+  status?: TicketStatus;
+  statusGroup?: "active" | "resolved";
+  updatedSince?: string;
+  resolvedSince?: string;
+  before?: string;
   sortBy?: TicketListSortBy;
   sortOrder?: TicketListSortOrder;
   page?: number;
@@ -126,7 +182,7 @@ export interface TicketListItem {
   ticketDate: string;
   summary: string;
   requestedPriority: RequestedPriority;
-  currentStatus: "NEW";
+  currentStatus: TicketStatus;
   createdAt: string;
   updatedAt: string;
   category: Category;
@@ -161,11 +217,140 @@ export interface StaffQueueItem {
 export interface StaffQueueQuery {
   q?: string;
   status?: StaffQueueStatus;
-  itPriority?: StaffQueuePriority;
+  statusGroup?: "active" | "resolved";
+  updatedSince?: string;
+  resolvedSince?: string;
+  before?: string;
+  itPriority?: StaffQueuePriority | "UNPRIORITIZED";
   assignment?: StaffQueueAssignment;
   sort?: StaffQueueSort;
   page?: number;
   pageSize?: number;
+}
+
+export type DashboardMetric = { value: number; drillDown: string };
+export interface DashboardTicketSummary {
+  ticketNumber: string;
+  summary: string;
+  currentStatus: TicketStatus;
+  itPriority: StaffTicketPriority | null;
+  updatedAt: string;
+  resolvedAt: string | null;
+  href: string;
+}
+export interface RequesterDashboardView {
+  asOf: string;
+  windowStart: string;
+  displayTimeZone: "Asia/Bangkok";
+  metrics: {
+    activeTickets: DashboardMetric;
+    waitingForRequester: DashboardMetric;
+    updatedLast7Days: DashboardMetric;
+    resolvedLast7Days: DashboardMetric;
+  };
+  attentionTickets: DashboardTicketSummary[];
+  recentTickets: DashboardTicketSummary[];
+}
+export interface StaffDashboardView {
+  asOf: string;
+  windowStart: string;
+  displayTimeZone: "Asia/Bangkok";
+  metrics: {
+    unassignedActive: DashboardMetric;
+    ownedActive: DashboardMetric;
+    urgentActive: DashboardMetric;
+    myUnfinishedActions: DashboardMetric;
+  };
+  statusBuckets: { status: TicketStatus; value: number; drillDown: string }[];
+  priorityBuckets: { priority: StaffTicketPriority | "UNPRIORITIZED"; value: number; drillDown: string }[];
+  recentTickets: DashboardTicketSummary[];
+  urgentTickets: DashboardTicketSummary[];
+  myActions: {
+    items: { id: number; description: string; state: ActionState; createdAt: string; assignee: ActionPerson; ticketNumber: string; ticketSummary: string; href: string }[];
+    page: number; pageSize: number; total: number; totalPages: number;
+  };
+}
+
+export interface StaffDashboardQuery { actionPage?: number; actionPageSize?: number }
+
+async function fetchDashboard<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load dashboard data.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!isDashboardPayload(path, body)) throw new Error("Unable to load dashboard data.");
+  return body as T;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isIsoDate(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?Z$/.exec(value);
+  if (!match) return false;
+  const [, year, month, day, hour, minute, second, fraction = ""] = match;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return false;
+  const expected = [Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)];
+  const actual = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
+  return actual.every((component, index) => component === expected[index]) && date.getUTCMilliseconds() === Number(fraction.padEnd(3, "0") || "0");
+}
+
+function isDashboardMetric(value: unknown): value is DashboardMetric {
+  return isRecord(value) && Number.isSafeInteger(value.value) && (value.value as number) >= 0 && typeof value.drillDown === "string";
+}
+
+function isDashboardTicket(value: unknown): value is DashboardTicketSummary {
+  return isRecord(value) && typeof value.ticketNumber === "string" && /^TKT-\d{4}-\d{6}$/.test(value.ticketNumber) &&
+    typeof value.summary === "string" && typeof value.currentStatus === "string" &&
+    (value.itPriority === null || ["LOW", "MEDIUM", "HIGH", "URGENT"].includes(value.itPriority as string)) &&
+    isIsoDate(value.updatedAt) && (value.resolvedAt === null || isIsoDate(value.resolvedAt)) && typeof value.href === "string";
+}
+
+function isDashboardBase(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && isIsoDate(value.asOf) && isIsoDate(value.windowStart) && value.displayTimeZone === "Asia/Bangkok";
+}
+
+function isRequesterDashboard(value: unknown): value is RequesterDashboardView {
+  if (!isDashboardBase(value) || !isRecord(value.metrics)) return false;
+  const metrics = value.metrics;
+  return ["activeTickets", "waitingForRequester", "updatedLast7Days", "resolvedLast7Days"].every((key) => isDashboardMetric(metrics[key])) &&
+    Array.isArray(value.attentionTickets) && value.attentionTickets.every(isDashboardTicket) &&
+    Array.isArray(value.recentTickets) && value.recentTickets.every(isDashboardTicket);
+}
+
+function isStaffDashboard(value: unknown): value is StaffDashboardView {
+  if (!isDashboardBase(value) || !isRecord(value.metrics) || !isRecord(value.myActions)) return false;
+  const metrics = value.metrics;
+  const metricsValid = ["unassignedActive", "ownedActive", "urgentActive", "myUnfinishedActions"].every((key) => isDashboardMetric(metrics[key]));
+  const bucketsValid = Array.isArray(value.statusBuckets) && value.statusBuckets.every((row) => isRecord(row) && typeof row.status === "string" && Number.isSafeInteger(row.value) && (row.value as number) >= 0 && typeof row.drillDown === "string") &&
+    Array.isArray(value.priorityBuckets) && value.priorityBuckets.every((row) => isRecord(row) && typeof row.priority === "string" && Number.isSafeInteger(row.value) && (row.value as number) >= 0 && typeof row.drillDown === "string");
+  const actions = value.myActions;
+  const actionsValid = Array.isArray(actions.items) && actions.items.every((row) => isRecord(row) && Number.isSafeInteger(row.id) && typeof row.description === "string" && typeof row.state === "string" && isIsoDate(row.createdAt) && isRecord(row.assignee) && typeof row.ticketNumber === "string" && typeof row.ticketSummary === "string" && typeof row.href === "string") &&
+    Number.isSafeInteger(actions.page) && (actions.page as number) >= 0 && (actions.total === 0 || (actions.page as number) >= 1) &&
+    Number.isSafeInteger(actions.pageSize) && (actions.pageSize as number) >= 1 &&
+    Number.isSafeInteger(actions.total) && (actions.total as number) >= 0 &&
+    Number.isSafeInteger(actions.totalPages) && (actions.totalPages as number) >= 0;
+  return metricsValid && bucketsValid && actionsValid && Array.isArray(value.recentTickets) && value.recentTickets.every(isDashboardTicket) && Array.isArray(value.urgentTickets) && value.urgentTickets.every(isDashboardTicket);
+}
+
+function isDashboardPayload(path: string, value: unknown): boolean {
+  return path.startsWith("/api/dashboards/requester") ? isRequesterDashboard(value) : isStaffDashboard(value);
+}
+
+export function fetchRequesterDashboard(signal?: AbortSignal): Promise<RequesterDashboardView> {
+  return fetchDashboard<RequesterDashboardView>("/api/dashboards/requester", signal);
+}
+
+export function fetchStaffDashboard(query: StaffDashboardQuery = {}, signal?: AbortSignal): Promise<StaffDashboardView> {
+  const params = new URLSearchParams();
+  params.set("actionPage", String(query.actionPage ?? 1));
+  params.set("actionPageSize", String(query.actionPageSize ?? 5));
+  return fetchDashboard<StaffDashboardView>(`/api/dashboards/staff?${params.toString()}`, signal);
 }
 
 export interface StaffQueueResponse {
@@ -282,6 +467,10 @@ export async function fetchStaffTickets(
   const params = new URLSearchParams();
   if (query.q?.trim()) params.set("q", query.q.trim());
   if (query.status) params.set("status", query.status);
+  if (query.statusGroup) params.set("statusGroup", query.statusGroup);
+  if (query.updatedSince) params.set("updatedSince", query.updatedSince);
+  if (query.resolvedSince) params.set("resolvedSince", query.resolvedSince);
+  if (query.before) params.set("before", query.before);
   if (query.itPriority) params.set("itPriority", query.itPriority);
   if (query.assignment) params.set("assignment", query.assignment);
   if (query.sort) params.set("sort", query.sort);
@@ -353,8 +542,8 @@ export async function fetchReferenceData(signal?: AbortSignal): Promise<{
   relatedSystems: RelatedSystem[];
 }> {
   const [categoriesResponse, systemsResponse] = await Promise.all([
-    fetch(`${API_URL}/api/categories`, { signal }),
-    fetch(`${API_URL}/api/related-systems`, { signal }),
+    fetch(`${API_URL}/api/categories`, { credentials: "include", signal }),
+    fetch(`${API_URL}/api/related-systems`, { credentials: "include", signal }),
   ]);
   if (!categoriesResponse.ok || !systemsResponse.ok) {
     throw new Error("Unable to load Categories and Related Systems");
@@ -397,6 +586,7 @@ export async function createTicket(
     headers: {
       "Content-Type": "application/json",
       ...requesterHeaders(requesterId),
+      ...(await csrfHeaders()),
       "Idempotency-Key": idempotencyKey,
     },
     credentials: "include",
@@ -466,7 +656,7 @@ function readApiError(body: unknown, fallback: string): { message: string; field
   };
 }
 
-async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+async function staffMutationWithStatus<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<{ data: T; status: number }> {
   const csrfResponse = await fetch(`${API_URL}/api/auth/csrf`, { credentials: "include" });
   const csrfBody: unknown = await csrfResponse.json().catch(() => null);
   if (!csrfResponse.ok || !csrfBody || typeof csrfBody !== "object" || typeof (csrfBody as { csrfToken?: unknown }).csrfToken !== "string") {
@@ -483,7 +673,11 @@ async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: un
     const error = readApiError(payload, "Unable to update Ticket.");
     throw new ApiError(error.message, response.status, error.fieldErrors);
   }
-  return payload as T;
+  return { data: payload as T, status: response.status };
+}
+
+async function staffMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+  return (await staffMutationWithStatus<T>(path, method, body)).data;
 }
 
 async function adminMutation<T>(path: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
@@ -547,20 +741,89 @@ export async function fetchStaffTicketDetail(ticketNumber: string, signal?: Abor
   return (body as { ticket: StaffTicketDetailView }).ticket;
 }
 
-export function claimStaffTicket(ticketNumber: string) {
-  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/claim`, "POST", {});
+async function fetchActionPage(path: string, signal?: AbortSignal): Promise<ActionPage> {
+  const response = await fetch(`${API_URL}${path}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load Actions Taken.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !Array.isArray((body as { items?: unknown }).items)) {
+    throw new Error("Unable to load Actions Taken.");
+  }
+  return body as ActionPage;
 }
 
-export function assignStaffTicket(ticketNumber: string, assignedStaffId: number) {
-  return staffMutation<{ assignedStaff: { id: number; name: string } }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/assignment`, "PATCH", { assignedStaffId });
+export function fetchStaffTicketActions(ticketNumber: string, page = 1, pageSize = 20, signal?: AbortSignal, focusActionId?: number): Promise<ActionPage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (focusActionId !== undefined) {
+    query.delete("page");
+    query.set("focusActionId", String(focusActionId));
+  }
+  return fetchActionPage(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions?${query}`, signal);
 }
 
-export function updateStaffPriority(ticketNumber: string, itPriority: StaffTicketPriority) {
-  return staffMutation<{ itPriority: StaffTicketPriority }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/priority`, "PATCH", { itPriority });
+export function fetchRequesterTicketActions(ticketNumber: string, page = 1, pageSize = 20, signal?: AbortSignal): Promise<ActionPage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return fetchActionPage(`/api/tickets/${encodeURIComponent(ticketNumber)}/actions?${query}`, signal);
 }
 
-export function updateStaffStatus(ticketNumber: string, currentStatus: StaffTicketStatus, confirm = false) {
-  return staffMutation<{ currentStatus: StaffTicketStatus }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/status`, "PATCH", { currentStatus, confirm });
+export async function fetchStaffActionRevisions(ticketNumber: string, actionId: number, page = 1, pageSize = 20, signal?: AbortSignal): Promise<ActionRevisionPage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  const response = await fetch(`${API_URL}/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions/${actionId}/revisions?${query}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load Action history.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !Array.isArray((body as { items?: unknown }).items)) {
+    throw new Error("Unable to load Action history.");
+  }
+  return body as ActionRevisionPage;
+}
+
+export async function fetchStaffAssignees(q = "", page = 1, pageSize = 20, signal?: AbortSignal): Promise<AssigneePage> {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (q.trim()) query.set("q", q.trim());
+  const response = await fetch(`${API_URL}/api/staff/assignees?${query}`, { credentials: "include", signal });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = readApiError(body, "Unable to load active support assignees.");
+    throw new ApiError(error.message, response.status, error.fieldErrors);
+  }
+  if (!body || typeof body !== "object" || !Array.isArray((body as { items?: unknown }).items)) {
+    throw new Error("Unable to load active support assignees.");
+  }
+  return body as AssigneePage;
+}
+
+export async function createStaffAction(ticketNumber: string, payload: CreateActionPayload): Promise<CreateActionWriteResult> {
+  const result = await staffMutationWithStatus<ActionWriteResult>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions`, "POST", payload);
+  return { ...result.data, responseStatus: result.status };
+}
+
+export function updateStaffAction(ticketNumber: string, actionId: number, payload: EditActionPayload): Promise<ActionWriteResult> {
+  return staffMutation(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions/${actionId}`, "PATCH", payload);
+}
+
+export function transitionStaffAction(ticketNumber: string, actionId: number, payload: ActionTransitionPayload): Promise<ActionWriteResult> {
+  return staffMutation(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/actions/${actionId}/transitions`, "POST", payload);
+}
+
+export function claimStaffTicket(ticketNumber: string, expectedTicketVersion: number) {
+  return staffMutation<{ assignedStaff: { id: number; name: string }; ticketVersion: number }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/claim`, "POST", { expectedTicketVersion });
+}
+
+export function assignStaffTicket(ticketNumber: string, expectedTicketVersion: number, assignedStaffId: number | null) {
+  return staffMutation<{ assignedStaff: { id: number; name: string } | null; ticketVersion: number }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/assignment`, "PATCH", { expectedTicketVersion, assignedStaffId });
+}
+
+export function updateStaffPriority(ticketNumber: string, expectedTicketVersion: number, itPriority: StaffTicketPriority) {
+  return staffMutation<{ itPriority: StaffTicketPriority | null; ticketVersion: number }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/priority`, "PATCH", { expectedTicketVersion, itPriority });
+}
+
+export function updateStaffStatus(ticketNumber: string, expectedTicketVersion: number, currentStatus: StaffTicketStatus, confirm = false) {
+  return staffMutation<{ currentStatus: StaffTicketStatus; ticketVersion: number; allowedTransitions: StaffTicketStatus[]; resolutionGate: TicketResolutionGate; noOp: boolean }>(`/api/staff/tickets/${encodeURIComponent(ticketNumber)}/status`, "PATCH", { expectedTicketVersion, currentStatus, confirm });
 }
 
 export function addStaffPublicComment(ticketNumber: string, body: string) {
@@ -592,7 +855,7 @@ export async function uploadAttachment(
   form.append("file", file, file.name);
   const response = await fetch(`${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments`, {
     method: "POST",
-    headers: requesterHeaders(requesterId),
+    headers: { ...requesterHeaders(requesterId), ...(await csrfHeaders()) },
     credentials: "include",
     body: form,
     signal,
@@ -631,7 +894,7 @@ export async function removeAttachment(
     `${API_URL}/api/tickets/${encodeURIComponent(ticketNumber)}/attachments/${attachmentId}`,
     {
       method: "DELETE",
-      headers: { "Content-Type": "application/json", ...requesterHeaders(requesterId) },
+      headers: { "Content-Type": "application/json", ...requesterHeaders(requesterId), ...(await csrfHeaders()) },
       credentials: "include",
       body: JSON.stringify({ reason }),
       signal,
@@ -652,6 +915,10 @@ export async function fetchMyTickets(
   if (query.relatedSystemId !== undefined) params.set("relatedSystemId", String(query.relatedSystemId));
   if (query.requestedPriority) params.set("requestedPriority", query.requestedPriority);
   if (query.status) params.set("status", query.status);
+  if (query.statusGroup) params.set("statusGroup", query.statusGroup);
+  if (query.updatedSince) params.set("updatedSince", query.updatedSince);
+  if (query.resolvedSince) params.set("resolvedSince", query.resolvedSince);
+  if (query.before) params.set("before", query.before);
   if (query.sortBy) params.set("sortBy", query.sortBy);
   if (query.sortOrder) params.set("sortOrder", query.sortOrder);
   if (query.page !== undefined) params.set("page", String(query.page));
@@ -709,7 +976,7 @@ export async function checkSystem(): Promise<SystemStatus> {
     throw new Error("Unable to connect to TokTickIT API");
   }
 
-  const categoriesRes = await fetch(`${API_URL}/api/categories`);
+  const categoriesRes = await fetch(`${API_URL}/api/categories`, { credentials: "include" });
   if (!categoriesRes.ok) {
     throw new Error("Unable to connect to TokTickIT API");
   }

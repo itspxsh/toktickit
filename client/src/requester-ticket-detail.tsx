@@ -13,6 +13,7 @@ import {
   StatusBadge,
 } from "./components/ui.tsx";
 import { AttachmentSection } from "./attachment-section.tsx";
+import { ActionsTaken } from "./actions-taken.tsx";
 import { useRequesterContext } from "./requester.tsx";
 
 export interface RequesterTicketDetailProps {
@@ -27,7 +28,16 @@ function displayPriority(value: string): string {
 }
 
 function displayStatus(value: string): string {
-  return value === "NEW" ? "New" : value;
+  return value.replaceAll("_", " ");
+}
+
+function formatStatusEventTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Bangkok", day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(date);
 }
 
 /** Requester-owned Ticket Detail with the L2-08 Attachment lifecycle panel. */
@@ -198,6 +208,20 @@ export function RequesterTicketDetail({ onNavigate, ticketNumber }: RequesterTic
         <button type="button" className="button button--secondary" aria-pressed={ticket.appearsResolved === true} disabled={resolutionBusy} onClick={() => void toggleResolution()}>
           {ticket.appearsResolved ? "Mark problem unresolved" : "Problem appears resolved"}
         </button>
+      </section>
+
+      <ActionsTaken ticketNumber={ticket.ticketNumber} ticketStatus={ticket.currentStatus} mode="requester" />
+
+      <section className="ticket-detail__group" aria-labelledby="requester-status-history-title">
+        <h2 id="requester-status-history-title">Ticket status history</h2>
+        {ticket.statusEvents?.length ? <ol>{ticket.statusEvents.map((event) => <li key={event.id}>{displayStatus(event.fromStatus)} → {displayStatus(event.toStatus)} · {event.actor?.name ?? "Support user"} · <time dateTime={event.createdAt} title={event.createdAt}>{formatStatusEventTime(event.createdAt)}</time></li>)}</ol> : <p>No status changes recorded.</p>}
+      </section>
+
+      <section className="ticket-detail__group" aria-labelledby="requester-public-comments-title">
+        <h2 id="requester-public-comments-title">Public comments</h2>
+        {ticket.publicComments?.length ? (
+          <ol>{ticket.publicComments.map((comment) => <li key={comment.id}><strong>{comment.author?.name ?? "Support user"}</strong>: {comment.body} · <time dateTime={comment.createdAt}>{formatStatusEventTime(comment.createdAt)}</time></li>)}</ol>
+        ) : <p>No public comments yet.</p>}
       </section>
 
       <AttachmentSection

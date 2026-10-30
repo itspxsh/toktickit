@@ -75,6 +75,7 @@ describe("GET /api/staff/tickets", () => {
         currentStatus: "IN_PROGRESS",
         itPriority: "HIGH",
         assignedStaffId: 21,
+        requester: { is: { isActive: true, user: { is: { isActive: true, role: "REQUESTER" } } } },
       },
       orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
       skip: 20,
@@ -94,7 +95,7 @@ describe("GET /api/staff/tickets", () => {
     expect(response.body.page).toBe(1);
     expect(response.body.pageSize).toBe(20);
     expect(calls.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: {},
+      where: { requester: { is: { isActive: true, user: { is: { isActive: true, role: "REQUESTER" } } } } },
       orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
       skip: 0,
       take: 20,

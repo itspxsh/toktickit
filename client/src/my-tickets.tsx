@@ -9,6 +9,7 @@ import {
   type TicketListResponse,
   type TicketListSortBy,
   type TicketListSortOrder,
+  type TicketStatus,
 } from "./api.ts";
 import { EmptyState, ErrorState, LoadingState, Pagination, PriorityBadge, StatusBadge } from "./components/ui.tsx";
 import { useRequesterContext } from "./requester.tsx";
@@ -18,7 +19,11 @@ const INITIAL_CONTROLS: ListControls = {
   categoryId: "",
   relatedSystemId: "",
   requestedPriority: "",
-  status: "NEW",
+  status: "",
+  statusGroup: "",
+  updatedSince: "",
+  resolvedSince: "",
+  before: "",
   sortBy: "updatedAt",
   sortOrder: "desc",
   page: 1,
@@ -30,7 +35,11 @@ interface ListControls {
   categoryId: string;
   relatedSystemId: string;
   requestedPriority: string;
-  status: "NEW";
+  status: "" | TicketStatus;
+  statusGroup: "" | "active" | "resolved";
+  updatedSince: string;
+  resolvedSince: string;
+  before: string;
   sortBy: TicketListSortBy;
   sortOrder: TicketListSortOrder;
   page: number;
@@ -38,7 +47,8 @@ interface ListControls {
 }
 
 export interface MyTicketsProps {
-  onNavigate?: (path: string) => void;
+  onNavigate?: (path: string, options?: { replace?: boolean }) => void;
+  location?: string;
 }
 
 function formatTicketDate(value: string): string {
@@ -46,15 +56,118 @@ function formatTicketDate(value: string): string {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
 }
 
+const TICKET_STATUSES: TicketStatus[] = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
+const REQUESTED_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
+
+function parsePositiveId(value: string | null): string {
+  if (!value || !/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))) return "";
+  return value;
+}
+
+function parseControls(location: string | undefined): ListControls {
+  if (!location) return INITIAL_CONTROLS;
+  const queryString = location.split("?")[1]?.split("#")[0] ?? "";
+  const params = new URLSearchParams(queryString);
+  const statusParam = params.get("status") ?? "";
+  const status = TICKET_STATUSES.includes(statusParam as TicketStatus) ? statusParam as TicketStatus : "";
+  let statusGroup = params.get("statusGroup") === "active" || params.get("statusGroup") === "resolved" ? params.get("statusGroup") as ListControls["statusGroup"] : "";
+  const resolvedStatus = ["RESOLVED", "CLOSED"].includes(status);
+  const activeStatus = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"].includes(status);
+  if (statusGroup === "resolved" && status && !resolvedStatus) statusGroup = "";
+  if (statusGroup === "active" && status && !activeStatus) statusGroup = "";
+  const dates = validateDateFilters(
+    statusGroup,
+    validIsoDate(params.get("updatedSince")) ? params.get("updatedSince")! : "",
+    validIsoDate(params.get("resolvedSince")) ? params.get("resolvedSince")! : "",
+    params.get("before") ?? "",
+  );
+  let { updatedSince, resolvedSince, before } = dates;
+  if (updatedSince && resolvedSince) {
+    if (statusGroup === "resolved") updatedSince = "";
+    else resolvedSince = "";
+  }
+  const size = Number(params.get("pageSize"));
+  const page = Number(params.get("page"));
+  return {
+    ...INITIAL_CONTROLS,
+    search: params.get("search") ?? "",
+    categoryId: parsePositiveId(params.get("categoryId")),
+    relatedSystemId: parsePositiveId(params.get("relatedSystemId")),
+    requestedPriority: REQUESTED_PRIORITIES.includes(params.get("requestedPriority") as typeof REQUESTED_PRIORITIES[number]) ? params.get("requestedPriority")! : "",
+    status,
+    statusGroup,
+    updatedSince,
+    resolvedSince,
+    before,
+    sortBy: ["updatedAt", "createdAt", "ticketNumber", "requestedPriority"].includes(params.get("sortBy") ?? "") ? params.get("sortBy") as TicketListSortBy : INITIAL_CONTROLS.sortBy,
+    sortOrder: params.get("sortOrder") === "asc" ? "asc" : "desc",
+    page: Number.isInteger(page) && page > 0 ? page : 1,
+    pageSize: size === 20 || size === 50 ? size : 10,
+  };
+}
+
+function validIsoDate(value: string | null): value is string {
+  if (!value) return false;
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?Z$/.exec(value);
+  if (!match) return false;
+  const [, year, month, day, hour, minute, second, fraction = ""] = match;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return false;
+  const expected = [Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)];
+  const actual = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
+  return actual.every((component, index) => component === expected[index]) && date.getUTCMilliseconds() === Number(fraction.padEnd(3, "0") || "0");
+}
+
+function validateDateFilters(statusGroup: ListControls["statusGroup"], updatedSince: string, resolvedSince: string, before: string) {
+  const validBefore = validIsoDate(before) && Date.parse(before) <= Date.now() + 60_000 ? before : "";
+  let validUpdatedSince = validIsoDate(updatedSince) ? updatedSince : "";
+  let validResolvedSince = statusGroup === "resolved" && validIsoDate(resolvedSince) ? resolvedSince : "";
+  if (validUpdatedSince && validResolvedSince) {
+    if (statusGroup === "resolved") validUpdatedSince = "";
+    else validResolvedSince = "";
+  }
+  const lower = validResolvedSince || validUpdatedSince;
+  if (lower && (!validBefore || Date.parse(lower) >= Date.parse(validBefore))) {
+    validUpdatedSince = "";
+    validResolvedSince = "";
+  }
+  return { updatedSince: validUpdatedSince, resolvedSince: validResolvedSince, before: validBefore };
+}
+
+function controlsUrl(controls: ListControls): string {
+  const params = new URLSearchParams();
+  if (controls.search.trim()) params.set("search", controls.search.trim());
+  if (controls.categoryId) params.set("categoryId", controls.categoryId);
+  if (controls.relatedSystemId) params.set("relatedSystemId", controls.relatedSystemId);
+  if (controls.requestedPriority) params.set("requestedPriority", controls.requestedPriority);
+  if (controls.status) params.set("status", controls.status);
+  if (controls.statusGroup) params.set("statusGroup", controls.statusGroup);
+  const dates = validateDateFilters(controls.statusGroup, controls.updatedSince, controls.resolvedSince, controls.before);
+  if (dates.updatedSince) params.set("updatedSince", dates.updatedSince);
+  if (dates.resolvedSince) params.set("resolvedSince", dates.resolvedSince);
+  if (dates.before) params.set("before", dates.before);
+  if (controls.sortBy !== INITIAL_CONTROLS.sortBy) params.set("sortBy", controls.sortBy);
+  if (controls.sortOrder !== INITIAL_CONTROLS.sortOrder) params.set("sortOrder", controls.sortOrder);
+  if (controls.page !== 1) params.set("page", String(controls.page));
+  if (controls.pageSize !== INITIAL_CONTROLS.pageSize) params.set("pageSize", String(controls.pageSize));
+  const query = params.toString();
+  return `/tickets${query ? `?${query}` : ""}`;
+}
+
 function toQuery(controls: ListControls): TicketListQuery {
+  const dates = validateDateFilters(controls.statusGroup, controls.updatedSince, controls.resolvedSince, controls.before);
   return {
     search: controls.search.trim() || undefined,
-    categoryId: controls.categoryId ? Number(controls.categoryId) : undefined,
-    relatedSystemId: controls.relatedSystemId ? Number(controls.relatedSystemId) : undefined,
-    requestedPriority: controls.requestedPriority
+    categoryId: parsePositiveId(controls.categoryId) ? Number(controls.categoryId) : undefined,
+    relatedSystemId: parsePositiveId(controls.relatedSystemId) ? Number(controls.relatedSystemId) : undefined,
+    requestedPriority: REQUESTED_PRIORITIES.includes(controls.requestedPriority as typeof REQUESTED_PRIORITIES[number])
       ? controls.requestedPriority as TicketListQuery["requestedPriority"]
       : undefined,
-    status: controls.status,
+    status: controls.status || undefined,
+    statusGroup: controls.statusGroup || undefined,
+    updatedSince: dates.updatedSince || undefined,
+    resolvedSince: dates.resolvedSince || undefined,
+    before: dates.before || undefined,
     sortBy: controls.sortBy,
     sortOrder: controls.sortOrder,
     page: controls.page,
@@ -66,15 +179,25 @@ function statusLabel(status: TicketListItem["currentStatus"]): string {
   return status === "NEW" ? "New" : status;
 }
 
-export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
+export function MyTickets({ onNavigate, location }: MyTicketsProps = {}) {
   const requesterContext = useRequesterContext();
-  const [controls, setControls] = useState<ListControls>(INITIAL_CONTROLS);
+  const [controls, setControls] = useState<ListControls>(() => parseControls(location));
   const [listState, setListState] = useState<"loading" | "success" | "error">("loading");
   const [result, setResult] = useState<TicketListResponse | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [categories, setCategories] = useState<Category[]>([]);
   const [relatedSystems, setRelatedSystems] = useState<RelatedSystem[]>([]);
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(() => parseControls(location).search);
+
+  useEffect(() => {
+    if (location === undefined) return;
+    const next = parseControls(location);
+    setControls(next);
+    setDebouncedSearch(next.search);
+    const canonical = controlsUrl(next);
+    const current = location.split("#")[0] || "/tickets";
+    if (current !== canonical) onNavigate?.(canonical, { replace: true });
+  }, [location, onNavigate]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(controls.search), 250);
@@ -82,8 +205,9 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
   }, [controls.search]);
 
   const query = useMemo(() => toQuery({ ...controls, search: debouncedSearch }), [controls, debouncedSearch]);
+  const activeDates = validateDateFilters(controls.statusGroup, controls.updatedSince, controls.resolvedSince, controls.before);
   const hasSearchOrFilter = Boolean(
-    controls.search.trim() || controls.categoryId || controls.relatedSystemId || controls.requestedPriority,
+    controls.search.trim() || controls.categoryId || controls.relatedSystemId || controls.requestedPriority || controls.status || controls.statusGroup || activeDates.updatedSince || activeDates.resolvedSince || activeDates.before,
   );
 
   useEffect(() => {
@@ -133,11 +257,23 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
   }, [query, reloadToken, requesterContext.contextVersion, requesterContext.mode, requesterContext.selectedRequesterId, requesterContext.status]);
 
   function updateControl<K extends keyof ListControls>(field: K, value: ListControls[K]) {
-    setControls((current) => ({ ...current, [field]: value, page: 1 }));
+    const next = { ...controls, [field]: value, page: 1 };
+    if (field === "status" && value) {
+      if (next.statusGroup === "resolved" && !["RESOLVED", "CLOSED"].includes(value as string)) { next.statusGroup = ""; next.resolvedSince = ""; }
+      if (next.statusGroup === "active" && !["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"].includes(value as string)) next.statusGroup = "";
+    }
+    if (field === "statusGroup" && value === "resolved" && next.status && !["RESOLVED", "CLOSED"].includes(next.status)) next.status = "";
+    if (field === "statusGroup" && value === "active" && next.status && !["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"].includes(next.status)) next.status = "";
+    if (field === "statusGroup" && value !== "resolved") next.resolvedSince = "";
+    if (field === "resolvedSince" && value) { next.statusGroup = "resolved"; next.updatedSince = ""; if (next.status && !["RESOLVED", "CLOSED"].includes(next.status)) next.status = ""; }
+    if (field === "updatedSince" && value) next.resolvedSince = "";
+    setControls(next);
+    onNavigate?.(controlsUrl(next));
   }
 
   function clearFilters() {
     setControls(INITIAL_CONTROLS);
+    onNavigate?.("/tickets");
   }
 
   function navigate(path: string, event: MouseEvent<HTMLAnchorElement>) {
@@ -154,7 +290,7 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
       <div>
         <p className="eyebrow">Requester workspace</p>
         <h1 id="my-tickets-title">My Tickets</h1>
-        <p>Tickets created by {requesterName} are shown using the current testing context.</p>
+        <p>Tickets owned by {requesterName} are shown from your current requester context.</p>
       </div>
 
       <form className="my-tickets__toolbar" onSubmit={(event) => event.preventDefault()}>
@@ -208,11 +344,21 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
           <select
             id="ticket-filter-status"
             value={controls.status}
-            onChange={(event) => updateControl("status", event.target.value as "NEW")}
+            onChange={(event) => updateControl("status", event.target.value as ListControls["status"])}
           >
-            <option value="NEW">New</option>
+            <option value="">All statuses</option>
+            {TICKET_STATUSES.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}
           </select>
         </div>
+        <div className="my-tickets__toolbar-field">
+          <label htmlFor="ticket-filter-status-group">Status group</label>
+          <select id="ticket-filter-status-group" value={controls.statusGroup} onChange={(event) => updateControl("statusGroup", event.target.value as ListControls["statusGroup"])}>
+            <option value="">Any group</option><option value="active">Active</option><option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <div className="my-tickets__toolbar-field"><label htmlFor="ticket-updated-since">Updated since (UTC ISO)</label><input id="ticket-updated-since" value={controls.updatedSince} onChange={(event) => updateControl("updatedSince", event.target.value)} placeholder="2026-10-09T00:00:00.000Z" /></div>
+        <div className="my-tickets__toolbar-field"><label htmlFor="ticket-resolved-since">Resolved since (UTC ISO)</label><input id="ticket-resolved-since" value={controls.resolvedSince} onChange={(event) => updateControl("resolvedSince", event.target.value)} placeholder="2026-10-09T00:00:00.000Z" /></div>
+        <div className="my-tickets__toolbar-field"><label htmlFor="ticket-before">Before (UTC ISO)</label><input id="ticket-before" value={controls.before} onChange={(event) => updateControl("before", event.target.value)} placeholder="2026-10-16T00:00:00.000Z" /></div>
         <div className="my-tickets__toolbar-field">
           <label htmlFor="ticket-sort-field">Sort field</label>
           <select
@@ -253,6 +399,8 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
           Clear filters
         </button>
       </form>
+
+      {hasSearchOrFilter && <div className="dashboard-filter-summary" aria-label="Active filters"><strong>Active filters</strong>{controls.statusGroup && <button type="button" onClick={() => updateControl("statusGroup", "")}>Status group: {controls.statusGroup} ×</button>}{controls.status && <button type="button" onClick={() => updateControl("status", "")}>Status: {controls.status} ×</button>}{activeDates.updatedSince && <button type="button" onClick={() => updateControl("updatedSince", "")}>Updated since ×</button>}{activeDates.resolvedSince && <button type="button" onClick={() => updateControl("resolvedSince", "")}>Resolved since ×</button>}{activeDates.before && <button type="button" onClick={() => updateControl("before", "")}>Before ×</button>}<button type="button" className="button button--tertiary" onClick={clearFilters}>Reset filters</button></div>}
 
       {listState === "loading" && <LoadingState label="Loading My Tickets…" />}
       {listState === "error" && (
@@ -330,7 +478,7 @@ export function MyTickets({ onNavigate }: MyTicketsProps = {}) {
             <Pagination
               currentPage={result.pagination.page}
               totalPages={result.pagination.totalPages}
-              onPageChange={(page) => setControls((current) => ({ ...current, page }))}
+              onPageChange={(page) => { const next = { ...controls, page }; setControls(next); onNavigate?.(controlsUrl(next)); }}
             />
           )}
         </>

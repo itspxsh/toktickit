@@ -56,14 +56,17 @@ export function AppShell({
     });
   }, []);
 
-  const isActive = (path: string) => activePath === path || activePath.startsWith(`${path}/`);
+  const pathname = activePath.split(/[?#]/, 1)[0] || "/";
+  const isActive = (path: string) => pathname === path || pathname.startsWith(`${path}/`);
 
   const roleName = role === "IT_STAFF" ? "IT Staff" : role === "ADMIN" ? "Administrator" : "Requester";
   const destinations = role === "ADMIN"
-    ? [{ path: "/staff/tickets", label: "Staff Tickets" }, { path: "/admin/users", label: "User Management" }]
+    ? [{ path: "/staff/dashboard", label: "Dashboard" }, { path: "/staff/tickets", label: "Staff Tickets" }, { path: "/admin/users", label: "User Management" }, { path: "/service-status", label: "Service status" }]
     : role === "IT_STAFF"
-      ? [{ path: "/staff/tickets", label: "Staff Tickets" }]
-      : [{ path: "/tickets", label: "My Tickets" }, { path: "/create-ticket", label: "Create Ticket" }];
+      ? [{ path: "/staff/dashboard", label: "Dashboard" }, { path: "/staff/tickets", label: "Staff Tickets" }, { path: "/service-status", label: "Service status" }]
+      : role === "REQUESTER"
+        ? [{ path: "/dashboard", label: "Dashboard" }, { path: "/tickets", label: "My Tickets" }, { path: "/create-ticket", label: "Create Ticket" }, { path: "/service-status", label: "Service status" }]
+        : [{ path: "/tickets", label: "My Tickets" }, { path: "/create-ticket", label: "Create Ticket" }];
 
   return (
     <div className="app-shell">
@@ -191,23 +194,25 @@ export function FormField({ children, error, hint, id, label, required = false }
 export interface StatusBadgeProps {
   label: string;
   tone?: "success" | "warning" | "error" | "neutral";
+  ariaLabelPrefix?: "Status" | "Priority";
+  glyph?: string;
 }
 
-export function StatusBadge({ label, tone = "neutral" }: StatusBadgeProps) {
+export function StatusBadge({ label, tone = "neutral", ariaLabelPrefix = "Status", glyph = "●" }: StatusBadgeProps) {
   return (
     <span
       className={`status-badge status-badge--${tone}`}
       data-tone={tone}
       role="status"
-      aria-label={`Status: ${label}`}
+      aria-label={`${ariaLabelPrefix}: ${label}`}
     >
-      <span aria-hidden="true">●</span> {label}
+      <span aria-hidden="true">{glyph}</span> {label}
     </span>
   );
 }
 
 export function PriorityBadge({ label, tone = "neutral" }: StatusBadgeProps) {
-  return <StatusBadge label={label} tone={tone} />;
+  return <StatusBadge label={label} tone={tone} ariaLabelPrefix="Priority" glyph="◆" />;
 }
 
 export interface AlertProps {

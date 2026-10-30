@@ -1,0 +1,19 @@
+{
+  "ac": [
+    "AC-01",
+    "AC-14",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-01",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "Actions Taken region visible",
+    "empty-state message visible",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Synthetic ticket summary and synthetic support accounts only; no credentials or private data displayed.",
+  "project": "desktop"
+}

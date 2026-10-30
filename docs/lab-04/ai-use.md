@@ -1,0 +1,37 @@
+# TokTickIT Lab 4 AI-Use and Provenance Record
+
+This record distinguishes instructor requirements from proposed engineering decisions. It is updated with factual sources, outputs, commits and human review; it is not evidence of peer approval or of tests that have not run.
+
+## Sources consulted for L4-01
+
+- Instructor handout: `Lab/Lab4/Lab 4.pdf`, checked as an 11-page Lab 4 document.
+- Released product baseline: repository `main`, commit `da689edc95c7e19a209dc20ec964c04b14590d78` at contract preparation.
+- Existing Lab 1–3 implementation and contracts, especially the Lab 3 specification, API/UI/test contracts, reviewer record and AI-use record.
+- Existing Lab 3 engineering-contract Issue #35, used only as a structural example for a new contract Issue.
+- User-provided Luna Master Prompt, which sets repository boundaries, review sequence, issue scope, evidence integrity, and the requirement to stop at a peer-review-ready L4-01 PR.
+
+## AI-assisted work and human decisions
+
+OpenAI Codex assisted with translating the handout and released repository into proposed Lab 4 requirements, design alternatives, acceptance criteria, API/UI outlines and a planned test matrix. The user authorized the L4-01 contract workflow and set `justfepwx12` as reviewer. Proposed design choices are explicitly identified in `specification.md`; they are not represented as text mandated by the instructor.
+
+The proposals include Actions Taken, a server-enforced Ticket resolution gate, role-specific dashboards, migration/concurrency safeguards, and evidence requirements. Their detailed field limits, state behavior, formulas and persistence design remain subject to L4-01 peer review. No product behavior has been implemented in this contract task, and no Lab 4 test or migration result is claimed here.
+
+## Work log
+
+| Date | Activity | Inputs | Output | Human / peer verification |
+| --- | --- | --- | --- | --- |
+| 2026-10-07 | L4-01 contract preparation | Lab 4 handout, released main, Lab 1–3 contracts, user-provided workflow prompt | Proposed six-document contract set; [public L4-01 Issue #59](https://github.com/itspxsh/toktickit/issues/59) | Peer review pending; no approval or merge yet |
+| 2026-10-19 | L4-10 initial evidence capture (historical; superseded by the 2026-10-29 provenance reconciliation) | Approved Issue #69, Lab 4 contracts, merged L4-09 PR #79, isolated local PostgreSQL `_test` databases | Initial capture recorded product `88d1f0c`, Playwright `5e09124`, and evidence tools `202d55e`; later review established these did not describe the exact product source validated. The retained runs, migration output, and 30 screenshots were subsequently reconciled to the actual tested product/Playwright SHA. | Do not use these intermediate SHAs as current provenance; see the reconciliation row and `evidence-manifest.json` |
+| 2026-10-29 | L4-10 review provenance and Test ID correction | PR #80 review findings, retained PostgreSQL/browser/build logs, 30 screenshot sidecars | Product and Playwright source `7441eb5`; evidence tooling `87082df`; migration/integration 4 migrations and 20/20, server 175/175, client 134/134, contract/evidence 24/24, Lab 2 E2E 3/3, Lab 3 E2E 9/9, Lab 4 E2E 9/9. Manifest Test IDs are scoped to the run that actually owns them; Lab 3 regression claims no Lab 4 journey IDs. | Manifest verifier and contract suite pass locally; Linux-only PostgreSQL validation disclosed; `justfepwx12` re-review requested, no approval/merge claimed |
+
+## Prompt intent and reflection
+
+| Prompt intent | AI contribution | Verification status |
+| --- | --- | --- |
+| Inspect Lab 4 and the released Lab 1–3 project; plan a peer-reviewed, contract-first Lab 4 sequence | Drafted requirements, proposed design choices, traceability and test planning for L4-01 | Must be checked by `justfepwx12`; no implementation Issues may be created before approval and merge |
+
+Reflection: the main risk at this stage is treating choices that the handout leaves open as instructor requirements. The contract marks those choices as proposals and makes them explicit review questions. Future implementation agents must follow the approved contract, report any ambiguity before coding, and never turn planned test IDs or expected counts into claimed execution evidence.
+
+## Scope and privacy
+
+No credentials, session tokens, database URLs, private user data or unredacted secrets belong in this record. Do not copy partner identities, screenshots, repository facts or claims into this project. Keep `Lab`, `jarb` and `Few` outside the Lab 4 implementation worktree and write scope.

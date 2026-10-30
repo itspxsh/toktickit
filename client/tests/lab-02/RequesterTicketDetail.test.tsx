@@ -44,6 +44,8 @@ const detail: api.TicketDetailView = {
       createdAt: "2026-09-06T00:30:00.000Z",
     },
   ],
+  statusEvents: [],
+  publicComments: [{ id: 8, author: { id: 21, name: "Support Agent", role: "IT_STAFF" }, body: "Please include the latest troubleshooting update.", createdAt: "2026-09-06T01:00:00.000Z" }],
 };
 
 function renderDetail(onNavigate?: (path: string) => void) {
@@ -81,11 +83,13 @@ describe("L2-07 Requester Ticket Detail", () => {
     expect(screen.getByLabelText("Summary")).toHaveValue(detail.summary);
     expect(screen.getByLabelText("Description")).toHaveValue(detail.description);
     expect(screen.getByRole("status", { name: /Status: New/i })).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: /Status: High/i })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: /Priority: High/i })).toBeInTheDocument();
     expect(screen.getByText("IT Priority: Not assigned")).toBeInTheDocument();
     expect(screen.getByText(/battery\.png — Active/)).toBeInTheDocument();
     expect(screen.getByText(/old-log\.pdf.*Removed/i)).toBeInTheDocument();
     expect(screen.getByText(/Reason: Uploaded by mistake/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Public comments" })).toBeInTheDocument();
+    expect(screen.getByText(/Please include the latest troubleshooting update/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Preview battery.png" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Download battery.png" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove battery.png" })).toBeInTheDocument();

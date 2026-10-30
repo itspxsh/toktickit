@@ -2,6 +2,7 @@ import type { Express, Request, Response, RequestHandler } from "express";
 import { getPrisma } from "../prisma.js";
 import { requireCsrf } from "../auth.js";
 import { allocateTicketNumber, type TicketSequenceClient } from "../ticket-number.js";
+import { parseUtcTimestamp } from "../lab-04/list-query.js";
 
 type Model = {
   findUnique(args: unknown): Promise<unknown>;
@@ -25,8 +26,13 @@ type PrismaProvider = () => TicketRouteClient;
 type RequestedPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 type TicketListSortBy = "updatedAt" | "createdAt" | "ticketNumber" | "requestedPriority";
 type SortOrder = "asc" | "desc";
+type TicketStatus = "NEW" | "OPEN" | "IN_PROGRESS" | "WAITING_FOR_REQUESTER" | "RESOLVED" | "CLOSED" | "REOPENED" | "CANCELLED";
+type StatusGroup = "active" | "resolved";
 
 const PRIORITIES = new Set<RequestedPriority>(["LOW", "MEDIUM", "HIGH", "URGENT"]);
+const STATUSES = new Set<TicketStatus>(["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"]);
+const ACTIVE_STATUSES: TicketStatus[] = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"];
+const RESOLVED_STATUSES: TicketStatus[] = ["RESOLVED", "CLOSED"];
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TICKET_NUMBER_PATTERN = /^TKT-\d{4}-\d{6}$/;
 const TICKET_INCLUDE = {
@@ -54,6 +60,14 @@ const TICKET_DETAIL_INCLUDE = {
       { createdAt: "asc" },
       { id: "asc" },
     ],
+  },
+  statusEvents: {
+    select: { id: true, fromStatus: true, toStatus: true, createdAt: true, actor: { select: { id: true, name: true, role: true } } },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  },
+  publicComments: {
+    select: { id: true, body: true, createdAt: true, author: { select: { id: true, name: true, role: true } } },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   },
 };
 
@@ -198,6 +212,8 @@ function serialiseTicket(row: Record<string, unknown>): Record<string, unknown> 
     description: row.description,
     itPriority: row.itPriority ?? null,
     currentStatus: row.currentStatus,
+    resolvedAt: row.resolvedAt ?? null,
+    workflowVersion: row.workflowVersion,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -205,8 +221,20 @@ function serialiseTicket(row: Record<string, unknown>): Record<string, unknown> 
 
 function serialiseTicketDetail(row: Record<string, unknown>): Record<string, unknown> {
   const attachments = Array.isArray(row.attachments) ? row.attachments : [];
+  const statusEvents = Array.isArray(row.statusEvents) ? row.statusEvents : [];
+  const publicComments = Array.isArray(row.publicComments) ? row.publicComments : [];
   return {
     ...serialiseTicket(row),
+    statusEvents: statusEvents.map((entry) => {
+      const event = entry as Record<string, unknown>;
+      const actor = event.actor as Record<string, unknown> | undefined;
+      return { id: event.id, fromStatus: event.fromStatus, toStatus: event.toStatus, createdAt: event.createdAt, actor: actor ? { id: actor.id, name: actor.name, role: actor.role } : null };
+    }),
+    publicComments: publicComments.map((entry) => {
+      const comment = entry as Record<string, unknown>;
+      const author = comment.author as Record<string, unknown> | undefined;
+      return { id: comment.id, body: comment.body, createdAt: comment.createdAt, author: author ? { id: author.id, name: author.name, role: author.role } : null };
+    }),
     attachments: attachments.map((attachment) => {
       const value = attachment as Record<string, unknown>;
       return {
@@ -245,11 +273,15 @@ interface ParsedListQuery {
   categoryId?: number;
   relatedSystemId?: number;
   requestedPriority?: RequestedPriority;
-  status: "NEW";
+  status?: TicketStatus;
+  statusGroup?: StatusGroup;
+  updatedSince?: Date;
+  resolvedSince?: Date;
+  before?: Date;
   sortBy: TicketListSortBy;
   sortOrder: SortOrder;
   page: number;
-  pageSize: 10 | 20 | 50;
+  pageSize: number;
 }
 
 interface ParsedListQueryResult {
@@ -308,12 +340,42 @@ function parseListQuery(rawQuery: Record<string, unknown>): ParsedListQueryResul
   }
 
   const statusValue = rawQuery.status;
-  let status: "NEW" = "NEW";
+  let status: TicketStatus | undefined;
   if (statusValue !== undefined) {
     const value = readQueryValue(statusValue);
-    if (value !== "NEW") fieldErrors.status = "Status must be NEW.";
-    else status = value;
+    if (value === undefined || !STATUSES.has(value as TicketStatus)) fieldErrors.status = "Status is invalid.";
+    else status = value as TicketStatus;
   }
+
+  let statusGroup: StatusGroup | undefined;
+  if (rawQuery.statusGroup !== undefined) {
+    const value = readQueryValue(rawQuery.statusGroup);
+    if (value !== "active" && value !== "resolved") fieldErrors.statusGroup = "Status group must be active or resolved.";
+    else statusGroup = value;
+  }
+
+  const parseUtc = (key: "updatedSince" | "resolvedSince" | "before"): Date | undefined => {
+    if (rawQuery[key] === undefined) return undefined;
+    const value = readQueryValue(rawQuery[key]);
+    if (value === undefined || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) {
+      fieldErrors[key] = "Date must be a UTC ISO-8601 timestamp.";
+      return undefined;
+    }
+    const parsed = parseUtcTimestamp(value);
+    if (!parsed) fieldErrors[key] = "Date must be a valid UTC ISO-8601 timestamp.";
+    return parsed;
+  };
+  const updatedSince = parseUtc("updatedSince");
+  const resolvedSince = parseUtc("resolvedSince");
+  const before = parseUtc("before");
+  if (updatedSince && resolvedSince) fieldErrors.updatedSince = "Use only one date lower bound.";
+  if ((updatedSince || resolvedSince) && !before) fieldErrors.before = "A date lower bound requires before.";
+  if (resolvedSince && statusGroup !== "resolved") fieldErrors.resolvedSince = "resolvedSince requires statusGroup=resolved.";
+  if (before && before.getTime() > Date.now() + 60_000) fieldErrors.before = "before cannot be more than 60 seconds in the future.";
+  const lowerBound = updatedSince ?? resolvedSince;
+  if (lowerBound && before && lowerBound.getTime() >= before.getTime()) fieldErrors.before = "before must be later than the date lower bound.";
+  if (status && statusGroup === "active" && !ACTIVE_STATUSES.includes(status)) fieldErrors.statusGroup = "Status conflicts with statusGroup.";
+  if (status && statusGroup === "resolved" && !RESOLVED_STATUSES.includes(status)) fieldErrors.statusGroup = "Status conflicts with statusGroup.";
 
   const sortByValue = rawQuery.sortBy;
   let sortBy: TicketListSortBy = "updatedAt";
@@ -343,11 +405,11 @@ function parseListQuery(rawQuery: Record<string, unknown>): ParsedListQueryResul
   }
 
   const pageSizeValue = rawQuery.pageSize;
-  let pageSize: 10 | 20 | 50 = 10;
+  let pageSize = 20;
   if (pageSizeValue !== undefined) {
     const parsed = parseQueryPositiveInteger(pageSizeValue);
-    if (parsed !== 10 && parsed !== 20 && parsed !== 50) {
-      fieldErrors.pageSize = "Page size must be 10, 20, or 50.";
+    if (parsed === undefined || parsed > 100) {
+      fieldErrors.pageSize = "Page size must be a positive integer no greater than 100.";
     } else {
       pageSize = parsed;
     }
@@ -360,15 +422,26 @@ function parseListQuery(rawQuery: Record<string, unknown>): ParsedListQueryResul
   if (Object.keys(fieldErrors).length > 0) return { fieldErrors };
   return {
     fieldErrors,
-    query: { search, categoryId, relatedSystemId, requestedPriority, status, sortBy, sortOrder, page, pageSize },
+    query: { search, categoryId, relatedSystemId, requestedPriority, status, statusGroup, updatedSince, resolvedSince, before, sortBy, sortOrder, page, pageSize },
   };
 }
 
 function buildTicketListWhere(query: ParsedListQuery, requesterId: number): Record<string, unknown> {
   const where: Record<string, unknown> = {
     requesterId,
-    currentStatus: query.status,
   };
+  if (query.status) where.currentStatus = query.status;
+  else if (query.statusGroup === "active") where.currentStatus = { in: ACTIVE_STATUSES };
+  else if (query.statusGroup === "resolved") where.currentStatus = { in: RESOLVED_STATUSES };
+  if (query.updatedSince || query.resolvedSince || query.before) {
+    if (query.updatedSince) where.updatedAt = { gte: query.updatedSince };
+    if (query.resolvedSince) where.resolvedAt = { gte: query.resolvedSince };
+    if (query.before) {
+      const upperField = query.statusGroup === "resolved" ? "resolvedAt" : "updatedAt";
+      const upperBound = where[upperField] as { gte?: Date; lt?: Date } | undefined;
+      where[upperField] = { ...upperBound, lt: query.before };
+    }
+  }
   if (query.categoryId !== undefined) where.categoryId = query.categoryId;
   if (query.relatedSystemId !== undefined) where.relatedSystemId = query.relatedSystemId;
   if (query.requestedPriority !== undefined) where.requestedPriority = query.requestedPriority;
@@ -459,13 +532,7 @@ export function registerTicketRoutes(
 
     const parsed = parseListQuery(req.query as Record<string, unknown>);
     if (!parsed.query) {
-      res.status(400).json({
-        error: {
-          code: "INVALID_QUERY",
-          message: "One or more query parameters are invalid.",
-          fieldErrors: parsed.fieldErrors,
-        },
-      });
+      res.status(400).json({ error: { code: "VALIDATION_ERROR", message: "One or more query parameters are invalid.", fieldErrors: parsed.fieldErrors } });
       return;
     }
 
@@ -599,6 +666,7 @@ export function registerTicketRoutes(
             relatedSystemId: parsed.input.relatedSystemId,
             summary: parsed.input.summary,
             requestedPriority: parsed.input.requestedPriority,
+            itPriority: parsed.input.requestedPriority,
             description: parsed.input.description,
             currentStatus: "NEW",
             clientRequestId: idempotencyKey,

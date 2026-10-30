@@ -22,6 +22,16 @@ const ownedTicket = {
   description: "The battery drains faster than usual during normal use.",
   itPriority: null,
   currentStatus: "NEW",
+  resolvedAt: null,
+  workflowVersion: 1,
+  statusEvents: [{
+    id: 3,
+    fromStatus: "NEW",
+    toStatus: "OPEN",
+    createdAt,
+    actor: { id: 41, name: "Support Agent", role: "IT_STAFF", email: "agent@example.test", passwordHash: "must-not-leak" },
+  }],
+  publicComments: [{ id: 8, body: "Please include the latest troubleshooting update.", createdAt, author: { id: 41, name: "Support Agent", role: "IT_STAFF", email: "agent@example.test", passwordHash: "must-not-leak" } }],
   createdAt,
   updatedAt: createdAt,
   attachments: [
@@ -93,6 +103,8 @@ describe("GET /api/tickets/:ticketNumber", () => {
         description: ownedTicket.description,
         itPriority: null,
         currentStatus: "NEW",
+        resolvedAt: null,
+        workflowVersion: 1,
         createdAt: createdAt.toISOString(),
         updatedAt: createdAt.toISOString(),
         attachments: [
@@ -117,9 +129,15 @@ describe("GET /api/tickets/:ticketNumber", () => {
             createdAt: "2026-09-06T00:30:00.000Z",
           },
         ],
+        statusEvents: [{ id: 3, fromStatus: "NEW", toStatus: "OPEN", createdAt: createdAt.toISOString(), actor: { id: 41, name: "Support Agent", role: "IT_STAFF" } }],
+        publicComments: [{ id: 8, body: "Please include the latest troubleshooting update.", createdAt: createdAt.toISOString(), author: { id: 41, name: "Support Agent", role: "IT_STAFF" } }],
       },
     });
     expect(response.body.data.attachments[0]).not.toHaveProperty("storageKey");
+    expect(response.body.data.statusEvents[0].actor).not.toHaveProperty("passwordHash");
+    expect(response.body.data.statusEvents[0].actor).not.toHaveProperty("email");
+    expect(response.body.data.publicComments[0].author).not.toHaveProperty("passwordHash");
+    expect(response.body.data.publicComments[0].author).not.toHaveProperty("email");
     expect(calls.ticketFindFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         ticketNumber,
@@ -127,6 +145,7 @@ describe("GET /api/tickets/:ticketNumber", () => {
         requester: { isActive: true },
       },
       include: expect.objectContaining({
+        publicComments: expect.objectContaining({ orderBy: [{ createdAt: "asc" }, { id: "asc" }] }),
         attachments: expect.objectContaining({
           orderBy: [
             { status: "asc" },

@@ -1,0 +1,1073 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
+  "validationCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
+  "productCommit": "7441eb5c63200a196fffda92d3a845f727f8dca7",
+  "evidenceToolCommit": "87082df960d3b56023609d503f09eb562acf87be",
+  "database": {
+    "name": "toktickit_l410_review_test",
+    "urlRecorded": false
+  },
+  "runs": {
+    "migrationDeploy": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "cd server && DATABASE_URL=<redacted; toktickit_l410_review_migration_test> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma",
+      "testIds": []
+    },
+    "integration": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "cd server && DATABASE_URL_TEST=<redacted; toktickit_l410_final_integration_test> LAB3_INITIAL_PASSWORD=<redacted; synthetic local-only value> npm run test:integration -- --reporter=verbose",
+      "testIds": [
+        "T-ACT-08",
+        "T-DB-DASH-01",
+        "T-MIG-01",
+        "T-MIG-02",
+        "T-MIG-03",
+        "T-MIG-04",
+        "T-MIG-05",
+        "T-PERF-01",
+        "T-RACE-01",
+        "T-RACE-02",
+        "T-RACE-03",
+        "T-RACE-04"
+      ]
+    },
+    "serverTests": {
+      "passed": 175,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "cd server && npm test -- --reporter=verbose",
+      "testIds": [
+        "T-ACT-01",
+        "T-ACT-02",
+        "T-ACT-03",
+        "T-ACT-04",
+        "T-ACT-05",
+        "T-ACT-06",
+        "T-ACT-07",
+        "T-ACT-09",
+        "T-DASH-R-01",
+        "T-DASH-R-02",
+        "T-DASH-S-01",
+        "T-DASH-S-02",
+        "T-DASH-S-03",
+        "T-DASH-S-04",
+        "T-QUERY-01",
+        "T-REG-01",
+        "T-REG-02",
+        "T-SEC-01",
+        "T-SEC-02",
+        "T-SEC-03",
+        "T-UNIT-01",
+        "T-UNIT-02",
+        "T-UNIT-03",
+        "T-WF-01",
+        "T-WF-02",
+        "T-WF-03",
+        "T-WF-04"
+      ]
+    },
+    "clientTests": {
+      "passed": 134,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "cd client && npm test -- --reporter=verbose",
+      "testIds": [
+        "T-A11Y-01",
+        "T-STYLE-01",
+        "T-UI-ACT-01",
+        "T-UI-ACT-02",
+        "T-UI-ACT-03",
+        "T-UI-ACT-04",
+        "T-UI-ACT-05",
+        "T-UI-DR-01",
+        "T-UI-DS-01",
+        "T-UI-NAV-01",
+        "T-UI-NAV-02",
+        "T-UI-REG-01",
+        "T-UI-REG-02",
+        "T-UI-WF-01",
+        "T-UI-WF-02"
+      ]
+    },
+    "lab2E2E": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0",
+      "testIds": [
+        "T-UI-REG-01"
+      ]
+    },
+    "lab3E2E": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0",
+      "testIds": []
+    },
+    "lab4E2E": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "cd client && npm run test:e2e:lab4 -- --workers=1 --retries=0",
+      "testIds": [
+        "T-E2E-01",
+        "T-E2E-02",
+        "T-E2E-03",
+        "T-RESP-01"
+      ]
+    },
+    "contractTests": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "command": "node --test scripts/lab-04/verify-contract.test.mjs",
+      "testIds": [
+        "RELEASE-01",
+        "T-CONTRACT-01",
+        "T-EVID-01"
+      ]
+    }
+  },
+  "browserMatrix": [
+    {
+      "testId": "T-E2E-01",
+      "project": "desktop",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-03",
+      "project": "desktop",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-02",
+      "project": "desktop",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-01",
+      "project": "tablet",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-03",
+      "project": "tablet",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-02",
+      "project": "tablet",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-01",
+      "project": "mobile",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-03",
+      "project": "mobile",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    {
+      "testId": "T-E2E-02",
+      "project": "mobile",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    }
+  ],
+  "releaseGate": {
+    "id": "RELEASE-01",
+    "status": "awaiting_peer_review",
+    "note": "L4-10 evidence is complete for staging review; final-main promotion remains a separate approval-gated step."
+  },
+  "traceability": {
+    "AC-15": [
+      "T-MIG-01",
+      "T-MIG-02",
+      "T-MIG-03",
+      "T-MIG-04",
+      "T-MIG-05"
+    ],
+    "AC-16": [
+      "T-MIG-03"
+    ],
+    "AC-17": [
+      "T-REG-01",
+      "T-REG-02",
+      "T-RACE-04",
+      "T-E2E-02",
+      "T-E2E-03"
+    ],
+    "AC-18": [
+      "T-E2E-01",
+      "T-SEC-01",
+      "T-SEC-02",
+      "T-SEC-03",
+      "T-MIG-05"
+    ],
+    "AC-19": [
+      "T-STYLE-01",
+      "T-A11Y-01",
+      "T-RESP-01"
+    ],
+    "AC-20": [
+      "T-PERF-01",
+      "T-DB-DASH-01"
+    ],
+    "AC-21": [
+      "T-E2E-01",
+      "T-E2E-02",
+      "T-E2E-03",
+      "T-RESP-01",
+      "T-EVID-01"
+    ],
+    "AC-22": [
+      "T-CONTRACT-01"
+    ]
+  },
+  "migration": {
+    "log": "artifacts/lab-04/migration/migration.log",
+    "appliedMigrations": 4,
+    "integrationPassed": 20
+  },
+  "metrics": {
+    "report": "artifacts/lab-04/metrics/report.md",
+    "explainPlan": "artifacts/lab-04/metrics/explain-plan.json",
+    "fixtureTickets": 5000,
+    "fixtureActions": 10000,
+    "requesterQueries": 8,
+    "staffQueries": 11,
+    "p95Ms": 37.26
+  },
+  "validation": {
+    "log": "artifacts/lab-04/validation/validation.log"
+  },
+  "textEvidence": [
+    "artifacts/lab-04/migration/migration.log",
+    "artifacts/lab-04/migration/e2e-preparation.log",
+    "artifacts/lab-04/validation/validation.log",
+    "artifacts/lab-04/validation/integration.log",
+    "artifacts/lab-04/validation/server-tests.log",
+    "artifacts/lab-04/validation/client-tests.log",
+    "artifacts/lab-04/validation/server-build.log",
+    "artifacts/lab-04/validation/client-build.log",
+    "artifacts/lab-04/validation/prisma-validate.log",
+    "artifacts/lab-04/validation/lab2-e2e.log",
+    "artifacts/lab-04/validation/lab3-e2e.log",
+    "artifacts/lab-04/validation/lab4-e2e.log",
+    "artifacts/lab-04/validation/contract-tests.log",
+    "artifacts/lab-04/metrics/report.md",
+    "artifacts/lab-04/metrics/explain-plan.json"
+  ],
+  "screenshots": [
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/completed-desktop.png",
+      "sha256": "5201a94350978649e16215aecc4e3a675309e9df4bbac1cca04abca7c92354df",
+      "width": 1440,
+      "height": 2861,
+      "ac": [
+        "AC-01",
+        "AC-04",
+        "AC-05",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "updated Action row visible",
+        "IN PROGRESS status visible",
+        "COMPLETED status visible after successful completion",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/completed-desktop.png.evidence.json",
+      "captureEvidenceSha256": "40f5e0da19e78a7054e61b5fc82f0fe5b4ff1f14d07b764cdee6dd438cab7da0"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/completed-mobile.png",
+      "sha256": "d99c6e4be27e367f7712ec46ac37bdef2d8d5939500512f837dae366e304095c",
+      "width": 320,
+      "height": 4312,
+      "ac": [
+        "AC-01",
+        "AC-04",
+        "AC-05",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "updated Action row visible",
+        "IN PROGRESS status visible",
+        "COMPLETED status visible after successful completion",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/completed-mobile.png.evidence.json",
+      "captureEvidenceSha256": "7f419cefbdf1b7139d6583615da0d21bf8ce94a35ca55b472d9c29b98ccb9a56"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/completed-tablet.png",
+      "sha256": "f60fe80e5da98d9974f5afe6e520107d8d8b00be08fd77de3e29359a86e8143d",
+      "width": 768,
+      "height": 3519,
+      "ac": [
+        "AC-01",
+        "AC-04",
+        "AC-05",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "updated Action row visible",
+        "IN PROGRESS status visible",
+        "COMPLETED status visible after successful completion",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/completed-tablet.png.evidence.json",
+      "captureEvidenceSha256": "a39f464d0ed41daee9dd20aab4219da6e6af9745bf2709c4a8a1a1a9a8a875db"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-desktop.png",
+      "sha256": "6317312201e8452def4c3e4c51aebabf019c8b3a81aea2355852c918aa28efed",
+      "width": 1440,
+      "height": 2124,
+      "ac": [
+        "AC-06",
+        "AC-18",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "owned Ticket heading visible",
+        "completed and cancelled Actions visible",
+        "Requester write controls absent",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-desktop.png.evidence.json",
+      "captureEvidenceSha256": "86c1027869d72502be2ebc5eac7aeb9f54fb6d88c3717d480fa9e65e6733c7da"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-mobile.png",
+      "sha256": "fb4e880eb71f6911ee27ae923f4c47856e4b36eaddaf95ed6cefbc59e55e5198",
+      "width": 320,
+      "height": 3997,
+      "ac": [
+        "AC-06",
+        "AC-18",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "owned Ticket heading visible",
+        "completed and cancelled Actions visible",
+        "Requester write controls absent",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-mobile.png.evidence.json",
+      "captureEvidenceSha256": "c43882a14feee5713d395e64832ec6dfa010aa2e15b84b30515fb046d70df93a"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-tablet.png",
+      "sha256": "036381ac2a5e954990e9958e2ad46ca380aa3bd265e432ec03a0f7fb1bde82c0",
+      "width": 768,
+      "height": 3244,
+      "ac": [
+        "AC-06",
+        "AC-18",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "owned Ticket heading visible",
+        "completed and cancelled Actions visible",
+        "Requester write controls absent",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/requester-read-only-tablet.png.evidence.json",
+      "captureEvidenceSha256": "21bedc52c51360c66f931ebacc58b2eb2bf48004a9bd889b5ef5393cc694f149"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/support-empty-desktop.png",
+      "sha256": "4875f94706c1fea745da3097f2c3be4d6b928957af7efb639f71f47dc0ef3e89",
+      "width": 1440,
+      "height": 2399,
+      "ac": [
+        "AC-01",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Actions Taken region visible",
+        "empty-state message visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and synthetic support accounts only; no credentials or private data displayed.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/support-empty-desktop.png.evidence.json",
+      "captureEvidenceSha256": "01c83a9fad38178d041e73d375a78efc0d8c10555f3ba6fbb2b1420a05cbda7e"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/support-empty-mobile.png",
+      "sha256": "9df9173d947340311a2238ceea2c8fd0719807f72ac1da394eff815281e66b2a",
+      "width": 320,
+      "height": 3301,
+      "ac": [
+        "AC-01",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Actions Taken region visible",
+        "empty-state message visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and synthetic support accounts only; no credentials or private data displayed.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/support-empty-mobile.png.evidence.json",
+      "captureEvidenceSha256": "ecdc3b8f1f30126f5dcbecc8e1cf547adb8adfee24199e190bafd0b1b8bf4fe8"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/actions-taken/support-empty-tablet.png",
+      "sha256": "cd862284e919a0e343962c1852b8e03394f68f79563de26d60ac3d1add121f68",
+      "width": 768,
+      "height": 2945,
+      "ac": [
+        "AC-01",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Actions Taken region visible",
+        "empty-state message visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and synthetic support accounts only; no credentials or private data displayed.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/actions-taken/support-empty-tablet.png.evidence.json",
+      "captureEvidenceSha256": "2c3cd6885d8fee3a1f796aea2e53e63947b3b07ee9d7871edf56955662c4cd89"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/requester-dashboard/loaded-desktop.png",
+      "sha256": "3ebb7e7cdd9844c659aae6f614e896288d20451052aaff94e45b922fe7fa70db",
+      "width": 1440,
+      "height": 1250,
+      "ac": [
+        "AC-10",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "requester metrics reconciled with owned Ticket list",
+        "attention and recent lists loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/requester-dashboard/loaded-desktop.png.evidence.json",
+      "captureEvidenceSha256": "1b3de9e3580ba597dd31a3da3903c0a162d58db0b25fcc723260f9d66af540de"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/requester-dashboard/loaded-mobile.png",
+      "sha256": "4590f15ece7bfe77418c9a7bbffa0eac6d3d100bd14c1387a216bbb2b3f39f38",
+      "width": 320,
+      "height": 2773,
+      "ac": [
+        "AC-10",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "requester metrics reconciled with owned Ticket list",
+        "attention and recent lists loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/requester-dashboard/loaded-mobile.png.evidence.json",
+      "captureEvidenceSha256": "1e346559fc160ecc07004fc9b8ad8de134600150826ede53e6bcf14aa1012d0c"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/requester-dashboard/loaded-tablet.png",
+      "sha256": "244bfa6c1cf006f91b0a11d25e40c3bc73b3ae9d2082b523cee9f05ce0019a4b",
+      "width": 768,
+      "height": 1591,
+      "ac": [
+        "AC-10",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "requester metrics reconciled with owned Ticket list",
+        "attention and recent lists loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/requester-dashboard/loaded-tablet.png.evidence.json",
+      "captureEvidenceSha256": "1c98262ed1602b9a68c3cdb6146d48162f74c4e5afd094831ec987318b2bc8fb"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/staff-dashboard/loaded-desktop.png",
+      "sha256": "ac766f35e0589426830bcceb36f409ed3974f516590971036ccad7373acd566f",
+      "width": 1440,
+      "height": 1770,
+      "ac": [
+        "AC-11",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "staff metrics reconciled with authenticated queue and current-user data",
+        "status and priority buckets reconciled",
+        "recent/urgent/Action summaries loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/staff-dashboard/loaded-desktop.png.evidence.json",
+      "captureEvidenceSha256": "7a38f02cbdf81efbc7199f9ab3a728fd5d62ee6d92d6fb35d9d221b6975677f8"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/staff-dashboard/loaded-mobile.png",
+      "sha256": "66813a64e3a482f18602dae4f25e30494d125e770d046b6756c3cc6fec985aec",
+      "width": 320,
+      "height": 3897,
+      "ac": [
+        "AC-11",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "staff metrics reconciled with authenticated queue and current-user data",
+        "status and priority buckets reconciled",
+        "recent/urgent/Action summaries loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/staff-dashboard/loaded-mobile.png.evidence.json",
+      "captureEvidenceSha256": "9b126a1f1fec650fcd5311956a1944ca67bfcd57315cbd0b10fa1c53c593cf3a"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/staff-dashboard/loaded-tablet.png",
+      "sha256": "facec914a69c8f61c3aab096148d683121fca6b35f3d4b304fe931d834d0cccd",
+      "width": 768,
+      "height": 2150,
+      "ac": [
+        "AC-11",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "staff metrics reconciled with authenticated queue and current-user data",
+        "status and priority buckets reconciled",
+        "recent/urgent/Action summaries loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/staff-dashboard/loaded-tablet.png.evidence.json",
+      "captureEvidenceSha256": "ae5e1c74eeff8b33c8fae2bd2d55debbdb5c58a4558bd91e1727f2e49f78f5ac"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-desktop.png",
+      "sha256": "5a6f5e073255aa8e7118119ce848c461062433293298f2f0943e9e35cbe7d55a",
+      "width": 1440,
+      "height": 2498,
+      "ac": [
+        "AC-07",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Admin role signed in",
+        "CANCELLED Ticket reopened and REOPENED status visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and seeded synthetic Admin account; no credentials.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-desktop.png.evidence.json",
+      "captureEvidenceSha256": "c4de52cbb7eadda47469e008291d991b8c6284ad2dcf7ef14763a4ca2e60e782"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-mobile.png",
+      "sha256": "037a0cef37ab04174daaf761fb4b0c5ac24864fcce5cddedb5c82e55a427bfd7",
+      "width": 320,
+      "height": 3504,
+      "ac": [
+        "AC-07",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Admin role signed in",
+        "CANCELLED Ticket reopened and REOPENED status visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and seeded synthetic Admin account; no credentials.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-mobile.png.evidence.json",
+      "captureEvidenceSha256": "da2e1f42a20e37ef5f46afe5b0a5fe56b098a181bfc322405be4339cc6b7e198"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-tablet.png",
+      "sha256": "9b23991806d578aa5d1888e329392bfc30014b300aa8e93162f78c658c434f6e",
+      "width": 768,
+      "height": 3041,
+      "ac": [
+        "AC-07",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Admin role signed in",
+        "CANCELLED Ticket reopened and REOPENED status visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and seeded synthetic Admin account; no credentials.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/admin-reopened-tablet.png.evidence.json",
+      "captureEvidenceSha256": "f14007107c9b42201326ff54de7be365d74398a84142b16c75be0661e298eb60"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/closed-desktop.png",
+      "sha256": "91cb4dbac891fcad921617c296a7d05b3ced14b428432b464a60444a726403df",
+      "width": 1440,
+      "height": 2792,
+      "ac": [
+        "AC-08",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Current Status shows CLOSED after eligible completed work",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and work text; no credentials.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/closed-desktop.png.evidence.json",
+      "captureEvidenceSha256": "b864ddc617e74d92291640d62cb925560f42242f60de26ef0c7d31fae94c1e35"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/closed-mobile.png",
+      "sha256": "bee3b88b3a48aacc4152666997ff4f81080f5790470f00d31f54335cd7e4fb78",
+      "width": 320,
+      "height": 4183,
+      "ac": [
+        "AC-08",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Current Status shows CLOSED after eligible completed work",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and work text; no credentials.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/closed-mobile.png.evidence.json",
+      "captureEvidenceSha256": "e28e59747b32ba319ab046e21984c196a554dbb48851d40ca0dd4c86aa45342f"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/closed-tablet.png",
+      "sha256": "9b968afdca20f26dc84c8ff59260fa08d91a2b3ae9e7d3444096d4a7bddd5866",
+      "width": 768,
+      "height": 3370,
+      "ac": [
+        "AC-08",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Current Status shows CLOSED after eligible completed work",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and work text; no credentials.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/closed-tablet.png.evidence.json",
+      "captureEvidenceSha256": "c9fbbb1675cfb9281fb5fa758d22e4e05da7ff09faffba7f25ffb00fd21f1e26"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-desktop.png",
+      "sha256": "e90118cde2b0827bd46c955e876227679fab7b62903c3b70e790ed89e279186c",
+      "width": 1440,
+      "height": 1987,
+      "ac": [
+        "AC-13",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Requester Ticket heading visible",
+        "persisted status event visible",
+        "public comment visible",
+        "resolution advisory updates to Yes",
+        "Action list is read-only",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket, public comment, and Action text; no credentials or private notes.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-desktop.png.evidence.json",
+      "captureEvidenceSha256": "44a93dc8f250d88b3907756d31ed5299f1299956c0778a6a366708261761e79e"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-mobile.png",
+      "sha256": "3fd1a9b7e7dd6bfffe012dc88bcb6e2326fb6a4eb5ecb0e6e35cd46eb0d37508",
+      "width": 320,
+      "height": 3727,
+      "ac": [
+        "AC-13",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Requester Ticket heading visible",
+        "persisted status event visible",
+        "public comment visible",
+        "resolution advisory updates to Yes",
+        "Action list is read-only",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket, public comment, and Action text; no credentials or private notes.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-mobile.png.evidence.json",
+      "captureEvidenceSha256": "246cabaa3d4591f31939a78cda781f543d1719cfad05a3d6ed2f75d2a4cfcd96"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-tablet.png",
+      "sha256": "e16d0cd5f3bbc2e3e664495b74eb5f772e59415af811f5cacd90b8d100e138cc",
+      "width": 768,
+      "height": 3027,
+      "ac": [
+        "AC-13",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Requester Ticket heading visible",
+        "persisted status event visible",
+        "public comment visible",
+        "resolution advisory updates to Yes",
+        "Action list is read-only",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket, public comment, and Action text; no credentials or private notes.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/requester-resolution-advisory-tablet.png.evidence.json",
+      "captureEvidenceSha256": "6fc2f6ff2431c789c00e203b46eeabeeb42e703681e5cc317178f054dc93a1d9"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-desktop.png",
+      "sha256": "42b2b6f9ace66246a129977ea63d8cf1f6508c16109fec45d21bdf7a7f353be0",
+      "width": 1440,
+      "height": 2495,
+      "ac": [
+        "AC-08",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "resolution confirmation dialog closed",
+        "truthful Action work gate alert visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and synthetic work text; no credentials.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-desktop.png.evidence.json",
+      "captureEvidenceSha256": "09a5b9f7291cbe79f447c3a3102a853b28e32e1aa5ae3f566ea140e53adde317"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-mobile.png",
+      "sha256": "aa30fe255260fd3c5cc9ede5234efa0dced0626989c294e1614ba9aeebf7aaab",
+      "width": 320,
+      "height": 3541,
+      "ac": [
+        "AC-08",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "resolution confirmation dialog closed",
+        "truthful Action work gate alert visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and synthetic work text; no credentials.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-mobile.png.evidence.json",
+      "captureEvidenceSha256": "ae6559beb4c9822f5c8c3d1046d6212f813368890343877c9d46cf5df050dd6b"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-tablet.png",
+      "sha256": "5b611ad65bc1432a8fcc852476d63d849380e74b04b81cbdf17d298c13549516",
+      "width": 768,
+      "height": 3041,
+      "ac": [
+        "AC-08",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "resolution confirmation dialog closed",
+        "truthful Action work gate alert visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and synthetic work text; no credentials.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/resolution-blocked-tablet.png.evidence.json",
+      "captureEvidenceSha256": "1095c7f990ff8e60566715ff1eda565d572bf7b90eb7d40a12f4e599a8756006"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/resolved-desktop.png",
+      "sha256": "2cab9dddfbe592eed522eb95f3975c142c834f12409000e086ed45153cfe6abf",
+      "width": 1440,
+      "height": 2768,
+      "ac": [
+        "AC-08",
+        "AC-13",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Current Status shows RESOLVED",
+        "persisted public comment appears in staff comments list",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket, comment, and Action text; seeded synthetic support account; no credentials.",
+      "project": "desktop",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/resolved-desktop.png.evidence.json",
+      "captureEvidenceSha256": "3c6435ff09fa0a572be850eba5197280b84f7bbc9b90c6ee2999df15991e98df"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/resolved-mobile.png",
+      "sha256": "16fad512765e929e659e3a66534fc163d9ff56567026234590e2a1d92153fa82",
+      "width": 320,
+      "height": 4111,
+      "ac": [
+        "AC-08",
+        "AC-13",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Current Status shows RESOLVED",
+        "persisted public comment appears in staff comments list",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket, comment, and Action text; seeded synthetic support account; no credentials.",
+      "project": "mobile",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/resolved-mobile.png.evidence.json",
+      "captureEvidenceSha256": "9d3d3090e714ac26ffc4074419c562e3147378b4ea4c461f9a21274b9c79c5a1"
+    },
+    {
+      "path": "artifacts/lab-04/screenshots/ticket-workflow/resolved-tablet.png",
+      "sha256": "ba26ea5a5779c1412d7dcf65d3fabeed08cdcb1d87465ad1f4d23c7f0c3a7699",
+      "width": 768,
+      "height": 3346,
+      "ac": [
+        "AC-08",
+        "AC-13",
+        "AC-19",
+        "AC-21"
+      ],
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "loadedStateAssertions": [
+        "Current Status shows RESOLVED",
+        "persisted public comment appears in staff comments list",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket, comment, and Action text; seeded synthetic support account; no credentials.",
+      "project": "tablet",
+      "captureEvidencePath": "artifacts/lab-04/screenshots/ticket-workflow/resolved-tablet.png.evidence.json",
+      "captureEvidenceSha256": "1ee9fec155d73b3e824609c381259d7c25b94ebe6de94e93b362d8175cd0c859"
+    }
+  ]
+}

@@ -26,6 +26,8 @@ type Model = {
 interface AttachmentRouteClient {
   ticket: Pick<Model, "findFirst">;
   attachment: Pick<Model, "findFirst" | "findMany" | "count" | "create" | "update">;
+  $queryRaw<T = unknown>(query: TemplateStringsArray, ...values: unknown[]): Promise<T>;
+  $transaction<T>(callback: (transaction: AttachmentRouteClient) => Promise<T>): Promise<T>;
 }
 
 type PrismaProvider = () => AttachmentRouteClient;
@@ -180,6 +182,12 @@ function readRemovalReason(body: unknown): string | null {
   return reason.length >= 5 && reason.length <= 250 ? reason : null;
 }
 
+class AttachmentRouteError extends Error {
+  constructor(readonly status: number, readonly code: string, message: string) {
+    super(message);
+  }
+}
+
 /** Register requester-owned Attachment metadata and private-file operations. */
 export function registerAttachmentRoutes(
   app: Express,
@@ -235,17 +243,6 @@ export function registerAttachmentRoutes(
 
     const prisma = prismaProvider();
     try {
-      const ticket = await findOwnedTicket(prisma, ticketNumber, requesterId);
-      if (!ticket) {
-        sendTicketNotFound(res);
-        return;
-      }
-      const activeCount = await prisma.attachment.count({ where: { ticketId: ticket.id, status: "ACTIVE" } });
-      if (activeCount >= 5) {
-        sendUploadError(res, 409, "ATTACHMENT_LIMIT_REACHED", "A Ticket can have at most five active Attachments.");
-        return;
-      }
-
       const file = req.file as AttachmentFileLike;
       const validation = validateAttachment(file);
       if ("status" in validation) {
@@ -258,23 +255,50 @@ export function registerAttachmentRoutes(
         return;
       }
 
-      let stored: { storageKey: string; permanentPath: string } | null = null;
+      // Keep slow disk I/O outside the interactive transaction and row lock.
+      // The owned Ticket is still rechecked under the lock before its row is created.
+      const stored = await persistFile(req.file!, validation.extension);
       try {
-        stored = await persistFile(req.file, validation.extension);
-        const created = await prisma.attachment.create({
-          data: {
-            ticketId: ticket.id,
-            originalName,
-            storageKey: stored.storageKey,
-            mimeType: validation.mimeType,
-            sizeBytes: req.file.size,
-            status: "ACTIVE",
-          },
-          select: ATTACHMENT_METADATA_SELECT,
-        }) as Record<string, unknown>;
+        const created = await prisma.$transaction(async (transaction) => {
+          const currentTicket = await findOwnedTicket(transaction, ticketNumber, requesterId);
+          if (!currentTicket) {
+            throw new AttachmentRouteError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
+          }
+          const lockedRows = await transaction.$queryRaw<Array<{ id: number }>>`
+            SELECT "id" FROM "Ticket" WHERE "id" = ${currentTicket.id} FOR UPDATE
+          `;
+          if (!lockedRows.some((row) => row.id === currentTicket.id)) {
+            throw new AttachmentRouteError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
+          }
+          // The ownership/activity predicate is rechecked after acquiring the parent lock.
+          const ownedTicket = await findOwnedTicket(transaction, ticketNumber, requesterId);
+          if (!ownedTicket) {
+            throw new AttachmentRouteError(404, "TICKET_NOT_FOUND", "Ticket was not found.");
+          }
+          const activeCount = await transaction.attachment.count({ where: { ticketId: ownedTicket.id, status: "ACTIVE" } });
+          if (activeCount >= 5) {
+            throw new AttachmentRouteError(409, "ATTACHMENT_LIMIT_REACHED", "A Ticket can have at most five active Attachments.");
+          }
+
+          return await transaction.attachment.create({
+            data: {
+              ticketId: ownedTicket.id,
+              originalName,
+              storageKey: stored.storageKey,
+              mimeType: validation.mimeType,
+              sizeBytes: req.file!.size,
+              status: "ACTIVE",
+            },
+            select: ATTACHMENT_METADATA_SELECT,
+          }) as Record<string, unknown>;
+        });
         res.status(201).json({ data: serialiseAttachment(created) });
-      } catch {
-        if (stored) await unlink(stored.permanentPath).catch(() => undefined);
+      } catch (error) {
+        await unlink(stored.permanentPath).catch(() => undefined);
+        if (error instanceof AttachmentRouteError) {
+          sendUploadError(res, error.status, error.code, error.message);
+          return;
+        }
         throw new Error("Attachment persistence failed.");
       }
     } catch {
@@ -431,9 +455,19 @@ export function registerAttachmentRoutes(
       }) as Record<string, unknown>;
       if (typeof attachment.storageKey === "string") {
         const filePath = safeAttachmentPath(attachment.storageKey);
-        if (filePath) await unlink(filePath).catch((error: unknown) => {
-          if (!isMissingFileError(error)) throw error;
-        });
+        // The soft-removal is already committed; physical cleanup is best effort.
+        if (filePath) {
+          try {
+            await unlink(filePath);
+          } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            if (code !== "ENOENT") {
+              // Avoid logging private paths or storage keys; the attachment id
+              // and OS error code are enough to diagnose orphaned files.
+              console.error("Unable to remove stored Attachment file.", { attachmentId, code: code ?? "UNKNOWN" });
+            }
+          }
+        }
       }
       res.status(200).json({ data: serialiseAttachment(updated) });
     } catch {
