@@ -109,18 +109,18 @@ This index is a coarse but executable bridge across implementation Issues; fine-
 
 | Requirement ID | Issue | Implementation files | Test IDs | Status |
 | --- | --- | --- | --- | --- |
-| FR-01..FR-08 | #62, #63, #65 | `server/src/routes/actions-taken.ts`; `server/src/routes/tickets.ts`; `client/src/actions-taken.tsx`; `client/src/requester-ticket-detail.tsx` | T-ACT-01, T-ACT-04, T-WF-01, T-UI-ACT-01, T-UI-WF-01, T-E2E-01, T-E2E-02 | Implemented; verified by named suites |
-| FR-09..FR-13 | #66, #67 | `server/src/routes/dashboards.ts`; `client/src/requester-dashboard.tsx`; `client/src/staff-dashboard.tsx`; `client/src/App.tsx` | T-DASH-R-01, T-DASH-S-01, T-QUERY-01, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-01, T-E2E-03 | Implemented; verified by named suites |
-| FR-14..FR-16 | #61, #68 | `server/prisma/schema.prisma`; `server/prisma/migrations/20261009120000_lab4_actions_workflow/migration.sql`; `server/src/routes/tickets.ts`; `server/src/routes/attachments.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-01, T-REG-02 | Implemented; verified by migration/regression suites |
-| FR-17..FR-18 | #68, #69 | `e2e/lab-04/ticket-resolution.spec.ts`; `scripts/lab-04/verify-contract.mjs`; `docs/lab-04/reviewer.md`; `artifacts/lab-04/validation/evidence-manifest.json` | T-RESP-01, T-EVID-01, T-CONTRACT-01, RELEASE-01 | Evidence/release work tracked; RELEASE-01 remains approval-gated |
-| BR-01..BR-22 | #62, #63, #65 | `server/src/routes/actions-taken.ts`; `server/src/routes/staff-ticket-detail.ts`; `server/src/auth.ts` | T-UNIT-01, T-ACT-01, T-ACT-04, T-ACT-05, T-ACT-07, T-WF-01, T-RACE-01, T-RACE-02, T-SEC-01 | Implemented; verified by named suites |
-| BR-23..BR-32 | #66, #67 | `server/src/routes/dashboards.ts`; `server/src/routes/tickets.ts`; `client/src/App.tsx` | T-DASH-R-01, T-DASH-R-02, T-DASH-S-01, T-DASH-S-02, T-QUERY-01, T-DB-DASH-01, T-PERF-01 | Implemented; verified by named suites |
-| BR-33..BR-40 | #61, #68, #69 | `server/prisma/migrations/20261009120000_lab4_actions_workflow/migration.sql`; `server/prisma/seed.ts`; `scripts/lab-04/verify-contract.mjs`; `e2e/lab-04/ticket-resolution.spec.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-02, T-EVID-01, T-CONTRACT-01 | Implemented; release evidence is review-gated |
-| AC-01..AC-09 | #62, #63, #65 | `server/tests/lab-04/actions-taken.api.test.ts`; `client/tests/lab-04/ActionsTaken.test.tsx`; `e2e/lab-04/actions-taken-flow.spec.ts` | T-ACT-01, T-ACT-04, T-WF-01, T-WF-02, T-RACE-01, T-RACE-02, T-E2E-01, T-E2E-02 | Implemented; verified by named suites |
-| AC-10..AC-14 | #66, #67 | `server/tests/lab-04/requester-dashboard.api.test.ts`; `client/tests/lab-04/RequesterDashboard.test.tsx`; `e2e/lab-04/dashboards.spec.ts` | T-DASH-R-01, T-DASH-S-01, T-QUERY-01, T-UI-DR-01, T-UI-DS-01, T-E2E-03 | Implemented; verified by named suites |
-| AC-15..AC-18 | #61, #68 | `server/tests/lab-04/migration.integration.test.ts`; `server/tests/lab-04/previous-labs.api.test.ts`; `server/tests/lab-02/attachments.api.test.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-01, T-REG-02 | Implemented; verified by named suites |
-| AC-19..AC-22 | #67, #69 | `e2e/lab-04/dashboards.spec.ts`; `scripts/lab-04/verify-contract.mjs`; `client/tests/lab-04/VisualAccessibility.test.tsx` | T-RESP-01, T-A11Y-01, T-STYLE-01, T-EVID-01, T-CONTRACT-01 | Implemented; verified by named suites |
-| AC-23..AC-24 | #69 | `docs/lab-04/reviewer.md`; `scripts/lab-04/verify-contract.mjs`; `artifacts/lab-04/validation/evidence-manifest.json` | T-CONTRACT-01, RELEASE-01 | Release-gated; final main close-out is not claimed here |
+| FR-01..FR-08 | #62, #63, #65 | `server/src/routes/actions-taken.ts`; `server/src/routes/tickets.ts`; `client/src/actions-taken.tsx`; `client/src/requester-ticket-detail.tsx` | T-ACT-01, T-ACT-04, T-WF-01, T-UI-ACT-01, T-UI-WF-01, T-E2E-01, T-E2E-02 | Implemented; passed at final-main 0ec971f5 (run evidence §6.2) |
+| FR-09..FR-13 | #66, #67 | `server/src/routes/dashboards.ts`; `client/src/requester-dashboard.tsx`; `client/src/staff-dashboard.tsx`; `client/src/App.tsx` | T-DASH-R-01, T-DASH-S-01, T-QUERY-01, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-01, T-E2E-03 | Implemented; passed at final-main 0ec971f5 (run evidence §6.2) |
+| FR-14..FR-16 | #61, #68 | `server/prisma/schema.prisma`; `server/prisma/migrations/20261009120000_lab4_actions_workflow/migration.sql`; `server/src/routes/tickets.ts`; `server/src/routes/attachments.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-01, T-REG-02 | Migration/regression suites passed at final-main 0ec971f5 (see §6.2) |
+| FR-17..FR-18 | #68, #69 | `e2e/lab-04/ticket-resolution.spec.ts`; `scripts/lab-04/verify-contract.mjs`; `docs/lab-04/reviewer.md`; `artifacts/lab-04/validation/evidence-manifest.json` | T-RESP-01, T-EVID-01, T-CONTRACT-01, RELEASE-01 | Automated suites passed at 0ec971f5; manual evidence and final report close-out remain pending |
+| BR-01..BR-22 | #62, #63, #65 | `server/src/routes/actions-taken.ts`; `server/src/routes/staff-ticket-detail.ts`; `server/src/auth.ts` | T-UNIT-01, T-ACT-01, T-ACT-04, T-ACT-05, T-ACT-07, T-WF-01, T-RACE-01, T-RACE-02, T-SEC-01 | Implemented; passed at final-main 0ec971f5 (run evidence §6.2) |
+| BR-23..BR-32 | #66, #67 | `server/src/routes/dashboards.ts`; `server/src/routes/tickets.ts`; `client/src/App.tsx` | T-DASH-R-01, T-DASH-R-02, T-DASH-S-01, T-DASH-S-02, T-QUERY-01, T-DB-DASH-01, T-PERF-01 | Implemented; passed at final-main 0ec971f5 (run evidence §6.2) |
+| BR-33..BR-40 | #61, #68, #69 | `server/prisma/migrations/20261009120000_lab4_actions_workflow/migration.sql`; `server/prisma/seed.ts`; `scripts/lab-04/verify-contract.mjs`; `e2e/lab-04/ticket-resolution.spec.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-02, T-EVID-01, T-CONTRACT-01 | Automated evidence checks passed at 0ec971f5; manual/report close-out remains pending |
+| AC-01..AC-09 | #62, #63, #65 | `server/tests/lab-04/actions-taken.api.test.ts`; `client/tests/lab-04/ActionsTaken.test.tsx`; `e2e/lab-04/actions-taken-flow.spec.ts` | T-ACT-01, T-ACT-04, T-WF-01, T-WF-02, T-RACE-01, T-RACE-02, T-E2E-01, T-E2E-02 | Implemented; passed at final-main 0ec971f5 (run evidence §6.2) |
+| AC-10..AC-14 | #66, #67 | `server/tests/lab-04/requester-dashboard.api.test.ts`; `client/tests/lab-04/RequesterDashboard.test.tsx`; `e2e/lab-04/dashboards.spec.ts` | T-DASH-R-01, T-DASH-S-01, T-QUERY-01, T-UI-DR-01, T-UI-DS-01, T-E2E-03 | Implemented; passed at final-main 0ec971f5 (run evidence §6.2) |
+| AC-15..AC-18 | #61, #68 | `server/tests/lab-04/migration.integration.test.ts`; `server/tests/lab-04/previous-labs.api.test.ts`; `server/tests/lab-02/attachments.api.test.ts` | T-MIG-01, T-MIG-02, T-MIG-03, T-MIG-05, T-REG-01, T-REG-02 | Implemented; passed at final-main 0ec971f5 (run evidence §6.2) |
+| AC-19..AC-22 | #67, #69 | `e2e/lab-04/dashboards.spec.ts`; `scripts/lab-04/verify-contract.mjs`; `client/tests/lab-04/VisualAccessibility.test.tsx` | T-RESP-01, T-A11Y-01, T-STYLE-01, T-EVID-01, T-CONTRACT-01 | Automated evidence/verifier passed at 0ec971f5; manual keyboard/overflow evidence and rendered-doc capture remain incomplete |
+| AC-23..AC-24 | #69 | `docs/lab-04/reviewer.md`; `scripts/lab-04/verify-contract.mjs`; `artifacts/lab-04/validation/evidence-manifest.json` | T-CONTRACT-01, RELEASE-01 | Pending: RELEASE-01 and final report close-out are not complete |
 
 ## 6. AC crosswalk
 
@@ -147,7 +147,7 @@ The following bridge makes functional requirements traceable through acceptance 
 | FR-17 | AC-19, AC-20, AC-21 |
 | FR-18 | AC-22, AC-23, AC-24 |
 
-The acceptance criteria collectively include the proposed BRs in `specification.md`; implementation Issues must retain that BR-to-AC-to-Test chain when scoped. L4-01 review must identify any BR that is not covered before approving the contract.
+The acceptance criteria collectively include the approved BRs in `specification.md`; implementation Issues retain that BR-to-AC-to-Test chain. The execution status is recorded separately in §6.2 and the source-pinned run index.
 
 | AC | Planned Test IDs |
 | --- | --- |
@@ -175,6 +175,42 @@ The acceptance criteria collectively include the proposed BRs in `specification.
 | AC-22 | T-CONTRACT-01 |
 | AC-23 | RELEASE-01 |
 | AC-24 | RELEASE-01 |
+
+### 6.1.1 Actual AC execution status at final-main
+
+This table overlays the AC-to-Test mapping above with the retained run index below. “Automated pass” means the mapped tests actually ran successfully on the pinned final-main source; it does not certify unrecorded manual observation or complete visual capture.
+
+| AC range | Actual mapped run result at `0ec971f5` | Acceptance/evidence status | Limit or pending item |
+| --- | --- | --- | --- |
+| AC-01..AC-09 | Mapped unit/API/UI and Lab 4 E2E tests passed in the recorded server, client, integration and 9/9 browser runs. | Automated checks passed | Selected screenshots demonstrate representative states; not every mutation/error state has its own figure. |
+| AC-10..AC-14 | Dashboard SQL/API, server/client UI, navigation and Lab 4 E2E mapped tests passed. | Automated checks passed | The exact SQL/API metric pairs are not printed in retained stdout; loading/forbidden/error and all drill-down states lack selected screenshots. |
+| AC-15..AC-18 | Migration 4/4, PostgreSQL integration 20/20, regression and authorization suites passed. | Automated checks passed | Existing test evidence is retained; this Phase 4 did not rerun it. |
+| AC-19 | T-STYLE-01, T-A11Y-01 and T-RESP-01 automated checks passed, including the 1440×900/768×1024/320×800 browser matrix. | Automated checks passed; manual evidence partial | Manual keyboard-only traversal, focus restoration and measured page overflow were not recorded. |
+| AC-20 | T-PERF-01 passed with the recorded fixture, query counts, p95 values and EXPLAIN output. | Automated check passed | Dashboard reconciliation test passed, but exact SQL/API metric pairs were not retained. |
+| AC-21 | T-E2E-01..03, T-RESP-01 and T-EVID-01 passed; Lab 4 browser matrix 9/9, one worker, zero retries; captured artifacts are hash-indexed. | Automated/provenance checks passed | Only selected screenshots are assigned as report figures; the full two-repository PR archive is not screenshot-complete. |
+| AC-22 | T-CONTRACT-01 and contract/evidence suite passed 24/24. | Automated check passed | The provisional report includes the nine ordered Answer Parts and 24 AC mappings; final PDF metadata/QA is still pending. |
+| AC-23 | Independent review/merge records exist for L4-01 through L4-11 and are linked in `reviewer.md`. | Partial | Documentation/evidence PR #83 remains open after changes requested in review #5722784089. Owner response #6544118839 and renewed review-request event #34773907930 are recorded; `justfepwx12` is the currently requested reviewer. Peer approval/merge, final PDF QA and Issue #71 completion are still pending. |
+| AC-24 | Final-main validation passed on `0ec971f5`; PR #82 is reviewed and merged. | Partial / release close-out pending | Documentation-only close-out review/merge, one final PDF QA and Issue #71 completion remain. |
+
+## 6.2 Actual execution status at final-main
+
+The following is the actual retained Phase 2 run for released main source commit [0ec971f5fe2ddfd7da16575aa959d844bc254811](https://github.com/itspxsh/toktickit/commit/0ec971f5fe2ddfd7da16575aa959d844bc254811), not a new Phase 3/4 run. Exact command, UTC start/end, exit code, database name (no URL), log path and SHA-256 are in [run-index.json](../../artifacts/lab-04/final-main/0ec971f5/run-index.json) and the [selected evidence index and retained logs](../../artifacts/lab-04/final-main/0ec971f5/README.md). Phase 3 and Phase 4 did not rerun product suites.
+
+| Actual IDs / scope | Result at 0ec971f5 | Retained evidence and limit |
+| --- | --- | --- |
+| T-UNIT-01..03, T-ACT-01..07/09, T-WF-01..04, T-DASH-R-01..02, T-DASH-S-01..04, T-QUERY-01, T-SEC-01..03, T-REG-01..02, plus inherited Lab 1–3 server cases | Full server suite 175/175 passed; 24 files; final run was serial with one worker and file-parallelism disabled; zero failures, skips or retries. | Final log: server-tests-final-serial.log. Test names also appear in verbose discovery/run logs; T-ACT-08 is counted in PostgreSQL integration below. Initial default-parallel attempts with intermittent Supertest transport failures are retained and disclosed in reliability-investigation.md; they were not discarded. |
+| T-ACT-08, T-MIG-01..05, T-RACE-01..04, T-DB-DASH-01, T-PERF-01 | PostgreSQL integration 20/20 passed across 6 files; the test database was isolated and ended in _test. Four migrations deployed on a fresh guarded database. | postgres-integration.log, migration-deploy.log and migration-inventory.log. Dashboard SQL/API reconciliation passed under one repeatable-read snapshot, but its retained stdout does not contain the numeric metric pairs. |
+| T-UI-ACT-01..05, T-UI-WF-01..02, T-UI-DR-01, T-UI-DS-01, T-UI-NAV-01..02, T-UI-REG-01..02, T-STYLE-01, T-A11Y-01, and inherited client cases | Client suite 134/134 passed across 30 files. | client-tests.log; actual logged Test IDs are listed in the [source-pinned run index](../../artifacts/lab-04/final-main/0ec971f5/run-index.json). |
+| T-CONTRACT-01, T-EVID-01 and contract/evidence verifier cases | Contract/evidence tests 24/24 passed; zero failures, skips or retries. Historical evidence verifier exited 0. | contract-tests.log and historical-evidence-verifier.log. The verifier run checks the retained historical evidence; it is not a new screenshot capture. |
+| Lab 2 T-UI-REG-01 | Authenticated Lab 2 Playwright 3/3 passed. | lab2-e2e.log; three viewport project runs, one worker and zero retries. |
+| Lab 3 T-E2E-01..03 | Lab 3 Playwright 9/9 passed. | lab3-e2e.log; three journeys × 1440×900, 768×1024, 320×800; one worker, zero retries. |
+| Lab 4 T-E2E-01..03, T-RESP-01 | Lab 4 Playwright 9/9 passed. | lab4-e2e.log; three journeys × 1440×900, 768×1024, 320×800; one worker, zero retries. |
+| T-RESP-01 automated viewport/focus assertions | Passed within the live browser runs above. | This is automated evidence. Separate manual keyboard-only traversal and measured overflow observation were not retained; do not describe those as manually verified. |
+| RELEASE-01 | Pending. | Peer-reviewed docs-only close-out, final report PDF QA and Issue #71 Done state have not happened. |
+
+Other final-main checks at the same source SHA: server and client builds passed; repository-local Prisma CLI and client version were 5.22.0, and `./node_modules/.bin/prisma validate --schema prisma/schema.prisma` passed; `git diff --check` passed. Migration deploy applied, in order: 20260816095224_init, 20260906010000_lab2_data_foundation, 20260915150000_lab3_data_foundation and 20261009120000_lab4_actions_workflow. The test database URL and synthetic credentials are redacted and not reproduced here.
+
+The first default-parallel server attempt reported 174 passed and one T-DASH-S-03 HTTP parser/transport failure before the handler assertion. Other default-parallel runs included another isolated Supertest socket transport error; those diagnostic runs remain archived. The evidence does not establish a specific root cause. Repeated one-worker serial full-suite comparisons passed; the final source-pinned serial run was 175/175 with zero failures/skips/retries. See the committed [reliability investigation](../../artifacts/lab-04/final-main/0ec971f5/runs/reliability-investigation.md) and [run index](../../artifacts/lab-04/final-main/0ec971f5/run-index.json).
 
 ## 7. TDD and reproducible execution rules
 

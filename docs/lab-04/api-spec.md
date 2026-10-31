@@ -1,6 +1,6 @@
-# TokTickIT Lab 4 API Contract — PROPOSED FOR L4-01 PEER REVIEW
+# TokTickIT Lab 4 API Contract — APPROVED THROUGH L4-01 PEER REVIEW
 
-Companion to `specification.md`; proposed until L4-01 approval. All dates below are UTC ISO-8601 strings; IDs are positive safe integers. Ticket Number matches `^TKT-\d{4}-\d{6}$`. Preserve earlier safe envelopes, auth gates, upload limits and public `/api/health`. Use authenticated session identity, never the Development Requester selector.
+Companion to `specification.md`; approved through L4-01 PR [#60](https://github.com/itspxsh/toktickit/pull/60), merged at [08cdc4d](https://github.com/itspxsh/toktickit/commit/08cdc4de01ec50eba294433f2b1afe6cd2a6b0f9). All dates below are UTC ISO-8601 strings; IDs are positive safe integers. Ticket Number matches `^TKT-\d{4}-\d{6}$`. Preserve earlier safe envelopes, auth gates, upload limits and public `/api/health`. Use authenticated session identity, never the Development Requester selector.
 
 ## 1. Shared types, middleware and errors
 

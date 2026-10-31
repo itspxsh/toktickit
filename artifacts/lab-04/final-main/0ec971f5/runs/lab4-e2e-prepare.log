@@ -1,0 +1,18 @@
+Preparing isolated PostgreSQL database: toktickit_lab4_final_e2e_20261031_test
+
+> toktickit-server@1.0.0 prisma:migrate
+> prisma migrate deploy
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "toktickit_lab4_final_e2e_20261031_test", schema "public" at "127.0.0.1:55432"
+
+4 migrations found in prisma/migrations
+
+
+No pending migrations to apply.
+
+> toktickit-server@1.0.0 db:test:reset
+> tsx scripts/reset-test-database.ts
+
+Test database reset and seeded successfully.

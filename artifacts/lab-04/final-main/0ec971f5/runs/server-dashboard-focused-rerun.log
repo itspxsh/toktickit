@@ -1,0 +1,21 @@
+
+> toktickit-server@1.0.0 test
+> vitest run --reporter=verbose tests/lab-04/staff-dashboard.api.test.ts
+
+
+ RUN  v2.1.9 /Users/posh/Study/CPE334/toktickit/server
+
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > returns all status and priority buckets, bounded lists, and paged empty Action shape
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > rejects invalid page bounds and unknown dashboard keys before querying
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > forbids Requester access to the staff dashboard
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > keeps dashboard staff drill-down lists inside the same active requester scope (T-QUERY-01)
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > matches staff/Admin buckets, actor-owned work and safe Action pagination (T-DASH-S-01..02)
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > applies before-only, terminal status, null-priority and actor assignment filters identically to rows and count (T-QUERY-01)
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > T-DASH-S-02 keeps updatedSince on updatedAt while a resolved drill-down applies before to resolvedAt
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > rejects impossible UTC calendar dates before reading Tickets
+ ✓ tests/lab-04/staff-dashboard.api.test.ts > L4-07 Staff dashboard API (T-DASH-S-01..03) > returns a safe service error instead of manufacturing zero counts (T-DASH-S-03)
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  00:31:41
+   Duration  388ms (transform 90ms, setup 0ms, collect 165ms, tests 21ms, environment 0ms, prepare 42ms)
