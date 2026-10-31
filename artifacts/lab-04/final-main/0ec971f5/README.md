@@ -14,17 +14,19 @@ The retained initial parallel server attempt had one Supertest HTTP parser/trans
 
 ## Selected logs
 
-| Run | Command | Result | Retained log | SHA-256 |
+The SHA-256 column hashes the committed file linked in that row. The committed review copies were redacted and line-ending/trailing-whitespace normalized without changing test outcomes; original source-log hashes and normalized review-copy hashes are retained separately in `run-index.json`.
+
+| Run | Command | Result | Retained log | SHA-256 of linked file |
 | --- | --- | --- | --- | --- |
-| `migration-deploy` | `cd server && DATABASE_URL=<redacted fresh _test database> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma` | exit 0 | [`runs/migration-deploy.log`](./runs/migration-deploy.log) | `300c2022ddece9b94dbb5065f82c35f7eaf6a5cce30590f6dbc2671b528de63c` |
-| `postgres-integration` | `cd server && npm run test:integration -- --reporter=verbose` | exit 0; 20 passed; 0 failed | [`runs/postgres-integration.log`](./runs/postgres-integration.log) | `37315fed80ce0d129a237037d1808a6f7ee49cd32d1cec0c281aea5e7bf95b61` |
+| `migration-deploy` | `cd server && DATABASE_URL=<redacted fresh _test database> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma` | exit 0 | [`runs/migration-deploy.log`](./runs/migration-deploy.log) | `6445831484a82468772b0e631db1b4d48fddf00fa6a644d58c0e96e897b9070e` |
+| `postgres-integration` | `cd server && npm run test:integration -- --reporter=verbose` | exit 0; 20 passed; 0 failed | [`runs/postgres-integration.log`](./runs/postgres-integration.log) | `a0ba4537f6240d6e9bf499aa334764ecc5425ed6245f650a40a743ade15965a3` |
 | `server-tests` | `cd server && npm test -- --reporter=verbose` | exit 1; 174 passed; 1 failed | [`runs/server-tests-initial.log`](./runs/server-tests-initial.log) | `18150a6167eadaf56c2942e3499774b4e904eb8bfdcee2a6163cab99f7649f34` |
-| `server-tests-rerun` | `cd server && npm test -- --reporter=verbose (same full-suite command; rerun after isolated failure)` | exit 0; 175 passed; 0 failed; 0 retries/flaky | [`runs/server-tests-rerun.log`](./runs/server-tests-rerun.log) | `5a40debf9f2a62e5907531881ccbf19fe9b6f9e49166fcf1e644cd4f6c77801e` |
+| `server-tests-rerun` | `cd server && npm test -- --reporter=verbose (same full-suite command; rerun after isolated failure)` | exit 0; 175 passed; 0 failed; 0 retries/flaky | [`runs/server-tests-rerun.log`](./runs/server-tests-rerun.log) | `a626d9b473828e7cb54b3029277cd27398f73d8bf7a078c4e9db0b0e5cbf3729` |
 | `server-tests-final-serial` | `cd server && npm test -- --reporter=dot --minWorkers=1 --maxWorkers=1 --no-file-parallelism` | exit 0; 175 passed; 0 failed; 0 skipped; 0 retries/flaky | [`runs/server-tests-final-serial.log`](./runs/server-tests-final-serial.log) | `a0a64ef95df2d7960ddddd1f6242504aaa4a84c72ac6e02d177127504bee090b` |
-| `client-tests` | `cd client && npm test -- --reporter=verbose` | exit 0; 134 passed; 0 failed | [`runs/client-tests.log`](./runs/client-tests.log) | `0a1514f28598fcbd46c845250453be4b83ce8822fc1066088667994261dc787a` |
+| `client-tests` | `cd client && npm test -- --reporter=verbose` | exit 0; 134 passed; 0 failed | [`runs/client-tests.log`](./runs/client-tests.log) | `7c478261849a7455e789ca9101a0274bef74b3c4cbcb44a62dfb4229bc4836ef` |
 | `contract-tests` | `node --test scripts/lab-04/verify-contract.test.mjs` | exit 0; 24 passed; 0 failed; 0 skipped; 0 retries/flaky | [`runs/contract-tests.log`](./runs/contract-tests.log) | `9611746b071ccd1cbb1da6d88c8db311d8977dfa3bc7c63c1a1998f1d8be09b4` |
 | `historical-evidence-verifier` | `node scripts/lab-04/verify-contract.mjs (historical canonical manifest; not fresh final-main evidence)` | exit 0 | [`runs/historical-evidence-verifier.log`](./runs/historical-evidence-verifier.log) | `e386a70de8cf10b6367256f37cadd57a66981a5acd8490fc9c317103887f2323` |
-| `server-build` | `cd server && npm run build` | exit 0 | [`runs/server-build.log`](./runs/server-build.log) | `f6899a65aa9dc478cd42c10b5cf3e84c184563a549fef717796bc43dd0905ad0` |
+| `server-build` | `cd server && npm run build` | exit 0 | [`runs/server-build.log`](./runs/server-build.log) | `1b599cb12dd98cd38ffc9f62d77a9494144a16af2c807685a60a47e26fa29701` |
 | `client-build` | `cd client && npm run build` | exit 0 | [`runs/client-build.log`](./runs/client-build.log) | `952c0612a41152a69eac894fde424d3fccbd98c9fb6448abc3e54bcd1b77e238` |
 | `prisma-version` | `cd server && ./node_modules/.bin/prisma --version` | exit 0 | [`runs/prisma-version.log`](./runs/prisma-version.log) | `2bed5d3feecb1e70fffbb1dcb27e9f65afe1a3700e525f7d84f61ae2008c1e39` |
 | `prisma-validate` | `cd server && DATABASE_URL=<redacted _test database> ./node_modules/.bin/prisma validate --schema prisma/schema.prisma` | exit 0 | [`runs/prisma-validate.log`](./runs/prisma-validate.log) | `919c26cbd154c540c8a110d57d3f91dc02c8c73f4e8edb56cddc7bb0b4beea22` |
@@ -35,7 +37,7 @@ The retained initial parallel server attempt had one Supertest HTTP parser/trans
 
 ## Selected live Lab 4 screenshots
 
-These nine are a representative subset of the genuine loaded-state E2E captures, pinned to the same source SHA. The run index records capture time, viewport, AC/Test IDs, and redaction notes; each screenshot sidecar records its AC/Test mapping, load assertions, and redaction note. Image SHA-256 values and sidecar presence were checked before selection. The other captured images remain in the local Phase 2 evidence archive and are not claimed as committed here.
+This table lists nine of the 14 selected Lab 4 screenshots committed with this evidence. All 14 selected Lab 4 PNGs have a matching `.evidence.json` sidecar; the sidecars record AC/Test mapping, load assertions, and redaction notes. The other five committed Lab 4 captures are `actions-taken/requester-read-only-mobile.png`, `actions-taken/requester-read-only-tablet.png`, `ticket-workflow/admin-reopened-mobile.png`, `ticket-workflow/resolution-blocked-desktop.png`, and `ticket-workflow/resolved-tablet.png`, each with its matching sidecar. The PR also includes two selected Lab 2 screenshots which intentionally use the central run-index record and do not have per-image sidecars: `lab2/lab-02/create-ticket/success-desktop.png` and `lab2/lab-02/ticket-detail/success-desktop.png`. Thus, 16 selected PNGs comprise 14 Lab 4 images with sidecars and 2 Lab 2 images without per-image sidecars. The full run captured 85 images (19 Lab 2, 36 Lab 3, 30 Lab 4); the 30/30 Lab 4 sidecar count describes that full run, not the 16-image selected set.
 
 | Journey/state | Viewport | Image | SHA-256 |
 | --- | --- | --- | --- |

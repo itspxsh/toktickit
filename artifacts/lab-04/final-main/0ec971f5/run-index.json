@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "phase": "2-final-main-validation",
   "sourceCommit": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
-  "documentationCommit": null,
+  "documentationCommit": "f1debbd320f0b821427f673a890cb15f3679468d",
   "branch": "feature/lab4-12-final-main-closeout",
   "sourceTreeComparison": {
     "releasedMainSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
@@ -34,7 +34,7 @@
       "20260915150000_lab3_data_foundation",
       "20261009120000_lab4_actions_workflow"
     ],
-    "inventoryLog": "output/lab-04-report/runs/phase-2/migration-inventory.log"
+    "inventoryLog": "artifacts/lab-04/final-main/0ec971f5/runs/migration-inventory.log"
   },
   "integration": {
     "firstRunExitCode": 0,
@@ -65,7 +65,7 @@
         "tickets": 5000,
         "actions": 10000
       },
-      "explainEvidenceLog": "output/lab-04-report/runs/phase-2/postgres-integration.log"
+      "explainEvidenceLog": "artifacts/lab-04/final-main/0ec971f5/runs/postgres-integration.log"
     }
   },
   "suites": {
@@ -75,20 +75,20 @@
       "failed": 1,
       "skipped": 0,
       "failure": "T-DASH-S-03 forbidden requester dashboard test: HTTP parser error, raw response bytes redacted; root cause not established",
-      "log": "output/lab-04-report/runs/phase-2/server-tests.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests.log"
     },
     "serverFocusedRerun": {
       "exitCode": 0,
       "passed": 9,
       "failed": 0,
-      "log": "output/lab-04-report/runs/phase-2/server-dashboard-focused-rerun.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/server-dashboard-focused-rerun.log"
     },
     "serverFullRerun": {
       "exitCode": 0,
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "log": "output/lab-04-report/runs/phase-2/server-tests-rerun.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests-rerun.log"
     },
     "client": {
       "exitCode": 0,
@@ -96,41 +96,41 @@
       "failed": 0,
       "skipped": 0,
       "files": 30,
-      "log": "output/lab-04-report/runs/phase-2/client-tests.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/client-tests.log"
     },
     "contract": {
       "exitCode": 0,
       "passed": 24,
       "failed": 0,
       "skipped": 0,
-      "log": "output/lab-04-report/runs/phase-2/contract-tests.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/contract-tests.log"
     },
     "serverBuild": {
       "exitCode": 0,
       "status": "passed",
-      "log": "output/lab-04-report/runs/phase-2/server-build.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/server-build.log"
     },
     "clientBuild": {
       "exitCode": 0,
       "status": "passed",
-      "log": "output/lab-04-report/runs/phase-2/client-build.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/client-build.log"
     },
     "prismaValidate": {
       "exitCode": 0,
       "status": "passed",
       "cli": "5.22.0",
-      "log": "output/lab-04-report/runs/phase-2/prisma-validate.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/prisma-validate.log"
     },
     "historicalEvidenceVerifier": {
       "exitCode": 0,
       "status": "passed",
       "scope": "historical canonical manifest only; not a fresh-run claim",
-      "log": "output/lab-04-report/runs/phase-2/historical-evidence-verifier.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/historical-evidence-verifier.log"
     },
     "gitDiffCheck": {
       "exitCode": 0,
       "status": "passed",
-      "log": "output/lab-04-report/runs/phase-2/git-diff-check.log"
+      "log": "artifacts/lab-04/final-main/0ec971f5/runs/git-diff-check.log"
     }
   },
   "e2e": {
@@ -160,21 +160,21 @@
         "passed": 3,
         "failed": 0,
         "skipped": 0,
-        "log": "output/lab-04-report/runs/phase-2/lab2-e2e.log"
+        "log": "artifacts/lab-04/final-main/0ec971f5/runs/lab2-e2e.log"
       },
       "lab3": {
         "exitCode": 0,
         "passed": 9,
         "failed": 0,
         "skipped": 0,
-        "log": "output/lab-04-report/runs/phase-2/lab3-e2e.log"
+        "log": "artifacts/lab-04/final-main/0ec971f5/runs/lab3-e2e.log"
       },
       "lab4": {
         "exitCode": 0,
         "passed": 9,
         "failed": 0,
         "skipped": 0,
-        "log": "output/lab-04-report/runs/phase-2/lab4-e2e.log"
+        "log": "artifacts/lab-04/final-main/0ec971f5/runs/lab4-e2e.log"
       }
     },
     "screenshots": {
@@ -211,7 +211,10 @@
       "testIds": [],
       "ac": [],
       "loadedStateAssertions": [],
-      "redactionReview": "Synthetic example.test fixtures; screenshot visually sampled for this suite; full state covered by passing E2E assertions."
+      "redactionReview": "Synthetic example.test fixtures; screenshot visually sampled for this suite; full state covered by passing E2E assertions.",
+      "metadataSidecarPath": null,
+      "metadataSidecarSha256": null,
+      "sidecarStatus": "central run-index entry only; selected Lab 2 capture intentionally has no per-image sidecar"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab2/lab-02/ticket-detail/success-desktop.png",
@@ -235,7 +238,10 @@
       "testIds": [],
       "ac": [],
       "loadedStateAssertions": [],
-      "redactionReview": "Synthetic example.test fixtures; screenshot visually sampled for this suite; full state covered by passing E2E assertions."
+      "redactionReview": "Synthetic example.test fixtures; screenshot visually sampled for this suite; full state covered by passing E2E assertions.",
+      "metadataSidecarPath": null,
+      "metadataSidecarSha256": null,
+      "sidecarStatus": "central run-index entry only; selected Lab 2 capture intentionally has no per-image sidecar"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-desktop.png",
@@ -273,7 +279,10 @@
         "COMPLETED status visible after successful completion",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials."
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-desktop.png.evidence.json",
+      "metadataSidecarSha256": "40f5e0da19e78a7054e61b5fc82f0fe5b4ff1f14d07b764cdee6dd438cab7da0",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-mobile.png",
@@ -311,7 +320,10 @@
         "COMPLETED status visible after successful completion",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials."
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-mobile.png.evidence.json",
+      "metadataSidecarSha256": "7f419cefbdf1b7139d6583615da0d21bf8ce94a35ca55b472d9c29b98ccb9a56",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-tablet.png",
@@ -349,7 +361,10 @@
         "COMPLETED status visible after successful completion",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials."
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-tablet.png.evidence.json",
+      "metadataSidecarSha256": "a39f464d0ed41daee9dd20aab4219da6e6af9745bf2709c4a8a1a1a9a8a875db",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-mobile.png",
@@ -386,7 +401,10 @@
         "Requester write controls absent",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes."
+      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-mobile.png.evidence.json",
+      "metadataSidecarSha256": "c43882a14feee5713d395e64832ec6dfa010aa2e15b84b30515fb046d70df93a",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-tablet.png",
@@ -423,7 +441,10 @@
         "Requester write controls absent",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes."
+      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-tablet.png.evidence.json",
+      "metadataSidecarSha256": "21bedc52c51360c66f931ebacc58b2eb2bf48004a9bd889b5ef5393cc694f149",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-desktop.png",
@@ -460,7 +481,10 @@
         "attention and recent lists loaded",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data."
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-desktop.png.evidence.json",
+      "metadataSidecarSha256": "1b3de9e3580ba597dd31a3da3903c0a162d58db0b25fcc723260f9d66af540de",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-mobile.png",
@@ -497,7 +521,10 @@
         "attention and recent lists loaded",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data."
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-mobile.png.evidence.json",
+      "metadataSidecarSha256": "1e346559fc160ecc07004fc9b8ad8de134600150826ede53e6bcf14aa1012d0c",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-tablet.png",
@@ -534,7 +561,10 @@
         "attention and recent lists loaded",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data."
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-tablet.png.evidence.json",
+      "metadataSidecarSha256": "1c98262ed1602b9a68c3cdb6146d48162f74c4e5afd094831ec987318b2bc8fb",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-desktop.png",
@@ -572,7 +602,10 @@
         "recent/urgent/Action summaries loaded",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data."
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-desktop.png.evidence.json",
+      "metadataSidecarSha256": "7a38f02cbdf81efbc7199f9ab3a728fd5d62ee6d92d6fb35d9d221b6975677f8",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-mobile.png",
@@ -610,7 +643,10 @@
         "recent/urgent/Action summaries loaded",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data."
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-mobile.png.evidence.json",
+      "metadataSidecarSha256": "9b126a1f1fec650fcd5311956a1944ca67bfcd57315cbd0b10fa1c53c593cf3a",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-tablet.png",
@@ -648,7 +684,10 @@
         "recent/urgent/Action summaries loaded",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data."
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-tablet.png.evidence.json",
+      "metadataSidecarSha256": "ae5e1c74eeff8b33c8fae2bd2d55debbdb5c58a4558bd91e1727f2e49f78f5ac",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/admin-reopened-mobile.png",
@@ -683,7 +722,10 @@
         "CANCELLED Ticket reopened and REOPENED status visible",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket summary and seeded synthetic Admin account; no credentials."
+      "redactionReview": "Synthetic ticket summary and seeded synthetic Admin account; no credentials.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/admin-reopened-mobile.png.evidence.json",
+      "metadataSidecarSha256": "da2e1f42a20e37ef5f46afe5b0a5fe56b098a181bfc322405be4339cc6b7e198",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolution-blocked-desktop.png",
@@ -719,7 +761,10 @@
         "truthful Action work gate alert visible",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket summary and synthetic work text; no credentials."
+      "redactionReview": "Synthetic ticket summary and synthetic work text; no credentials.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolution-blocked-desktop.png.evidence.json",
+      "metadataSidecarSha256": "09a5b9f7291cbe79f447c3a3102a853b28e32e1aa5ae3f566ea140e53adde317",
+      "sidecarStatus": "per-image sidecar present"
     },
     {
       "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolved-tablet.png",
@@ -755,7 +800,10 @@
         "persisted public comment appears in staff comments list",
         "responsive viewport and keyboard focus verified"
       ],
-      "redactionReview": "Synthetic ticket, comment, and Action text; seeded synthetic support account; no credentials."
+      "redactionReview": "Synthetic ticket, comment, and Action text; seeded synthetic support account; no credentials.",
+      "metadataSidecarPath": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolved-tablet.png.evidence.json",
+      "metadataSidecarSha256": "1ee9fec155d73b3e824609c381259d7c25b94ebe6de94e93b362d8175cd0c859",
+      "sidecarStatus": "per-image sidecar present"
     }
   ],
   "redactionScan": {
@@ -1366,7 +1414,7 @@
   "integrityAuditedAtUtc": "2026-10-30T17:35:09Z",
   "serverReliabilityInvestigation": {
     "sourceCommit": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
-    "investigation": "Default parallel Vitest runs exposed intermittent transport failures before the relevant handler assertions: the original run failed T-DASH-S-03 with an HTTP parser error; one later allowed run failed a different Lab 2 requester test with socket hang up. Other default runs passed. Failures occur while Supertest uses implicit per-request loopback listeners; the precise OS/socket trigger is not identifiable from the retained response (raw bytes were redacted). This supports a concurrency/environment interaction, not a proven application-code defect.",
+    "investigation": "Default parallel Vitest runs had intermittent HTTP parser/socket failures before relevant handler assertions. The retained evidence does not establish a specific root cause or determine whether the trigger is environmental, in the test harness, in the application listener, or in an interaction among them.",
     "defaultParallel": {
       "observedRecorded": 6,
       "passed": 4,
@@ -1378,7 +1426,7 @@
       "threeAdditionalRecordedRuns": {
         "passed": 3,
         "failed": 0,
-        "index": "output/lab-04-report/runs/phase-2/reliability/reliability-comparison.json"
+        "index": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/reliability-comparison.json"
       }
     },
     "restrictedSandboxAttempts": {
@@ -1393,9 +1441,9 @@
       "skipped": 0,
       "retries": 0,
       "comparisonLogs": [
-        "output/lab-04-report/runs/phase-2/reliability/server-full-serial-01.log",
-        "output/lab-04-report/runs/phase-2/reliability/server-full-serial-02.log",
-        "output/lab-04-report/runs/phase-2/reliability/server-full-serial-03.log"
+        "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-01.log",
+        "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-02.log",
+        "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-03.log"
       ],
       "finalRun": {
         "label": "server-tests-final-serial",
@@ -1413,7 +1461,7 @@
           "testIdsActuallyInLog": []
         },
         "executionMode": "one Vitest worker; test-file parallelism disabled; no tests excluded",
-        "logPath": "output/lab-04-report/runs/phase-2/server-tests-final-serial.log",
+        "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests-final-serial.log",
         "logSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
         "databaseName": null
       }
@@ -1421,26 +1469,26 @@
     "focusedDashboardRerun": {
       "passed": 9,
       "failed": 0,
-      "logPath": "output/lab-04-report/runs/phase-2/server-dashboard-focused-rerun.log",
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-dashboard-focused-rerun.log",
       "logSha256": "bf375d179ee664f0d5eedaa33317703cd19c0977093b9c39b1ddb7f177711dfb"
     },
     "selectedReleaseGateMode": "full server suite with --minWorkers=1 --maxWorkers=1 --no-file-parallelism; no test files or cases excluded",
     "gateDecision": "green for Phase 2 using the serialized, repeated, all-tests execution; disclose that default parallel mode showed intermittent transport failures and retain them as diagnostics",
     "evidence": {
       "originalParallelFailure": {
-        "logPath": "output/lab-04-report/runs/phase-2/server-tests.log",
+        "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests.log",
         "logSha256": "60e850e087eaf684a0ab31eb7b19ec80252eae3788c4c1b422c9b628dfb57086"
       },
       "parallelFullRerun": {
-        "logPath": "output/lab-04-report/runs/phase-2/server-tests-rerun.log",
+        "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests-rerun.log",
         "logSha256": "5a40debf9f2a62e5907531881ccbf19fe9b6f9e49166fcf1e644cd4f6c77801e"
       },
       "comparisonIndex": {
-        "path": "output/lab-04-report/runs/phase-2/reliability/reliability-comparison.json",
+        "path": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/reliability-comparison.json",
         "sha256": "084f026edf85540cb7863dcbfe8689b7450b3c560e143b9b7b9fb9058d5933f3"
       },
       "sandboxIndex": {
-        "path": "output/lab-04-report/runs/phase-2/reliability/server-full-repeatability.json",
+        "path": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-repeatability.json",
         "sha256": "7fb2670db353402b07086453393258546d02a8a9a7f260b5c58ec4922e754344"
       }
     },
@@ -1671,5 +1719,21 @@
       "reviewCopySha256": "18150a6167eadaf56c2942e3499774b4e904eb8bfdcee2a6163cab99f7649f34",
       "normalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
     }
-  ]
+  ],
+  "publicEvidenceNotes": {
+    "selectedPngCount": 16,
+    "selectedLab4PngCount": 14,
+    "selectedLab4SidecarCount": 14,
+    "selectedLab2PngCount": 2,
+    "selectedLab2SidecarCount": 0,
+    "lab2ImagesWithoutSidecars": [
+      "artifacts/lab-04/final-main/0ec971f5/lab2/lab-02/create-ticket/success-desktop.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab2/lab-02/ticket-detail/success-desktop.png"
+    ],
+    "fullRunImageCount": 85,
+    "fullRunLab4Sidecars": 30,
+    "note": "Full-run counts and selected-subset counts refer to different scopes.",
+    "documentationSource": "Evidence was generated on released product source 0ec971f5; documentation/evidence corrections are newer and do not re-run or change product code."
+  },
+  "publicEvidenceIndexUpdatedAtUtc": "2026-10-31T13:10:00Z"
 }

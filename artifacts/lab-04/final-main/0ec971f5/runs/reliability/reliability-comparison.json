@@ -12,7 +12,7 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "output/lab-04-report/runs/phase-2/reliability/server-full-default-01.log",
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-01.log",
       "logSha256": "f71477aeb4f91c8f2b6f322b3a20d0d1c640517e1079f667066983984ff53c8f"
     },
     {
@@ -25,7 +25,7 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "output/lab-04-report/runs/phase-2/reliability/server-full-default-02.log",
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-02.log",
       "logSha256": "ccc07ff410e4ef485a96e62987c5e85aa091866ac31c1366b95c40671fbbdc59"
     },
     {
@@ -38,7 +38,7 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "output/lab-04-report/runs/phase-2/reliability/server-full-default-03.log",
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-03.log",
       "logSha256": "d5d09674f6a144a1d3f8dcc72ccd78f1b972c9c536782320eb00b7d06721078b"
     },
     {
@@ -51,7 +51,7 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "output/lab-04-report/runs/phase-2/reliability/server-full-serial-01.log",
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-01.log",
       "logSha256": "dee05cb486a6db0a4bacafd365e67205a30f26c040a3a3d3f4a19b64cf0efb7d"
     },
     {
@@ -64,7 +64,7 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "output/lab-04-report/runs/phase-2/reliability/server-full-serial-02.log",
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-02.log",
       "logSha256": "913ed89e7c1eca71926fd774515b0b2cf543e44af1c85da20bb0d068cf69a477"
     },
     {
@@ -77,7 +77,7 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "output/lab-04-report/runs/phase-2/reliability/server-full-serial-03.log",
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-03.log",
       "logSha256": "6e2bfe8f13ecff8ff0b3272e0a2a54aaf3f2dd4a35b9e4c85fc13c8e3cb12054"
     }
   ],

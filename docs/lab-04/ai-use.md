@@ -6,7 +6,7 @@ This record is limited to accessible conversation, GitHub and repository evidenc
 
 - **Assistant:** Codex desktop assistant. Per-turn model/version identifiers are unavailable in the retained history; no specific GPT/Luna version is claimed.
 - **Verified tools:** local repository review and editing; GitHub connector reads of Issues, pull requests, paginated review submissions, conversation comments, inline review threads and timelines; retained PostgreSQL/Vitest/Prisma/Playwright run records. The checked run index pins validation commands to source 0ec971f5fe2ddfd7da16575aa959d844bc254811.
-- **Human review:** justfepwx12 performed independent review and approval on PRs #60, #72–#82. Only GitHub review records count as peer approval; assistant inspection is not a substitute.
+- **Human review:** justfepwx12 performed independent review and approval on PRs #60, #72–#82. PR #83 received changes requested in review #5722784089; the correction round is being recorded on the existing PR. It has not been approved or merged. Only GitHub review records count as peer approval; assistant inspection is not a substitute.
 - **Limit:** The source does not retain exact per-turn model IDs or full prompt/provider metadata. This record therefore does not claim that a named smaller model produced the historical code, nor that every selected paraphrase was sent to one fixed model.
 
 ## Selected prompt history
@@ -32,9 +32,9 @@ This reflection is drafted only from decisions and events documented in the user
 
 ## Sources
 
-- Instructor handout: Lab/Lab4/Lab 4.pdf; Lab 4 report requirement and nine-part rubric are described in output/lab-04-report/EXECUTION_PLAN.md.
+- Instructor source: the course-provided Lab 4 handout (nine-part rubric and single-PDF requirement); it is not copied into this repository.
 - Approved contract and review history: docs/lab-04/specification.md, docs/lab-04/api-spec.md, docs/lab-04/reviewer.md, and PR #60.
-- Complete in-scope PR interaction index: output/lab-04-report/review-interactions.csv; paginated raw records: output/lab-04-report/reviews/{own,partner}/.
+- Committed, reviewable interaction index and checksums: [review archive README](../../artifacts/lab-04/review-archive/README.md), [interaction ledger](../../artifacts/lab-04/review-archive/review-interactions.csv), and [PR index](../../artifacts/lab-04/review-archive/review-index.csv). Detailed API response snapshots remain local-only working material.
 - Final-main run provenance: [source-pinned final-main run index](../../artifacts/lab-04/final-main/0ec971f5/run-index.json), with selected redacted logs and screenshot evidence linked from the same folder; source 0ec971f5fe2ddfd7da16575aa959d844bc254811.
 
 No passwords, tokens, database URLs, private user data or real secrets are included. Partner repository material is cited only to document the user's reviews; its requirements, identities, artifacts and claims are not copied into this project's contract or report.

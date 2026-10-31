@@ -14,7 +14,7 @@
     "testIdsActuallyInLog": []
   },
   "executionMode": "one Vitest worker; test-file parallelism disabled; no tests excluded",
-  "logPath": "output/lab-04-report/runs/phase-2/server-tests-final-serial.log",
+  "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests-final-serial.log",
   "logSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
   "databaseName": null
 }

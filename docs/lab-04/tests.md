@@ -189,7 +189,7 @@ This table overlays the AC-to-Test mapping above with the retained run index bel
 | AC-20 | T-PERF-01 passed with the recorded fixture, query counts, p95 values and EXPLAIN output. | Automated check passed | Dashboard reconciliation test passed, but exact SQL/API metric pairs were not retained. |
 | AC-21 | T-E2E-01..03, T-RESP-01 and T-EVID-01 passed; Lab 4 browser matrix 9/9, one worker, zero retries; captured artifacts are hash-indexed. | Automated/provenance checks passed | Only selected screenshots are assigned as report figures; the full two-repository PR archive is not screenshot-complete. |
 | AC-22 | T-CONTRACT-01 and contract/evidence suite passed 24/24. | Automated check passed | The report's visual source excerpts and final assembled crosswalk remain to be completed in Phase 5. |
-| AC-23 | Independent review/merge records exist for L4-01 through L4-11 and are linked in `reviewer.md`. | Partial | Issue #71 documentation close-out PR does not yet exist and Kanban remains Started, so the all-Done condition is unmet. |
+| AC-23 | Independent review/merge records exist for L4-01 through L4-11 and are linked in `reviewer.md`. | Partial | PR #83 is open with changes requested in review #5722784089; Issue #71 is in Fixing on that same close-out. Peer approval/merge, final PDF QA and the all-Done condition remain unmet. |
 | AC-24 | Final-main validation passed on `0ec971f5`; PR #82 is reviewed and merged. | Partial / release close-out pending | Documentation-only close-out review/merge, one final PDF QA and Issue #71 completion remain. |
 
 ## 6.2 Actual execution status at final-main
@@ -210,7 +210,7 @@ The following is the actual retained Phase 2 run for released main source commit
 
 Other final-main checks at the same source SHA: server and client builds passed; repository-local Prisma CLI and client version were 5.22.0, and `./node_modules/.bin/prisma validate --schema prisma/schema.prisma` passed; `git diff --check` passed. Migration deploy applied, in order: 20260816095224_init, 20260906010000_lab2_data_foundation, 20260915150000_lab3_data_foundation and 20261009120000_lab4_actions_workflow. The test database URL and synthetic credentials are redacted and not reproduced here.
 
-The first default-parallel server attempt reported 174 passed and one T-DASH-S-03 HTTP parser/transport failure before the handler assertion. Other default-parallel runs included another isolated Supertest socket transport error; those diagnostic runs remain archived. Repeated one-worker serial full-suite comparisons passed; the final source-pinned serial run was 175/175 with zero failures/skips/retries. See [reliability-investigation.md](../../output/lab-04-report/runs/phase-2/reliability-investigation.md) and the comparison indexes for the complete record.
+The first default-parallel server attempt reported 174 passed and one T-DASH-S-03 HTTP parser/transport failure before the handler assertion. Other default-parallel runs included another isolated Supertest socket transport error; those diagnostic runs remain archived. The evidence does not establish a specific root cause. Repeated one-worker serial full-suite comparisons passed; the final source-pinned serial run was 175/175 with zero failures/skips/retries. See the committed [reliability investigation](../../artifacts/lab-04/final-main/0ec971f5/runs/reliability-investigation.md) and [run index](../../artifacts/lab-04/final-main/0ec971f5/run-index.json).
 
 ## 7. TDD and reproducible execution rules
 
