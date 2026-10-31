@@ -1,0 +1,1675 @@
+{
+  "schemaVersion": 1,
+  "phase": "2-final-main-validation",
+  "sourceCommit": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+  "documentationCommit": null,
+  "branch": "feature/lab4-12-final-main-closeout",
+  "sourceTreeComparison": {
+    "releasedMainSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+    "trackedProductTestToolDiff": "identical",
+    "sourceTreeGuardExitCode": 0
+  },
+  "runtime": {
+    "node": "v25.5.0",
+    "npm": "11.8.0",
+    "prismaCli": "5.22.0",
+    "postgres": "16.15",
+    "playwright": "1.63.0",
+    "npxAvailable": true
+  },
+  "databaseScopes": {
+    "migration": "toktickit_lab4_final_migration_20261031_test",
+    "integration": "toktickit_lab4_final_integration_20261031_test",
+    "e2e": "toktickit_lab4_final_e2e_20261031_test",
+    "endpoint": "127.0.0.1:55432; isolated local cluster on alternate port",
+    "credentials": "synthetic in-memory only; no credential values retained",
+    "postRunClusterStatus": "Stopped; pg_ctl status returned no server running at 2026-10-30T17:35:09Z. Disposable _test databases retained; none dropped."
+  },
+  "migrations": {
+    "exitCode": 0,
+    "appliedCount": 4,
+    "names": [
+      "20260816095224_init",
+      "20260906010000_lab2_data_foundation",
+      "20260915150000_lab3_data_foundation",
+      "20261009120000_lab4_actions_workflow"
+    ],
+    "inventoryLog": "output/lab-04-report/runs/phase-2/migration-inventory.log"
+  },
+  "integration": {
+    "firstRunExitCode": 0,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "testFiles": 6,
+    "testIds": [
+      "T-ACT-08",
+      "T-DB-DASH-01",
+      "T-MIG-01",
+      "T-MIG-02",
+      "T-MIG-03",
+      "T-MIG-04",
+      "T-MIG-05",
+      "T-PERF-01",
+      "T-RACE-01",
+      "T-RACE-02",
+      "T-RACE-03",
+      "T-RACE-04"
+    ],
+    "performance": {
+      "requesterQueryCount": 8,
+      "staffQueryCount": 11,
+      "requesterP95Ms": 13.36,
+      "staffP95Ms": 38.5,
+      "fixtureCounts": {
+        "tickets": 5000,
+        "actions": 10000
+      },
+      "explainEvidenceLog": "output/lab-04-report/runs/phase-2/postgres-integration.log"
+    }
+  },
+  "suites": {
+    "serverFullInitial": {
+      "exitCode": 1,
+      "passed": 174,
+      "failed": 1,
+      "skipped": 0,
+      "failure": "T-DASH-S-03 forbidden requester dashboard test: HTTP parser error, raw response bytes redacted; root cause not established",
+      "log": "output/lab-04-report/runs/phase-2/server-tests.log"
+    },
+    "serverFocusedRerun": {
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "log": "output/lab-04-report/runs/phase-2/server-dashboard-focused-rerun.log"
+    },
+    "serverFullRerun": {
+      "exitCode": 0,
+      "passed": 175,
+      "failed": 0,
+      "skipped": 0,
+      "log": "output/lab-04-report/runs/phase-2/server-tests-rerun.log"
+    },
+    "client": {
+      "exitCode": 0,
+      "passed": 134,
+      "failed": 0,
+      "skipped": 0,
+      "files": 30,
+      "log": "output/lab-04-report/runs/phase-2/client-tests.log"
+    },
+    "contract": {
+      "exitCode": 0,
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "log": "output/lab-04-report/runs/phase-2/contract-tests.log"
+    },
+    "serverBuild": {
+      "exitCode": 0,
+      "status": "passed",
+      "log": "output/lab-04-report/runs/phase-2/server-build.log"
+    },
+    "clientBuild": {
+      "exitCode": 0,
+      "status": "passed",
+      "log": "output/lab-04-report/runs/phase-2/client-build.log"
+    },
+    "prismaValidate": {
+      "exitCode": 0,
+      "status": "passed",
+      "cli": "5.22.0",
+      "log": "output/lab-04-report/runs/phase-2/prisma-validate.log"
+    },
+    "historicalEvidenceVerifier": {
+      "exitCode": 0,
+      "status": "passed",
+      "scope": "historical canonical manifest only; not a fresh-run claim",
+      "log": "output/lab-04-report/runs/phase-2/historical-evidence-verifier.log"
+    },
+    "gitDiffCheck": {
+      "exitCode": 0,
+      "status": "passed",
+      "log": "output/lab-04-report/runs/phase-2/git-diff-check.log"
+    }
+  },
+  "e2e": {
+    "configuration": {
+      "workers": 1,
+      "retries": 0,
+      "viewportMatrix": {
+        "desktop": [
+          1440,
+          900
+        ],
+        "tablet": [
+          768,
+          1024
+        ],
+        "mobile": [
+          320,
+          800
+        ]
+      },
+      "trace": "off",
+      "artifacts": "separate per suite under this source SHA"
+    },
+    "results": {
+      "lab2": {
+        "exitCode": 0,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "log": "output/lab-04-report/runs/phase-2/lab2-e2e.log"
+      },
+      "lab3": {
+        "exitCode": 0,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "log": "output/lab-04-report/runs/phase-2/lab3-e2e.log"
+      },
+      "lab4": {
+        "exitCode": 0,
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "log": "output/lab-04-report/runs/phase-2/lab4-e2e.log"
+      }
+    },
+    "screenshots": {
+      "total": 85,
+      "perSuite": {
+        "lab2": 19,
+        "lab3": 36,
+        "lab4": 30
+      },
+      "manifest": "embedded screenshots array in this run-index.json",
+      "sidecarCompleteness": "30/30 Lab4 screenshots have AC/Test IDs, loaded-state assertions, and redaction review"
+    }
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab2/lab-02/create-ticket/success-desktop.png",
+      "suite": "lab2",
+      "state": "success",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "imageSize": {
+        "width": 1440,
+        "fullPageHeight": 900
+      },
+      "bytes": 86876,
+      "sha256": "b42fcfc8de9647e1a1bc5344a991aa6bf55e103170949ba3252de2ba2b5c92ae",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab2-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:18:46+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [],
+      "ac": [],
+      "loadedStateAssertions": [],
+      "redactionReview": "Synthetic example.test fixtures; screenshot visually sampled for this suite; full state covered by passing E2E assertions."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab2/lab-02/ticket-detail/success-desktop.png",
+      "suite": "lab2",
+      "state": "success",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "imageSize": {
+        "width": 1440,
+        "fullPageHeight": 1871
+      },
+      "bytes": 198672,
+      "sha256": "ff9c0b97e6150cf6bf99703f1e28512ab163297363ea1e2e3156dfada4be3110",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab2-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:18:46+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [],
+      "ac": [],
+      "loadedStateAssertions": [],
+      "redactionReview": "Synthetic example.test fixtures; screenshot visually sampled for this suite; full state covered by passing E2E assertions."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-desktop.png",
+      "suite": "lab4",
+      "state": "completed",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "imageSize": {
+        "width": 1440,
+        "fullPageHeight": 2861
+      },
+      "bytes": 250545,
+      "sha256": "c5bc527ce58bad1e07f7c8c355a1a09dcb443c05cf07c8deaf8c1578f77ba298",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:22:58+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-01",
+        "AC-04",
+        "AC-05",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "updated Action row visible",
+        "IN PROGRESS status visible",
+        "COMPLETED status visible after successful completion",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-mobile.png",
+      "suite": "lab4",
+      "state": "completed",
+      "project": "mobile",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "imageSize": {
+        "width": 320,
+        "fullPageHeight": 4312
+      },
+      "bytes": 234944,
+      "sha256": "ffc9b7ceec73345dae96db377a1191a72ffaae279584d4d5882a602815dc44f0",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:28:40+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-01",
+        "AC-04",
+        "AC-05",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "updated Action row visible",
+        "IN PROGRESS status visible",
+        "COMPLETED status visible after successful completion",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-tablet.png",
+      "suite": "lab4",
+      "state": "completed",
+      "project": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "imageSize": {
+        "width": 768,
+        "fullPageHeight": 3519
+      },
+      "bytes": 241056,
+      "sha256": "4e0a7943ef33fb2709a89d3ddab8f61a84ec1798c7e442e358c69d9f89ff436b",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:25:44+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-01",
+        "AC-04",
+        "AC-05",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "updated Action row visible",
+        "IN PROGRESS status visible",
+        "COMPLETED status visible after successful completion",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; only seeded synthetic support identities; no credentials."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-mobile.png",
+      "suite": "lab4",
+      "state": "requester-read-only",
+      "project": "mobile",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "imageSize": {
+        "width": 320,
+        "fullPageHeight": 3997
+      },
+      "bytes": 223503,
+      "sha256": "1a45dd1b2fb694096848d6004b8c082561c840e4ea224b3c80a09b0ecad3908a",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:28:56+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-06",
+        "AC-18",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "owned Ticket heading visible",
+        "completed and cancelled Actions visible",
+        "Requester write controls absent",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-tablet.png",
+      "suite": "lab4",
+      "state": "requester-read-only",
+      "project": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "imageSize": {
+        "width": 768,
+        "fullPageHeight": 3244
+      },
+      "bytes": 228826,
+      "sha256": "f83c53251e5a7bf95bac968d1de6ff6f9a9f8e63e6cd6aebbaf57ec455101c1e",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:26:00+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-01",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-06",
+        "AC-18",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "owned Ticket heading visible",
+        "completed and cancelled Actions visible",
+        "Requester write controls absent",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket and Action text; no real identity, credentials, or private notes."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-desktop.png",
+      "suite": "lab4",
+      "state": "loaded",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "imageSize": {
+        "width": 1440,
+        "fullPageHeight": 1250
+      },
+      "bytes": 162552,
+      "sha256": "d927237bd43dc8d894ce73a4592c6db008ddc60db1babda6e91845e3c15feddc",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:23:30+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-10",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "requester metrics reconciled with owned Ticket list",
+        "attention and recent lists loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-mobile.png",
+      "suite": "lab4",
+      "state": "loaded",
+      "project": "mobile",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "imageSize": {
+        "width": 320,
+        "fullPageHeight": 2773
+      },
+      "bytes": 159303,
+      "sha256": "7ed7c01e4a225a00b32990d6b8a55cea7681907b4fc83e2c94a3bfbe664054ba",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:29:11+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-10",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "requester metrics reconciled with owned Ticket list",
+        "attention and recent lists loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-tablet.png",
+      "suite": "lab4",
+      "state": "loaded",
+      "project": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "imageSize": {
+        "width": 768,
+        "fullPageHeight": 1591
+      },
+      "bytes": 155440,
+      "sha256": "d66b99b285e8e79b98ef8f86e12b208339be2d60bd00a0788c8553b1b2ef16b4",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:26:16+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-10",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "requester metrics reconciled with owned Ticket list",
+        "attention and recent lists loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded/request-created Ticket summaries; no credentials or real user data."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-desktop.png",
+      "suite": "lab4",
+      "state": "loaded",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "imageSize": {
+        "width": 1440,
+        "fullPageHeight": 1770
+      },
+      "bytes": 200590,
+      "sha256": "0c05a7a94493e7e5f199f609f70b1da95492b701eb7a6373e616b51ba89862d8",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:23:45+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-11",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "staff metrics reconciled with authenticated queue and current-user data",
+        "status and priority buckets reconciled",
+        "recent/urgent/Action summaries loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-mobile.png",
+      "suite": "lab4",
+      "state": "loaded",
+      "project": "mobile",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "imageSize": {
+        "width": 320,
+        "fullPageHeight": 3897
+      },
+      "bytes": 206065,
+      "sha256": "e81d2f1ee1ff04cd4762290417118aa131910d513af411929978870bd514fe2b",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:29:27+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-11",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "staff metrics reconciled with authenticated queue and current-user data",
+        "status and priority buckets reconciled",
+        "recent/urgent/Action summaries loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-tablet.png",
+      "suite": "lab4",
+      "state": "loaded",
+      "project": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "imageSize": {
+        "width": 768,
+        "fullPageHeight": 2150
+      },
+      "bytes": 198285,
+      "sha256": "7c6e9e7064a30b5ed37ef1bc5feec50a45ba948a38d846156d4fe3cce2a3845e",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:26:31+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-03",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-11",
+        "AC-12",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "staff metrics reconciled with authenticated queue and current-user data",
+        "status and priority buckets reconciled",
+        "recent/urgent/Action summaries loaded",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Dashboard contains only synthetic seeded Ticket/Action data; no credentials or real user data."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/admin-reopened-mobile.png",
+      "suite": "lab4",
+      "state": "admin-reopened",
+      "project": "mobile",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "imageSize": {
+        "width": 320,
+        "fullPageHeight": 3504
+      },
+      "bytes": 188039,
+      "sha256": "0c5dc57519cfef6bfc6759a61ca0bc35f71df513510adc9aa99d8f6821b8ec4e",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:31:02+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-07",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "Admin role signed in",
+        "CANCELLED Ticket reopened and REOPENED status visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and seeded synthetic Admin account; no credentials."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolution-blocked-desktop.png",
+      "suite": "lab4",
+      "state": "resolution-blocked",
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "imageSize": {
+        "width": 1440,
+        "fullPageHeight": 2495
+      },
+      "bytes": 209772,
+      "sha256": "d3648734ed0e90af5467b430d2a29cf0dde07779e7d3fb4227858ede2861f864",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:24:22+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-08",
+        "AC-14",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "resolution confirmation dialog closed",
+        "truthful Action work gate alert visible",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket summary and synthetic work text; no credentials."
+    },
+    {
+      "path": "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolved-tablet.png",
+      "suite": "lab4",
+      "state": "resolved",
+      "project": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "imageSize": {
+        "width": 768,
+        "fullPageHeight": 3346
+      },
+      "bytes": 238763,
+      "sha256": "d1f42da216ab01e6b5380415f1c86864aeac8e0d15a6ce59508fe221245dc28d",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "capturedDuringRun": "lab4-e2e",
+      "observedFileTimeUtc": "2026-10-30T17:27:19+00:00",
+      "evidenceKind": "live-playwright",
+      "testIds": [
+        "T-E2E-02",
+        "T-RESP-01"
+      ],
+      "ac": [
+        "AC-08",
+        "AC-13",
+        "AC-19",
+        "AC-21"
+      ],
+      "loadedStateAssertions": [
+        "Current Status shows RESOLVED",
+        "persisted public comment appears in staff comments list",
+        "responsive viewport and keyboard focus verified"
+      ],
+      "redactionReview": "Synthetic ticket, comment, and Action text; seeded synthetic support account; no credentials."
+    }
+  ],
+  "redactionScan": {
+    "retainedTextLogsAndLab4Sidecars": "no database URL, GitHub token, bearer token, or non-example email pattern found",
+    "visualInspection": "representative loaded screenshots sampled from all three suites and mobile/tablet/desktop; synthetic example.test identities visible; no credential fields submitted or stored"
+  },
+  "historicalEvidenceWriterInvoked": false,
+  "phaseGateGreen": true,
+  "blockers": [],
+  "runs": [
+    {
+      "label": "prisma-version",
+      "command": "cd server && ./node_modules/.bin/prisma --version",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:15+00:00",
+      "endUtc": "2026-10-30T17:18:16+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/prisma-version.log",
+      "logSha256": "2bed5d3feecb1e70fffbb1dcb27e9f65afe1a3700e525f7d84f61ae2008c1e39",
+      "databaseName": "toktickit_lab4_final_migration_20261031_test",
+      "rawLogSha256": "2bed5d3feecb1e70fffbb1dcb27e9f65afe1a3700e525f7d84f61ae2008c1e39",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "prisma-validate",
+      "command": "cd server && DATABASE_URL=<redacted; migration _test database> ./node_modules/.bin/prisma validate --schema prisma/schema.prisma",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:16+00:00",
+      "endUtc": "2026-10-30T17:18:16+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/prisma-validate.log",
+      "logSha256": "919c26cbd154c540c8a110d57d3f91dc02c8c73f4e8edb56cddc7bb0b4beea22",
+      "databaseName": "toktickit_lab4_final_migration_20261031_test",
+      "rawLogSha256": "919c26cbd154c540c8a110d57d3f91dc02c8c73f4e8edb56cddc7bb0b4beea22",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "migration-deploy",
+      "command": "cd server && DATABASE_URL=<redacted; fresh migration _test database> ./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:16+00:00",
+      "endUtc": "2026-10-30T17:18:16+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/migration-deploy.log",
+      "logSha256": "6445831484a82468772b0e631db1b4d48fddf00fa6a644d58c0e96e897b9070e",
+      "databaseName": "toktickit_lab4_final_migration_20261031_test",
+      "rawLogSha256": "300c2022ddece9b94dbb5065f82c35f7eaf6a5cce30590f6dbc2671b528de63c",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "migration-inventory",
+      "command": "psql <migration _test db> -Atqc 'current_database, applied migration count/names'",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:16+00:00",
+      "endUtc": "2026-10-30T17:18:16+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/migration-inventory.log",
+      "logSha256": "a82fe550e4019ed293c6e67a2a33b833bbac2015874b6f7142d91d7a349f1b84",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "a82fe550e4019ed293c6e67a2a33b833bbac2015874b6f7142d91d7a349f1b84",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "integration-prepare",
+      "command": "DATABASE_URL_TEST=<redacted; integration _test> LAB3_INITIAL_PASSWORD=<synthetic; redacted> node scripts/lab-04/prepare-test-database.mjs --reset",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:16+00:00",
+      "endUtc": "2026-10-30T17:18:18+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/integration-prepare.log",
+      "logSha256": "7a6e5533674182ceb7f9f0775daaf7918f93d3e8b82eb711f72a08a80e9e56a5",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "0a05748e102c74cc09bce236cfc5b31b76a1b150ee4b9970aa2f1c7575a670c8",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "postgres-integration",
+      "command": "cd server && npm run test:integration -- --reporter=verbose",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:18+00:00",
+      "endUtc": "2026-10-30T17:18:24+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 20,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": [
+          "T-ACT-08",
+          "T-DB-DASH-01",
+          "T-MIG-01",
+          "T-MIG-02",
+          "T-MIG-03",
+          "T-MIG-04",
+          "T-MIG-05",
+          "T-PERF-01",
+          "T-RACE-01",
+          "T-RACE-02",
+          "T-RACE-03",
+          "T-RACE-04"
+        ]
+      },
+      "logPath": "runs/postgres-integration.log",
+      "logSha256": "a0ba4537f6240d6e9bf499aa334764ecc5425ed6245f650a40a743ade15965a3",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "37315fed80ce0d129a237037d1808a6f7ee49cd32d1cec0c281aea5e7bf95b61",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "server-tests",
+      "command": "cd server && npm test -- --reporter=verbose",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:24+00:00",
+      "endUtc": "2026-10-30T17:18:26+00:00",
+      "exitCode": 1,
+      "counts": {
+        "passed": 174,
+        "failed": 1,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": [
+          "T-ACT",
+          "T-ACT-01",
+          "T-ACT-02",
+          "T-ACT-03",
+          "T-ACT-04",
+          "T-ACT-05",
+          "T-ACT-06",
+          "T-ACT-07",
+          "T-ACT-09",
+          "T-ADMIN-01",
+          "T-ADMIN-02",
+          "T-ADMIN-03",
+          "T-ADMIN-04",
+          "T-AUTH-01",
+          "T-AUTH-02",
+          "T-AUTH-03",
+          "T-AUTH-04",
+          "T-AUTH-05",
+          "T-AUTH-06",
+          "T-AUTHZ-01",
+          "T-AUTHZ-02",
+          "T-AUTHZ-04",
+          "T-AUTHZ-05",
+          "T-COMMENT-01",
+          "T-COMMENT-02",
+          "T-COMMENT-03",
+          "T-COMMENT-05",
+          "T-DASH-R-01",
+          "T-DASH-R-02",
+          "T-DASH-S-01",
+          "T-DASH-S-02",
+          "T-DASH-S-03",
+          "T-DASH-S-04",
+          "T-DETAIL-01",
+          "T-DETAIL-02",
+          "T-DETAIL-03",
+          "T-QUERY-01",
+          "T-REG-01",
+          "T-REG-02",
+          "T-SEC",
+          "T-SEC-01",
+          "T-SEC-02",
+          "T-SEC-03",
+          "T-STAFF-01",
+          "T-STAFF-02",
+          "T-STAFF-03",
+          "T-STAFF-04",
+          "T-UNIT-01",
+          "T-UNIT-02",
+          "T-UNIT-03",
+          "T-UNIT-04",
+          "T-WF-01",
+          "T-WF-02",
+          "T-WF-03",
+          "T-WF-04"
+        ]
+      },
+      "logPath": "runs/server-tests.log",
+      "logSha256": "18150a6167eadaf56c2942e3499774b4e904eb8bfdcee2a6163cab99f7649f34",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "preRedactionSha256": "9405bd6a472f16352a9b4e45fac2df6ddba7d5a94065878f7d8f24de954daff3",
+      "logRedaction": "Removed raw response byte payload; retained parser error and test identity/counts.",
+      "rawLogSha256": "60e850e087eaf684a0ab31eb7b19ec80252eae3788c4c1b422c9b628dfb57086",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "client-tests",
+      "command": "cd client && npm test -- --reporter=verbose",
+      "cwd": "client",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:26+00:00",
+      "endUtc": "2026-10-30T17:18:31+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 134,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": [
+          "T-A11Y-01",
+          "T-STYLE-01",
+          "T-UI-01",
+          "T-UI-02",
+          "T-UI-03",
+          "T-UI-04",
+          "T-UI-05",
+          "T-UI-06",
+          "T-UI-07",
+          "T-UI-08",
+          "T-UI-09",
+          "T-UI-ACT-01",
+          "T-UI-ACT-02",
+          "T-UI-ACT-03",
+          "T-UI-ACT-04",
+          "T-UI-ACT-05",
+          "T-UI-DR-01",
+          "T-UI-DS-01",
+          "T-UI-NAV-01",
+          "T-UI-NAV-02",
+          "T-UI-REG-01",
+          "T-UI-REG-02",
+          "T-UI-WF-01",
+          "T-UI-WF-02"
+        ]
+      },
+      "logPath": "runs/client-tests.log",
+      "logSha256": "7c478261849a7455e789ca9101a0274bef74b3c4cbcb44a62dfb4229bc4836ef",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "0a1514f28598fcbd46c845250453be4b83ce8822fc1066088667994261dc787a",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "server-build",
+      "command": "cd server && npm run build",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:31+00:00",
+      "endUtc": "2026-10-30T17:18:32+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/server-build.log",
+      "logSha256": "1b599cb12dd98cd38ffc9f62d77a9494144a16af2c807685a60a47e26fa29701",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "f6899a65aa9dc478cd42c10b5cf3e84c184563a549fef717796bc43dd0905ad0",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "client-build",
+      "command": "cd client && npm run build",
+      "cwd": "client",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:32+00:00",
+      "endUtc": "2026-10-30T17:18:34+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/client-build.log",
+      "logSha256": "952c0612a41152a69eac894fde424d3fccbd98c9fb6448abc3e54bcd1b77e238",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "952c0612a41152a69eac894fde424d3fccbd98c9fb6448abc3e54bcd1b77e238",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "contract-tests",
+      "command": "node --test scripts/lab-04/verify-contract.test.mjs",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:34+00:00",
+      "endUtc": "2026-10-30T17:18:34+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 24,
+        "failed": 0,
+        "skipped": 0,
+        "retriesOrFlaky": 0,
+        "testIdsActuallyInLog": [
+          "T-CONTRACT-01",
+          "T-E2E-02",
+          "T-E2E-03",
+          "T-EVID-01",
+          "T-UI-ACT-05"
+        ]
+      },
+      "logPath": "runs/contract-tests.log",
+      "logSha256": "9611746b071ccd1cbb1da6d88c8db311d8977dfa3bc7c63c1a1998f1d8be09b4",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "9611746b071ccd1cbb1da6d88c8db311d8977dfa3bc7c63c1a1998f1d8be09b4",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "historical-evidence-verifier",
+      "command": "node scripts/lab-04/verify-contract.mjs (historical canonical manifest; not fresh final-main evidence)",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:34+00:00",
+      "endUtc": "2026-10-30T17:18:35+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/historical-evidence-verifier.log",
+      "logSha256": "e386a70de8cf10b6367256f37cadd57a66981a5acd8490fc9c317103887f2323",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "e386a70de8cf10b6367256f37cadd57a66981a5acd8490fc9c317103887f2323",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "lab2-e2e-prepare",
+      "command": "DATABASE_URL_TEST=<redacted; lab2 E2E _test> node scripts/lab-04/prepare-test-database.mjs --reset",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:35+00:00",
+      "endUtc": "2026-10-30T17:18:35+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/lab2-e2e-prepare.log",
+      "logSha256": "904faac0f76c787bc693ef578e061004655f72edf345afe9184ec325d9208363",
+      "databaseName": "toktickit_lab4_final_e2e_20261031_test",
+      "rawLogSha256": "da6b23cb2fde1fde832fa763e804375dad86e9f73de26a5967a9295d33f96a1c",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "lab2-e2e",
+      "command": "cd client && E2E_SUITE=lab2 npm run test:e2e -- --workers=1 --retries=0 --trace off",
+      "cwd": "client",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:18:35+00:00",
+      "endUtc": "2026-10-30T17:19:56+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 3,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": [
+          "T-UI-REG-01"
+        ]
+      },
+      "logPath": "runs/lab2-e2e.log",
+      "logSha256": "1625d65f9b252981992aa798dd313da9fe49aefd511fa7c9749203c36595e874",
+      "databaseName": "toktickit_lab4_final_e2e_20261031_test",
+      "rawLogSha256": "1625d65f9b252981992aa798dd313da9fe49aefd511fa7c9749203c36595e874",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "lab3-e2e-prepare",
+      "command": "DATABASE_URL_TEST=<redacted; lab3 E2E _test> node scripts/lab-04/prepare-test-database.mjs --reset",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:19:56+00:00",
+      "endUtc": "2026-10-30T17:19:57+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/lab3-e2e-prepare.log",
+      "logSha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6",
+      "databaseName": "toktickit_lab4_final_e2e_20261031_test",
+      "rawLogSha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "lab3-e2e",
+      "command": "cd client && E2E_SUITE=lab3 npm run test:e2e:lab3 -- --workers=1 --retries=0 --trace off",
+      "cwd": "client",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:19:57+00:00",
+      "endUtc": "2026-10-30T17:22:42+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 9,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": [
+          "T-E2E-01",
+          "T-E2E-02",
+          "T-E2E-03"
+        ]
+      },
+      "logPath": "runs/lab3-e2e.log",
+      "logSha256": "86082ac669aab6423295c3564de5bc56868068144887f01718b5121b6563c786",
+      "databaseName": "toktickit_lab4_final_e2e_20261031_test",
+      "rawLogSha256": "86082ac669aab6423295c3564de5bc56868068144887f01718b5121b6563c786",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "lab4-e2e-prepare",
+      "command": "DATABASE_URL_TEST=<redacted; lab4 E2E _test> node scripts/lab-04/prepare-test-database.mjs --reset",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:22:42+00:00",
+      "endUtc": "2026-10-30T17:22:43+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/lab4-e2e-prepare.log",
+      "logSha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6",
+      "databaseName": "toktickit_lab4_final_e2e_20261031_test",
+      "rawLogSha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "lab4-e2e",
+      "command": "cd client && E2E_SUITE=lab4 npm run test:e2e:lab4 -- --workers=1 --retries=0 --trace off",
+      "cwd": "client",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:22:43+00:00",
+      "endUtc": "2026-10-30T17:31:03+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 9,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": [
+          "T-E2E-01",
+          "T-E2E-02",
+          "T-E2E-03",
+          "T-RESP-01"
+        ]
+      },
+      "logPath": "runs/lab4-e2e.log",
+      "logSha256": "efdc39c7720e2f6574f377edd1640d3d4a6b958ecc25727b16378fdc6873022a",
+      "databaseName": "toktickit_lab4_final_e2e_20261031_test",
+      "rawLogSha256": "efdc39c7720e2f6574f377edd1640d3d4a6b958ecc25727b16378fdc6873022a",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "source-tree-guard",
+      "command": "git diff --exit-code 0ec971f5fe2ddfd7da16575aa959d844bc254811 -- product/test/tool files",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:31:03+00:00",
+      "endUtc": "2026-10-30T17:31:03+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": null,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/source-tree-guard.log",
+      "logSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "server-dashboard-focused-rerun",
+      "command": "cd server && npm test -- --reporter=verbose tests/lab-04/staff-dashboard.api.test.ts",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:31:41+00:00",
+      "endUtc": "2026-10-30T17:31:42+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 9,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": 0
+      },
+      "logPath": "runs/server-dashboard-focused-rerun.log",
+      "logSha256": "8719e8c4df0472bd83409930c9670b2b724bda44f2f69ed27f54dab7f7e6e1e1",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "bf375d179ee664f0d5eedaa33317703cd19c0977093b9c39b1ddb7f177711dfb",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "server-tests-rerun",
+      "command": "cd server && npm test -- --reporter=verbose (same full-suite command; rerun after isolated failure)",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:31:56+00:00",
+      "endUtc": "2026-10-30T17:31:58+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 175,
+        "failed": null,
+        "skipped": null,
+        "retriesOrFlaky": 0
+      },
+      "logPath": "runs/server-tests-rerun.log",
+      "logSha256": "a626d9b473828e7cb54b3029277cd27398f73d8bf7a078c4e9db0b0e5cbf3729",
+      "databaseName": "toktickit_lab4_final_integration_20261031_test",
+      "rawLogSha256": "5a40debf9f2a62e5907531881ccbf19fe9b6f9e49166fcf1e644cd4f6c77801e",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "git-diff-check",
+      "command": "git diff --check",
+      "cwd": ".",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T17:34:04+00:00",
+      "endUtc": "2026-10-30T17:34:04+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": null,
+        "failed": null,
+        "skipped": 0,
+        "retriesOrFlaky": 0,
+        "testIdsActuallyInLog": []
+      },
+      "logPath": "runs/git-diff-check.log",
+      "logSha256": "101a38ff3f2b1581da4dc615304b800724a422294783ade63ddd912e40b93904",
+      "databaseName": null,
+      "rawLogSha256": "101a38ff3f2b1581da4dc615304b800724a422294783ade63ddd912e40b93904",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "label": "server-tests-final-serial",
+      "command": "cd server && npm test -- --reporter=dot --minWorkers=1 --maxWorkers=1 --no-file-parallelism",
+      "cwd": "server",
+      "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+      "startUtc": "2026-10-30T20:13:55+00:00",
+      "endUtc": "2026-10-30T20:14:00+00:00",
+      "exitCode": 0,
+      "counts": {
+        "passed": 175,
+        "failed": 0,
+        "skipped": 0,
+        "retriesOrFlaky": 0,
+        "testIdsActuallyInLog": []
+      },
+      "executionMode": "one Vitest worker; test-file parallelism disabled; no tests excluded",
+      "logPath": "runs/server-tests-final-serial.log",
+      "logSha256": "a0a64ef95df2d7960ddddd1f6242504aaa4a84c72ac6e02d177127504bee090b",
+      "databaseName": null,
+      "rawLogSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
+      "logNormalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    }
+  ],
+  "generatedAtUtc": "2026-10-30T20:14:00+00:00",
+  "integrityAuditedAtUtc": "2026-10-30T17:35:09Z",
+  "serverReliabilityInvestigation": {
+    "sourceCommit": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+    "investigation": "Default parallel Vitest runs exposed intermittent transport failures before the relevant handler assertions: the original run failed T-DASH-S-03 with an HTTP parser error; one later allowed run failed a different Lab 2 requester test with socket hang up. Other default runs passed. Failures occur while Supertest uses implicit per-request loopback listeners; the precise OS/socket trigger is not identifiable from the retained response (raw bytes were redacted). This supports a concurrency/environment interaction, not a proven application-code defect.",
+    "defaultParallel": {
+      "observedRecorded": 6,
+      "passed": 4,
+      "failed": 2,
+      "failures": [
+        "T-DASH-S-03 HTTP parser error (original Phase 2 retained log)",
+        "Lab 2 missing/inactive requester case socket hang up (one subsequent tool-output observation; no standalone retained log)"
+      ],
+      "threeAdditionalRecordedRuns": {
+        "passed": 3,
+        "failed": 0,
+        "index": "output/lab-04-report/runs/phase-2/reliability/reliability-comparison.json"
+      }
+    },
+    "restrictedSandboxAttempts": {
+      "count": 12,
+      "classification": "invalid environment attempts; listener bind blocked with EPERM, not product/test assertions",
+      "index": "runs/reliability/server-full-repeatability.json"
+    },
+    "serialized": {
+      "retainedPasses": 4,
+      "totalTestsEach": 175,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "comparisonLogs": [
+        "output/lab-04-report/runs/phase-2/reliability/server-full-serial-01.log",
+        "output/lab-04-report/runs/phase-2/reliability/server-full-serial-02.log",
+        "output/lab-04-report/runs/phase-2/reliability/server-full-serial-03.log"
+      ],
+      "finalRun": {
+        "label": "server-tests-final-serial",
+        "command": "cd server && npm test -- --reporter=dot --minWorkers=1 --maxWorkers=1 --no-file-parallelism",
+        "cwd": "server",
+        "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+        "startUtc": "2026-10-30T20:13:55+00:00",
+        "endUtc": "2026-10-30T20:14:00+00:00",
+        "exitCode": 0,
+        "counts": {
+          "passed": 175,
+          "failed": 0,
+          "skipped": 0,
+          "retriesOrFlaky": 0,
+          "testIdsActuallyInLog": []
+        },
+        "executionMode": "one Vitest worker; test-file parallelism disabled; no tests excluded",
+        "logPath": "output/lab-04-report/runs/phase-2/server-tests-final-serial.log",
+        "logSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
+        "databaseName": null
+      }
+    },
+    "focusedDashboardRerun": {
+      "passed": 9,
+      "failed": 0,
+      "logPath": "output/lab-04-report/runs/phase-2/server-dashboard-focused-rerun.log",
+      "logSha256": "bf375d179ee664f0d5eedaa33317703cd19c0977093b9c39b1ddb7f177711dfb"
+    },
+    "selectedReleaseGateMode": "full server suite with --minWorkers=1 --maxWorkers=1 --no-file-parallelism; no test files or cases excluded",
+    "gateDecision": "green for Phase 2 using the serialized, repeated, all-tests execution; disclose that default parallel mode showed intermittent transport failures and retain them as diagnostics",
+    "evidence": {
+      "originalParallelFailure": {
+        "logPath": "output/lab-04-report/runs/phase-2/server-tests.log",
+        "logSha256": "60e850e087eaf684a0ab31eb7b19ec80252eae3788c4c1b422c9b628dfb57086"
+      },
+      "parallelFullRerun": {
+        "logPath": "output/lab-04-report/runs/phase-2/server-tests-rerun.log",
+        "logSha256": "5a40debf9f2a62e5907531881ccbf19fe9b6f9e49166fcf1e644cd4f6c77801e"
+      },
+      "comparisonIndex": {
+        "path": "output/lab-04-report/runs/phase-2/reliability/reliability-comparison.json",
+        "sha256": "084f026edf85540cb7863dcbfe8689b7450b3c560e143b9b7b9fb9058d5933f3"
+      },
+      "sandboxIndex": {
+        "path": "output/lab-04-report/runs/phase-2/reliability/server-full-repeatability.json",
+        "sha256": "7fb2670db353402b07086453393258546d02a8a9a7f260b5c58ec4922e754344"
+      }
+    },
+    "reviewArtifactNote": "The attached reliability comparison indexes and three serial repeats are included under runs/reliability/. Other diagnostic attempts remain in the ignored local report archive and are summarized without altering their results."
+  },
+  "knownNonBlockingObservations": [
+    "Default parallel execution had intermittent Supertest transport failures; final gate uses the same full 175-test suite serially, repeatedly green with zero skips/retries. See serverReliabilityInvestigation."
+  ],
+  "reviewSelection": {
+    "description": "Review-facing subset: report-linked final-main figures plus the responsive Lab 4 screenshots linked in this README. Full 85-image inventory and 269-row manifest remain in the ignored local report archive.",
+    "screenshotCount": 16,
+    "selectedPaths": [
+      "artifacts/lab-04/final-main/0ec971f5/lab2/lab-02/create-ticket/success-desktop.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab2/lab-02/ticket-detail/success-desktop.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-desktop.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-mobile.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/completed-tablet.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-mobile.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/actions-taken/requester-read-only-tablet.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-desktop.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-mobile.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/requester-dashboard/loaded-tablet.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-desktop.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-mobile.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/staff-dashboard/loaded-tablet.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/admin-reopened-mobile.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolution-blocked-desktop.png",
+      "artifacts/lab-04/final-main/0ec971f5/lab4/screenshots/ticket-workflow/resolved-tablet.png"
+    ],
+    "redactedRunLogCount": 23,
+    "reliabilityArtifacts": [
+      "runs/reliability/reliability-comparison.json",
+      "runs/reliability/server-full-repeatability.json",
+      "runs/reliability/final-serial-run.json",
+      "runs/reliability/server-full-serial-01.log",
+      "runs/reliability/server-full-serial-02.log",
+      "runs/reliability/server-full-serial-03.log"
+    ]
+  },
+  "reviewArtifactLogHashes": [
+    [
+      "runs/prisma-version.log",
+      {
+        "sourceSha256": "2bed5d3feecb1e70fffbb1dcb27e9f65afe1a3700e525f7d84f61ae2008c1e39",
+        "reviewCopySha256": "2bed5d3feecb1e70fffbb1dcb27e9f65afe1a3700e525f7d84f61ae2008c1e39"
+      }
+    ],
+    [
+      "runs/prisma-validate.log",
+      {
+        "sourceSha256": "919c26cbd154c540c8a110d57d3f91dc02c8c73f4e8edb56cddc7bb0b4beea22",
+        "reviewCopySha256": "919c26cbd154c540c8a110d57d3f91dc02c8c73f4e8edb56cddc7bb0b4beea22"
+      }
+    ],
+    [
+      "runs/migration-deploy.log",
+      {
+        "sourceSha256": "300c2022ddece9b94dbb5065f82c35f7eaf6a5cce30590f6dbc2671b528de63c",
+        "reviewCopySha256": "6445831484a82468772b0e631db1b4d48fddf00fa6a644d58c0e96e897b9070e"
+      }
+    ],
+    [
+      "runs/migration-inventory.log",
+      {
+        "sourceSha256": "a82fe550e4019ed293c6e67a2a33b833bbac2015874b6f7142d91d7a349f1b84",
+        "reviewCopySha256": "a82fe550e4019ed293c6e67a2a33b833bbac2015874b6f7142d91d7a349f1b84"
+      }
+    ],
+    [
+      "runs/integration-prepare.log",
+      {
+        "sourceSha256": "0a05748e102c74cc09bce236cfc5b31b76a1b150ee4b9970aa2f1c7575a670c8",
+        "reviewCopySha256": "7a6e5533674182ceb7f9f0775daaf7918f93d3e8b82eb711f72a08a80e9e56a5"
+      }
+    ],
+    [
+      "runs/postgres-integration.log",
+      {
+        "sourceSha256": "37315fed80ce0d129a237037d1808a6f7ee49cd32d1cec0c281aea5e7bf95b61",
+        "reviewCopySha256": "a0ba4537f6240d6e9bf499aa334764ecc5425ed6245f650a40a743ade15965a3"
+      }
+    ],
+    [
+      "runs/server-tests.log",
+      {
+        "sourceSha256": "60e850e087eaf684a0ab31eb7b19ec80252eae3788c4c1b422c9b628dfb57086",
+        "reviewCopySha256": "18150a6167eadaf56c2942e3499774b4e904eb8bfdcee2a6163cab99f7649f34"
+      }
+    ],
+    [
+      "runs/client-tests.log",
+      {
+        "sourceSha256": "0a1514f28598fcbd46c845250453be4b83ce8822fc1066088667994261dc787a",
+        "reviewCopySha256": "7c478261849a7455e789ca9101a0274bef74b3c4cbcb44a62dfb4229bc4836ef"
+      }
+    ],
+    [
+      "runs/server-build.log",
+      {
+        "sourceSha256": "f6899a65aa9dc478cd42c10b5cf3e84c184563a549fef717796bc43dd0905ad0",
+        "reviewCopySha256": "1b599cb12dd98cd38ffc9f62d77a9494144a16af2c807685a60a47e26fa29701"
+      }
+    ],
+    [
+      "runs/client-build.log",
+      {
+        "sourceSha256": "952c0612a41152a69eac894fde424d3fccbd98c9fb6448abc3e54bcd1b77e238",
+        "reviewCopySha256": "952c0612a41152a69eac894fde424d3fccbd98c9fb6448abc3e54bcd1b77e238"
+      }
+    ],
+    [
+      "runs/contract-tests.log",
+      {
+        "sourceSha256": "9611746b071ccd1cbb1da6d88c8db311d8977dfa3bc7c63c1a1998f1d8be09b4",
+        "reviewCopySha256": "9611746b071ccd1cbb1da6d88c8db311d8977dfa3bc7c63c1a1998f1d8be09b4"
+      }
+    ],
+    [
+      "runs/historical-evidence-verifier.log",
+      {
+        "sourceSha256": "e386a70de8cf10b6367256f37cadd57a66981a5acd8490fc9c317103887f2323",
+        "reviewCopySha256": "e386a70de8cf10b6367256f37cadd57a66981a5acd8490fc9c317103887f2323"
+      }
+    ],
+    [
+      "runs/lab2-e2e-prepare.log",
+      {
+        "sourceSha256": "da6b23cb2fde1fde832fa763e804375dad86e9f73de26a5967a9295d33f96a1c",
+        "reviewCopySha256": "904faac0f76c787bc693ef578e061004655f72edf345afe9184ec325d9208363"
+      }
+    ],
+    [
+      "runs/lab2-e2e.log",
+      {
+        "sourceSha256": "1625d65f9b252981992aa798dd313da9fe49aefd511fa7c9749203c36595e874",
+        "reviewCopySha256": "1625d65f9b252981992aa798dd313da9fe49aefd511fa7c9749203c36595e874"
+      }
+    ],
+    [
+      "runs/lab3-e2e-prepare.log",
+      {
+        "sourceSha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6",
+        "reviewCopySha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6"
+      }
+    ],
+    [
+      "runs/lab3-e2e.log",
+      {
+        "sourceSha256": "86082ac669aab6423295c3564de5bc56868068144887f01718b5121b6563c786",
+        "reviewCopySha256": "86082ac669aab6423295c3564de5bc56868068144887f01718b5121b6563c786"
+      }
+    ],
+    [
+      "runs/lab4-e2e-prepare.log",
+      {
+        "sourceSha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6",
+        "reviewCopySha256": "4c69c32788dc735a96484bdb0f74f35185e900b3eea8cbddff5e162ef7e822b6"
+      }
+    ],
+    [
+      "runs/lab4-e2e.log",
+      {
+        "sourceSha256": "efdc39c7720e2f6574f377edd1640d3d4a6b958ecc25727b16378fdc6873022a",
+        "reviewCopySha256": "efdc39c7720e2f6574f377edd1640d3d4a6b958ecc25727b16378fdc6873022a"
+      }
+    ],
+    [
+      "runs/source-tree-guard.log",
+      {
+        "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reviewCopySha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+      }
+    ],
+    [
+      "runs/server-dashboard-focused-rerun.log",
+      {
+        "sourceSha256": "bf375d179ee664f0d5eedaa33317703cd19c0977093b9c39b1ddb7f177711dfb",
+        "reviewCopySha256": "8719e8c4df0472bd83409930c9670b2b724bda44f2f69ed27f54dab7f7e6e1e1"
+      }
+    ],
+    [
+      "runs/server-tests-rerun.log",
+      {
+        "sourceSha256": "5a40debf9f2a62e5907531881ccbf19fe9b6f9e49166fcf1e644cd4f6c77801e",
+        "reviewCopySha256": "a626d9b473828e7cb54b3029277cd27398f73d8bf7a078c4e9db0b0e5cbf3729"
+      }
+    ],
+    [
+      "runs/git-diff-check.log",
+      {
+        "sourceSha256": "101a38ff3f2b1581da4dc615304b800724a422294783ade63ddd912e40b93904",
+        "reviewCopySha256": "101a38ff3f2b1581da4dc615304b800724a422294783ade63ddd912e40b93904"
+      }
+    ],
+    [
+      "runs/server-tests-final-serial.log",
+      {
+        "sourceSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
+        "reviewCopySha256": "a0a64ef95df2d7960ddddd1f6242504aaa4a84c72ac6e02d177127504bee090b"
+      }
+    ]
+  ],
+  "reviewArtifactReliabilityLogHashes": [
+    {
+      "path": "runs/reliability/server-full-serial-01.log",
+      "sourceSha256": "dee05cb486a6db0a4bacafd365e67205a30f26c040a3a3d3f4a19b64cf0efb7d",
+      "reviewCopySha256": "68b627ec6eb6e7319f1563fa1d838f06c56d5ebe37164b62f91833c6fe79d71b",
+      "normalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "path": "runs/reliability/server-full-serial-02.log",
+      "sourceSha256": "913ed89e7c1eca71926fd774515b0b2cf543e44af1c85da20bb0d068cf69a477",
+      "reviewCopySha256": "b6c3b1a022cece9843e7961ce4f0e40023f7688953f45e64cfc03373a91c2d45",
+      "normalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "path": "runs/reliability/server-full-serial-03.log",
+      "sourceSha256": "6e2bfe8f13ecff8ff0b3272e0a2a54aaf3f2dd4a35b9e4c85fc13c8e3cb12054",
+      "reviewCopySha256": "7d2d6d3dcb1438227349d418e10d6a29a500bd74bce0b7770c9ead05413a1ad6",
+      "normalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    }
+  ],
+  "reviewArtifactNormalization": "Attached review copies remove only whitespace-only blank lines and duplicate blank lines at end of file; every nonblank output line is byte-for-byte preserved. Original local-log SHA-256 values are retained alongside review-copy hashes.",
+  "reviewArtifactExtraLogs": [
+    {
+      "path": "runs/server-tests-initial.log",
+      "sourceSha256": "60e850e087eaf684a0ab31eb7b19ec80252eae3788c4c1b422c9b628dfb57086",
+      "reviewCopySha256": "18150a6167eadaf56c2942e3499774b4e904eb8bfdcee2a6163cab99f7649f34",
+      "normalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "label": "server-tests-final-serial",
+  "command": "cd server && npm test -- --reporter=dot --minWorkers=1 --maxWorkers=1 --no-file-parallelism",
+  "cwd": "server",
+  "sourceSha": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
+  "startUtc": "2026-10-30T20:13:55+00:00",
+  "endUtc": "2026-10-30T20:14:00+00:00",
+  "exitCode": 0,
+  "counts": {
+    "passed": 175,
+    "failed": 0,
+    "skipped": 0,
+    "retriesOrFlaky": 0,
+    "testIdsActuallyInLog": []
+  },
+  "executionMode": "one Vitest worker; test-file parallelism disabled; no tests excluded",
+  "logPath": "output/lab-04-report/runs/phase-2/server-tests-final-serial.log",
+  "logSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
+  "databaseName": null
+}
