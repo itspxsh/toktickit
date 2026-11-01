@@ -10,7 +10,7 @@
 
 **Validation result:** migration deploy 4/4; PostgreSQL integration 20/20; final serial server 175/175 (0 failed/skipped/retries); client 134/134; contract/evidence 24/24; Lab 2/3/4 live browser matrix 3/9/9 (one worker, zero retries); server/client builds, Prisma CLI 5.22.0 validation and `git diff --check` passed.
 
-The retained initial parallel server attempt had one Supertest HTTP parser/transport failure (174 passed, 1 failed); another default-parallel rerun later recorded a transport-only failure. These attempts remain preserved in the run index. The final gate used the full unfiltered server suite serialized and passed repeatedly; the final run below was 175/175 with zero failures, skips or retries. This documents the actual history rather than replacing failed attempts.
+The retained initial parallel server attempt had one Supertest HTTP parser/transport failure (174 passed, 1 failed); another default-parallel rerun later recorded a transport-only failure. The 12 sandbox listener-block attempts are separately documented: attempts 4–12 have nine retained EPERM logs; attempts 1–3 have metadata only because their original paths were reused for later captures. The three passing default comparison logs now have distinct `server-full-default-pass-01..03.log` paths and source/copy hashes are explicitly separated. The final gate used the full unfiltered server suite serialized and passed repeatedly; the final run below was 175/175 with zero failures, skips or retries. This documents the actual history rather than replacing failed attempts.
 
 ## Selected logs
 

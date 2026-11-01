@@ -1411,7 +1411,7 @@
     }
   ],
   "generatedAtUtc": "2026-10-30T20:14:00+00:00",
-  "integrityAuditedAtUtc": "2026-10-30T17:35:09Z",
+  "integrityAuditedAtUtc": "2026-11-01T11:10:18Z",
   "serverReliabilityInvestigation": {
     "sourceCommit": "0ec971f5fe2ddfd7da16575aa959d844bc254811",
     "investigation": "Default parallel Vitest runs had intermittent HTTP parser/socket failures before relevant handler assertions. The retained evidence does not establish a specific root cause or determine whether the trigger is environmental, in the test harness, in the application listener, or in an interaction among them.",
@@ -1430,9 +1430,18 @@
       }
     },
     "restrictedSandboxAttempts": {
-      "count": 12,
-      "classification": "invalid environment attempts; listener bind blocked with EPERM, not product/test assertions",
-      "index": "runs/reliability/server-full-repeatability.json"
+      "observedRecorded": 12,
+      "retainedLogs": 9,
+      "unretainedOriginalLogs": 3,
+      "classification": "Listener bind blocked with EPERM before meaningful API assertions; environment-blocked attempts, not product/test assertion failures.",
+      "retainedRunNumbers": "4–12",
+      "unretainedRunNumbers": [
+        1,
+        2,
+        3
+      ],
+      "unretainedReason": "The output paths for attempts 1–3 were reused for later default comparison runs; those original logs are no longer recoverable. Historical exit/count metadata remains disclosed but is not treated as verified without the original output.",
+      "index": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-repeatability.json"
     },
     "serialized": {
       "retainedPasses": 4,
@@ -1462,37 +1471,45 @@
         },
         "executionMode": "one Vitest worker; test-file parallelism disabled; no tests excluded",
         "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests-final-serial.log",
-        "logSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
-        "databaseName": null
+        "logSha256": "a0a64ef95df2d7960ddddd1f6242504aaa4a84c72ac6e02d177127504bee090b",
+        "databaseName": null,
+        "sourceLogSha256": "00e84dbebc991d5c2080433b297cf6ad7f4fb075adf5bbfad5262a8d276ff1c8",
+        "logHashMeaning": "SHA-256 of the normalized committed review-copy bytes at logPath; sourceLogSha256 retains the previously recorded source digest."
       }
     },
     "focusedDashboardRerun": {
       "passed": 9,
       "failed": 0,
       "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-dashboard-focused-rerun.log",
-      "logSha256": "bf375d179ee664f0d5eedaa33317703cd19c0977093b9c39b1ddb7f177711dfb"
+      "logSha256": "8719e8c4df0472bd83409930c9670b2b724bda44f2f69ed27f54dab7f7e6e1e1",
+      "sourceLogSha256": "bf375d179ee664f0d5eedaa33317703cd19c0977093b9c39b1ddb7f177711dfb",
+      "logHashMeaning": "SHA-256 of the normalized committed review-copy bytes at logPath; sourceLogSha256 retains the previously recorded source digest."
     },
     "selectedReleaseGateMode": "full server suite with --minWorkers=1 --maxWorkers=1 --no-file-parallelism; no test files or cases excluded",
     "gateDecision": "green for Phase 2 using the serialized, repeated, all-tests execution; disclose that default parallel mode showed intermittent transport failures and retain them as diagnostics",
     "evidence": {
       "originalParallelFailure": {
         "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests.log",
-        "logSha256": "60e850e087eaf684a0ab31eb7b19ec80252eae3788c4c1b422c9b628dfb57086"
+        "logSha256": "18150a6167eadaf56c2942e3499774b4e904eb8bfdcee2a6163cab99f7649f34",
+        "sourceLogSha256": "60e850e087eaf684a0ab31eb7b19ec80252eae3788c4c1b422c9b628dfb57086",
+        "logHashMeaning": "SHA-256 of the normalized committed review-copy bytes at logPath; sourceLogSha256 retains the previously recorded source digest."
       },
       "parallelFullRerun": {
         "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/server-tests-rerun.log",
-        "logSha256": "5a40debf9f2a62e5907531881ccbf19fe9b6f9e49166fcf1e644cd4f6c77801e"
+        "logSha256": "a626d9b473828e7cb54b3029277cd27398f73d8bf7a078c4e9db0b0e5cbf3729",
+        "sourceLogSha256": "5a40debf9f2a62e5907531881ccbf19fe9b6f9e49166fcf1e644cd4f6c77801e",
+        "logHashMeaning": "SHA-256 of the normalized committed review-copy bytes at logPath; sourceLogSha256 retains the previously recorded source digest."
       },
       "comparisonIndex": {
         "path": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/reliability-comparison.json",
-        "sha256": "084f026edf85540cb7863dcbfe8689b7450b3c560e143b9b7b9fb9058d5933f3"
+        "sha256": "de38c4caecdb6f5c030573f3ee44fad8591cce053564200f6312bdf1b5f5632c"
       },
       "sandboxIndex": {
         "path": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-repeatability.json",
-        "sha256": "7fb2670db353402b07086453393258546d02a8a9a7f260b5c58ec4922e754344"
+        "sha256": "f98c4770230e7f1a224ec35922a39af66df29db6c225c182b05be44849ede280"
       }
     },
-    "reviewArtifactNote": "The attached reliability comparison indexes and three serial repeats are included under runs/reliability/. Other diagnostic attempts remain in the ignored local report archive and are summarized without altering their results."
+    "reviewArtifactNote": "The retained sandbox log set contains attempts 4–12 only; original outputs for 1–3 were overwritten by comparison captures and are explicitly disclosed as unretained. Default passing comparisons use distinct *-pass paths. Source and normalized-copy hashes are separately identified in the comparison index and reviewArtifactReliabilityLogHashes."
   },
   "knownNonBlockingObservations": [
     "Default parallel execution had intermittent Supertest transport failures; final gate uses the same full 175-test suite serially, repeatedly green with zero skips/retries. See serverReliabilityInvestigation."
@@ -1709,6 +1726,24 @@
       "sourceSha256": "6e2bfe8f13ecff8ff0b3272e0a2a54aaf3f2dd4a35b9e4c85fc13c8e3cb12054",
       "reviewCopySha256": "7d2d6d3dcb1438227349d418e10d6a29a500bd74bce0b7770c9ead05413a1ad6",
       "normalization": "Whitespace-only blank lines and duplicate terminal blank lines removed; all nonblank output lines preserved."
+    },
+    {
+      "path": "runs/reliability/server-full-default-pass-01.log",
+      "sourceSha256": "f71477aeb4f91c8f2b6f322b3a20d0d1c640517e1079f667066983984ff53c8f",
+      "reviewCopySha256": "4d40281246ef963400cfd7991cd72fe9ebb3fccb2824efa440b9ad1978858a10",
+      "normalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
+    },
+    {
+      "path": "runs/reliability/server-full-default-pass-02.log",
+      "sourceSha256": "ccc07ff410e4ef485a96e62987c5e85aa091866ac31c1366b95c40671fbbdc59",
+      "reviewCopySha256": "8d5e8929f4b82affe629f799110190134a9cfa4e6885535d6659af7fdd0e8a75",
+      "normalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
+    },
+    {
+      "path": "runs/reliability/server-full-default-pass-03.log",
+      "sourceSha256": "d5d09674f6a144a1d3f8dcc72ccd78f1b972c9c536782320eb00b7d06721078b",
+      "reviewCopySha256": "a65471a417b2a4f652078ad3475a8769f88d599da73c3ab4c24fee8bcb6c0fc9",
+      "normalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
     }
   ],
   "reviewArtifactNormalization": "Attached review copies remove only whitespace-only blank lines and duplicate blank lines at end of file; every nonblank output line is byte-for-byte preserved. Original local-log SHA-256 values are retained alongside review-copy hashes.",

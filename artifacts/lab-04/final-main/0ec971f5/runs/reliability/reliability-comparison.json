@@ -12,8 +12,10 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-01.log",
-      "logSha256": "f71477aeb4f91c8f2b6f322b3a20d0d1c640517e1079f667066983984ff53c8f"
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-pass-01.log",
+      "logSha256": "4d40281246ef963400cfd7991cd72fe9ebb3fccb2824efa440b9ad1978858a10",
+      "sourceLogSha256": "f71477aeb4f91c8f2b6f322b3a20d0d1c640517e1079f667066983984ff53c8f",
+      "logNormalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
     },
     {
       "mode": "default",
@@ -25,8 +27,10 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-02.log",
-      "logSha256": "ccc07ff410e4ef485a96e62987c5e85aa091866ac31c1366b95c40671fbbdc59"
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-pass-02.log",
+      "logSha256": "8d5e8929f4b82affe629f799110190134a9cfa4e6885535d6659af7fdd0e8a75",
+      "sourceLogSha256": "ccc07ff410e4ef485a96e62987c5e85aa091866ac31c1366b95c40671fbbdc59",
+      "logNormalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
     },
     {
       "mode": "default",
@@ -38,8 +42,10 @@
       "passed": 175,
       "failed": 0,
       "skipped": 0,
-      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-03.log",
-      "logSha256": "d5d09674f6a144a1d3f8dcc72ccd78f1b972c9c536782320eb00b7d06721078b"
+      "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-default-pass-03.log",
+      "logSha256": "a65471a417b2a4f652078ad3475a8769f88d599da73c3ab4c24fee8bcb6c0fc9",
+      "sourceLogSha256": "d5d09674f6a144a1d3f8dcc72ccd78f1b972c9c536782320eb00b7d06721078b",
+      "logNormalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
     },
     {
       "mode": "serial",
@@ -52,7 +58,9 @@
       "failed": 0,
       "skipped": 0,
       "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-01.log",
-      "logSha256": "dee05cb486a6db0a4bacafd365e67205a30f26c040a3a3d3f4a19b64cf0efb7d"
+      "logSha256": "68b627ec6eb6e7319f1563fa1d838f06c56d5ebe37164b62f91833c6fe79d71b",
+      "sourceLogSha256": "dee05cb486a6db0a4bacafd365e67205a30f26c040a3a3d3f4a19b64cf0efb7d",
+      "logNormalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
     },
     {
       "mode": "serial",
@@ -65,7 +73,9 @@
       "failed": 0,
       "skipped": 0,
       "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-02.log",
-      "logSha256": "913ed89e7c1eca71926fd774515b0b2cf543e44af1c85da20bb0d068cf69a477"
+      "logSha256": "b6c3b1a022cece9843e7961ce4f0e40023f7688953f45e64cfc03373a91c2d45",
+      "sourceLogSha256": "913ed89e7c1eca71926fd774515b0b2cf543e44af1c85da20bb0d068cf69a477",
+      "logNormalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
     },
     {
       "mode": "serial",
@@ -78,8 +88,11 @@
       "failed": 0,
       "skipped": 0,
       "logPath": "artifacts/lab-04/final-main/0ec971f5/runs/reliability/server-full-serial-03.log",
-      "logSha256": "6e2bfe8f13ecff8ff0b3272e0a2a54aaf3f2dd4a35b9e4c85fc13c8e3cb12054"
+      "logSha256": "7d2d6d3dcb1438227349d418e10d6a29a500bd74bce0b7770c9ead05413a1ad6",
+      "sourceLogSha256": "6e2bfe8f13ecff8ff0b3272e0a2a54aaf3f2dd4a35b9e4c85fc13c8e3cb12054",
+      "logNormalization": "Review copy is UTF-8/LF with whitespace-only blank lines and duplicate terminal blank lines removed; sourceLogSha256 identifies the original captured bytes; logSha256 identifies the committed file linked by logPath."
     }
   ],
-  "interpretation": "All 3 default and 3 serial comparison runs passed 175/175. Additional default-mode transport failures are retained in serverReliabilityInvestigation; serial final gate also passed 175/175."
+  "interpretation": "All 3 default and 3 serial comparison runs passed 175/175 with zero failures/skips. These six successful comparison logs use paths distinct from the nine retained sandbox EPERM logs. The initial sandbox attempt records 1–3 are not artifact-verifiable because their outputs were overwritten; only attempts 4–12 are retained.",
+  "retentionNote": "The three initial sandbox-attempt outputs for 20:11 were overwritten when their paths were reused. Successful default comparisons now use distinct *-pass-01..03.log paths. For every comparison, sourceLogSha256 identifies the original source bytes and logSha256 hashes the normalized committed copy."
 }
