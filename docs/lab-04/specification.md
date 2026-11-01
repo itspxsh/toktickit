@@ -1,6 +1,6 @@
-# TokTickIT Lab 4 Engineering Contract — PROPOSED FOR L4-01 PEER REVIEW
+# TokTickIT Lab 4 Engineering Contract — APPROVED THROUGH L4-01 PEER REVIEW
 
-Prepared 2026-10-07 against released `main` `da689edc95c7e19a209dc20ec964c04b14590d78` and the instructor's `Lab/Lab4/Lab 4.pdf` (11 pages). This is a proposed contract for L4-01 peer review, not permission to implement. Resolve all open design choices with `justfepwx12`; create implementation Issues only after approval and merge of the L4-01 PR. Lab 4 IDs are namespaced by this directory; they do not replace identically numbered Lab 3 IDs.
+Prepared 2026-10-07 against released `main` `da689edc95c7e19a209dc20ec964c04b14590d78` and the instructor's `Lab/Lab4/Lab 4.pdf` (11 pages). Approved through L4-01 PR [#60](https://github.com/itspxsh/toktickit/pull/60), merged into `lab4-staging` at [08cdc4d](https://github.com/itspxsh/toktickit/commit/08cdc4de01ec50eba294433f2b1afe6cd2a6b0f9). Lab 4 IDs are namespaced by this directory; they do not replace identically numbered Lab 3 IDs.
 
 ## 1. Sprint Goal
 
@@ -185,8 +185,8 @@ Migration tests snapshot every earlier table's rows/important columns, ticket se
 * All PRs reviewed by justfepwx12, Issues completed, board Issue-only, final-main records and README current; no product change hidden in documentation-only PR.
 * Exactly one concise readable PDF: Answer Part 1 through 9, working commit-pinned links, rendered spec/tests/UI/reviewer/AI records, 6-10 genuine selected prompts and brief My Reflection. No copied partner facts/identities/screenshots.
 
-## 11. Assumptions and Decisions Requiring L4-01 Approval
+## 11. Assumptions and Decisions Recorded at L4-01 Approval
 
-The PDF mandates fields, assignment/edit/status/complete/cancel, append-only behavior and a backend resolution rule but does not choose their detailed design. Proposed BR-07..13, BR-17..21, legacy rule BR-18/32, dashboard formulas/windows and text limits are **our choices**, not quoted instructor rules. Approve or revise all four contract drafts together before coding. L4-01 must explicitly choose whether `performedBy` means the authenticated actor who completes an Action (current proposal) or the person who physically performed the work. This remains an open contract decision; no implementation Issue may start until it is resolved and recorded in the approved contract. Never invent a performed historical Action for a plan.
+The PDF mandates fields, assignment/edit/status/complete/cancel, append-only behavior and a backend resolution rule but does not choose their detailed design. BR-07..13, BR-17..21, legacy rule BR-18/32, dashboard formulas/windows and text limits are **our approved design choices**, not quoted instructor rules; the review and approval record is [PR #60](https://github.com/itspxsh/toktickit/pull/60#pullrequestreview-5454413837). The approved `performedBy` decision is the authenticated actor who completes an Action; the assignee remains a separate field and is not substituted automatically. This decision is binding for implementation. Never invent a performed historical Action for a plan.
 
 Use no new runtime dependency initially. Preserve existing three roles; Admin shares support behavior, never requester impersonation. Local-only Secure-cookie override remains explicit development configuration; do not weaken production defaults. The planning audit ran no destructive DB reset and no fresh live E2E; its baseline is not release evidence.

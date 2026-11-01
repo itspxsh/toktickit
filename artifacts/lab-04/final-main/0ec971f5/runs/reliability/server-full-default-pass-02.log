@@ -1,0 +1,39 @@
+
+> toktickit-server@1.0.0 test
+> vitest run --reporter=dot
+
+
+ RUN  v2.1.9 /Users/posh/Study/CPE334/toktickit/server
+
+ ✓ tests/lab-02/create-ticket.api.test.ts (6 tests) 43ms
+ ✓ tests/lab-04/ticket-workflow.api.test.ts (8 tests) 60ms
+ ✓ tests/lab-02/attachments.api.test.ts (8 tests) 82ms
+ ✓ tests/lab-03/authorization.api.test.ts (7 tests) 45ms
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts (6 tests) 61ms
+ ✓ tests/lab-04/requester-dashboard.api.test.ts (7 tests) 32ms
+ ✓ tests/lab-04/staff-dashboard.api.test.ts (9 tests) 54ms
+ ✓ tests/lab-04/actions.unit.test.ts (9 tests) 8ms
+ ✓ tests/lab-02/data-foundation.test.ts (6 tests) 3ms
+ ✓ tests/lab-04/actions-taken.api.test.ts (57 tests) 339ms
+ ✓ tests/lab-02/ticket-detail.api.test.ts (4 tests) 38ms
+ ✓ tests/lab-03/staff-queue.api.test.ts (4 tests) 29ms
+ ✓ tests/lab-02/my-tickets.api.test.ts (6 tests) 39ms
+stderr | tests/lab-04/previous-labs.api.test.ts > T-REG-01 / AC-02, AC-13, AC-17, AC-18: inherited Lab 1–3 regressions > T-REG-02 / AC-17: keeps a successful soft removal successful when file cleanup fails
+Unable to remove stored Attachment file. { attachmentId: 101, code: 'EPERM' }
+
+ ✓ tests/lab-04/previous-labs.api.test.ts (3 tests) 33ms
+ ✓ tests/lab-03/users-admin.api.test.ts (5 tests) 152ms
+ ✓ tests/lab-03/authorization.unit.test.ts (3 tests) 3ms
+ ✓ tests/lab-02/ticket-number.test.ts (3 tests) 5ms
+ ✓ tests/lab-03/comments-notes.api.test.ts (3 tests) 44ms
+ ✓ tests/lab-02/reference-data.api.test.ts (3 tests) 36ms
+ ✓ tests/lab-01/categories.test.ts (2 tests) 125ms
+ ✓ tests/lab-03/auth.unit.test.ts (3 tests) 105ms
+ ✓ tests/lab-02/requesters.api.test.ts (3 tests) 28ms
+ ✓ tests/lab-01/health.test.ts (1 test) 9ms
+ ✓ tests/lab-03/auth.api.test.ts (9 tests) 1026ms
+
+ Test Files  24 passed (24)
+      Tests  175 passed (175)
+   Start at  03:12:20
+   Duration  1.41s (transform 484ms, setup 0ms, collect 3.01s, tests 2.40s, environment 2ms, prepare 1.18s)

@@ -1,0 +1,20 @@
+
+> toktickit-client@1.0.0 test:e2e
+> playwright test -c playwright.config.ts ../e2e/lab-02 --workers=1 --retries=0 --trace off
+
+[WebServer] (node:98809) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 3 tests using 1 worker
+
+(node:98812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › ../e2e/lab-02/requester-ticket-flow.spec.ts:28:7 › Authenticated Lab 2 requester regression › T-UI-REG-01 / AC-13, AC-17 preserves create/list/detail/resolution/attachment/dirty-form/owner-isolation (12.0s)
+(node:98888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [tablet] › ../e2e/lab-02/requester-ticket-flow.spec.ts:28:7 › Authenticated Lab 2 requester regression › T-UI-REG-01 / AC-13, AC-17 preserves create/list/detail/resolution/attachment/dirty-form/owner-isolation (32.0s)
+(node:98960) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 [mobile] › ../e2e/lab-02/requester-ticket-flow.spec.ts:28:7 › Authenticated Lab 2 requester regression › T-UI-REG-01 / AC-13, AC-17 preserves create/list/detail/resolution/attachment/dirty-form/owner-isolation (31.8s)
+
+  3 passed (1.3m)

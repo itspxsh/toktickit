@@ -1,0 +1,19 @@
+{
+  "ac": [
+    "AC-08",
+    "AC-14",
+    "AC-19",
+    "AC-21"
+  ],
+  "testIds": [
+    "T-E2E-02",
+    "T-RESP-01"
+  ],
+  "loadedStateAssertions": [
+    "resolution confirmation dialog closed",
+    "truthful Action work gate alert visible",
+    "responsive viewport and keyboard focus verified"
+  ],
+  "redactionReview": "Synthetic ticket summary and synthetic work text; no credentials.",
+  "project": "desktop"
+}

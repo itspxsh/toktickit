@@ -1,0 +1,236 @@
+
+> toktickit-client@1.0.0 test
+> vitest run --reporter=verbose
+
+
+ RUN  v2.1.9 /Users/posh/Study/CPE334/toktickit/client
+
+(node:98546) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98545) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98543) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98540) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98541) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98542) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98547) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98544) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98548) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/DashboardViews.test.tsx > L4-08 dashboard views > T-UI-NAV-02 / AC-12 serializes dashboard date/group drilldowns in list requests
+ ✓ tests/lab-04/DashboardViews.test.tsx > L4-08 dashboard views > T-UI-DS-01 / AC-11 resolves a direct Action anchor to its authorized page
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > StaffTicketDetail > T-UI-05 renders read-only identity, workflow controls, comments, notes, and attachments
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > StaffTicketDetail > T-UI-05 preserves safe error state and retries
+ ✓ tests/lab-04/DashboardViews.test.tsx > L4-08 dashboard views > T-UI-DR-01 / AC-10,14 renders requester summaries and refuses foreign destinations
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-01 / AC-12,13 permits the Requester Dashboard and rejects staff deep links
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-01 / AC-12,13 exposes the Staff Dashboard as the exact active destination
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12,14 keeps a list route active when only its query changes
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > StaffTicketDetail > T-UI-05 submits a trimmed public comment
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > offers only server-approved transitions and displays the resolution blockers and status history
+ ✓ tests/lab-04/DashboardViews.test.tsx > L4-08 dashboard views > T-UI-DS-01 / AC-11,14 pages the current-user Actions and refreshes safely
+ ✓ tests/lab-04/DashboardViews.test.tsx > L4-08 dashboard views > T-UI-DR-01 / AC-10,14 rejects same-origin dashboard links with unapproved query keys or fragments
+ ✓ tests/lab-04/DashboardViews.test.tsx > L4-08 dashboard views > T-UI-DR-01 / AC-11,14 rejects unapproved staff query keys and dashboard anchors
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > StaffTicketDetail > T-UI-05 renders a safe mutation error
+ ✓ tests/lab-02/CreateTicket.test.tsx > L2-05 Create Ticket > UI-04 / AC-06: validates required fields before calling the API
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > StaffTicketDetail > T-UI-05 keeps a successful mutation notice visible after the detail reload
+ ✓ tests/lab-02/RequesterSelection.test.tsx > L2-04 Development Requester context > UI-01: loads an accessible selector containing only active requester results
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > formats requester and staff status history timestamps in Bangkok time
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 initializes visible date filters from dashboard drilldown URLs
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 canonicalizes contradictory and malformed URL filters
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 drops an active group that contradicts an exact terminal status
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 drops resolvedSince unless resolved status group remains valid
+ ✓ tests/lab-02/RequesterSelection.test.tsx > L2-04 Development Requester context > UI-02: shows empty guidance when there are no active requesters
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx > StaffTicketDetail > T-UI-05 clears a prior notice when navigating to another ticket
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx > L2-07 Requester Ticket Detail > UI-09 / AC-12: renders owned read-only fields, badges, and attachment metadata
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > shows only the server-approved Cancelled destinations for Staff and Admin
+ ✓ tests/lab-02/RequesterSelection.test.tsx > L2-04 Development Requester context > UI-02: exposes a safe failure and retries the request
+ ✓ tests/lab-02/RequesterSelection.test.tsx > L2-04 Development Requester context > UNIT-01 and AC-04: retains an active persisted id and clears a missing id
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx > L2-07 Requester Ticket Detail > UI-09 / AC-13: renders a safe not-found recovery state
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-01 / AC-14 reports a dirty Action draft to the parent navigation guard
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 keeps interactive exact-status filters compatible with status groups
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 drops invalid requester IDs, priorities, and date windows before fetching
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 requires a valid exclusive upper bound for date lower bounds
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 applies the same date-window validation to staff queue URLs
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 allows a valid before-only date filter
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > requires confirmation before closing a resolved Ticket
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx > L2-07 Requester Ticket Detail > shows a retryable safe error state
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx > L2-07 Requester Ticket Detail > mounts the detail page for the ticket route without the handoff placeholder
+ ✓ tests/lab-02/RequesterSelection.test.tsx > L2-04 Development Requester context > UI-03: keeps the requester on cancel and clears dirty context on confirm
+ ✓ tests/lab-02/RequesterSelection.test.tsx > L2-04 Development Requester context > AC-03: redirects requester-required routes to the selection screen when context is absent
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 rejects impossible calendar dates in requester URL filters
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-12 rejects impossible calendar dates in staff URL filters
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > T-UI-WF-02 preserves an edited priority draft when a version conflict is returned
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > keeps the real Admin role on a selected existing owner
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-14 keeps the current numbered Staff queue page in the visible page window
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > confirms resolution and sends the current Ticket workflow version
+ ✓ tests/lab-02/MyTickets.test.tsx > L2-06 My Tickets > UI-07 / AC-10: renders ticket rows and sends search/filter/sort controls to the API 434ms
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > submits canonical status values when the visible labels contain spaces
+ ✓ tests/lab-02/MyTickets.test.tsx > L2-06 My Tickets > UI-08 / AC-11: distinguishes an empty requester list from no matching results
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > sends the selected assignee instead of claiming an unassigned Ticket
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-14 hides requester date-filter chips when an invalid future bound is omitted
+ ✓ tests/lab-02/MyTickets.test.tsx > L2-06 My Tickets > UI-07 / AC-10: requests the next page with the permitted pagination control
+(node:98561) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-02/MyTickets.test.tsx > L2-06 My Tickets > UI-08: exposes a safe failure and retries without losing the active query
+ ✓ tests/lab-02/MyTickets.test.tsx > L2-06 My Tickets > mounts My Tickets from the requester-scoped application route
+ ✓ tests/lab-04/TicketWorkflow.test.tsx > L4-06 Ticket workflow UI (T-UI-WF-01..02) > sends the current Ticket version for claim and priority writes
+(node:98562) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-02/CreateTicket.test.tsx > L2-05 Create Ticket > UI-05 / AC-07: disables the submit action and sends one idempotent request 451ms
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-02 / AC-14 hides Staff date-filter chips when an invalid future bound is omitted
+ ✓ tests/lab-04/DashboardRouting.test.tsx > L4-08 role Dashboard routes and navigation > T-UI-NAV-01 / AC-14 confirms before navigating away from an unsaved Action draft
+(node:98570) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-01 / AC-01,03,14: creates support work with accessible validation and retained retry draft 482ms
+ ✓ tests/lab-02/AttachmentSection.test.tsx > L2-08 AttachmentSection > UI-10 / AC-14: exposes labelled add, preview, download, and remove controls
+(node:98571) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-02/AppShell.test.tsx > Lab 2 application shell > exposes the Zen Green shell navigation and testing-context copy
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11,14 loads a bounded session-scoped page of current-user Actions
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11,14 normalizes an unsafe actionPage before fetching
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11,14 normalizes absurd actionPage values before fetching
+ ✓ tests/lab-02/AppShell.test.tsx > Lab 2 application shell > toggles a labelled mobile navigation without removing keyboard-reachable links
+ ✓ tests/lab-02/AppShell.test.tsx > Lab 2 shared UI primitives > connects required labels and field errors with accessible semantics
+ ✓ tests/lab-02/AppShell.test.tsx > Lab 2 shared UI primitives > gives status badges a text label and a non-color cue
+ ✓ tests/lab-02/AppShell.test.tsx > Lab 2 shared UI primitives > closes an open confirmation dialog with Escape without confirming
+ ✓ tests/lab-02/AppShell.test.tsx > Lab 2 shared UI primitives > keeps keyboard focus inside the confirmation dialog and describes its message
+ ✓ tests/lab-02/AppShell.test.tsx > Zen Green design tokens > publishes the contract colors as CSS custom properties
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-02 / AC-02,04: offers support lifecycle controls and confirms complete/cancel explicitly
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-03 / AC-05,06: Requester sees current Actions read-only and never fetches revisions
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11,14 clamps a known out-of-range Action page to the final page
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11 rejects dashboard payloads with invalid UTC calendar date
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11 rejects dashboard payloads with fractional metrics
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11 rejects dashboard payloads with negative buckets
+ ✓ tests/lab-04/StaffDashboard.test.tsx > L4-08 staff dashboard API > T-UI-DS-01 / AC-11 rejects dashboard payloads with zero page with results
+ ✓ tests/lab-04/DashboardHardening.test.tsx > L4-08 dashboard and navigation hardening > replaces the current history entry when canonicalizing a URL
+ ✓ tests/lab-04/DashboardHardening.test.tsx > L4-08 dashboard and navigation hardening > shows the forbidden state when a dashboard API responds 403
+ ✓ tests/lab-04/DashboardHardening.test.tsx > L4-08 dashboard and navigation hardening > shows the forbidden state for a forbidden staff dashboard response
+ ✓ tests/lab-04/DashboardHardening.test.tsx > L4-08 dashboard and navigation hardening > guards browser Back navigation while a development ticket form is dirty
+ ✓ tests/lab-02/AttachmentSection.test.tsx > L2-08 AttachmentSection > UI-11 / AC-15-16: shows invalid files and requires a reason before soft removal
+ ✓ tests/lab-02/CreateTicket.test.tsx > L2-05 Create Ticket > UI-06 / AC-08: preserves entered values and selected files after a failed create 407ms
+(node:98577) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98576) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-02/AttachmentSection.test.tsx > L2-08 AttachmentSection > UI-12 / AC-17: reports each upload outcome and offers retry for a failed file
+(node:98579) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/RequesterDashboard.test.tsx > L4-08 requester dashboard API > T-UI-DR-01 / AC-10,14 loads only the server-session requester dashboard
+ ✓ tests/lab-04/RequesterDashboard.test.tsx > L4-08 requester dashboard API > T-UI-DR-01 / AC-10 rejects malformed success payloads into a safe error path
+ ✓ tests/lab-04/RequesterDashboard.test.tsx > L4-08 requester dashboard API > T-UI-DR-01 / AC-10 rejects malformed dates in server-provided drill-down links
+ ✓ tests/lab-04/RequesterDashboard.test.tsx > L4-08 requester dashboard API > T-UI-DR-01 / AC-10 rejects offset and contradictory dates in drill-down links
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > requires a result and explicit follow-up resolution before completion 394ms
+(node:98582) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98583) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-02/CreateTicket.test.tsx > L2-05 Create Ticket > UI-12 / AC-17: keeps the Ticket and reports each initial Attachment outcome 411ms
+(node:98584) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-03/ChangePassword.test.tsx > L3-08 Change Password > T-UI-02 / AC-02 validates confirmation and keeps role navigation blocked until success
+(node:98587) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/RequesterWriteCsrf.test.tsx > T-UI-REG-01 / AC-13, AC-17: requester writes use session CSRF > sends the session CSRF token on Ticket creation and Attachment upload/removal
+ ✓ tests/lab-03/RequesterRegression.test.tsx > L3-08 authenticated requester continuity > T-UI-06 / AC-04 exposes a non-formal appears-resolved action
+ ✓ tests/lab-03/UserManagement.test.tsx > L3-07 Admin User Management > T-UI-07 / AC-10 renders safe list filters and edit controls
+ ✓ tests/lab-02/CreateTicket.test.tsx > L2-05 Create Ticket > guards in-app navigation while the Create Ticket form is dirty
+ ✓ tests/lab-02/CreateTicket.test.tsx > L2-05 Create Ticket > renders the requester-owned detail route after the handoff placeholder
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > treats a replayed create as recovery and does not page-jump 303ms
+ ✓ tests/lab-03/UserManagement.test.tsx > L3-07 Admin User Management > T-UI-07 / AC-11 exposes confirmation for activation and password reset
+ ✓ tests/lab-03/ChangePassword.test.tsx > L3-08 Change Password > clears all password fields after a failed server change
+ ✓ tests/lab-03/UserManagement.test.tsx > L3-07 Admin User Management > T-UI-07 keeps server errors safe and offers retry
+(node:98591) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-03/Login.test.tsx > L3-08 Login > T-UI-01 / AC-02 renders labelled fields and signs in without persisting secrets
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > L3-05 Staff Ticket Queue > T-UI-04 / AC-05 renders queue rows and sends search/filter/pagination controls 724ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > L3-05 Staff Ticket Queue > T-UI-04 distinguishes an empty queue and never renders private fields
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx > L3-05 Staff Ticket Queue > T-UI-04 exposes a safe error and retries the queue
+ ✓ tests/lab-03/RoleShell.test.tsx > L3-08 role-aware shell > T-UI-03 / AC-03 exposes only requester destinations and accessible active state
+ ✓ tests/lab-03/RoleShell.test.tsx > L3-08 role-aware shell > T-UI-03 / AC-03 exposes staff and admin destinations from server role
+ ✓ tests/lab-03/RoleShell.test.tsx > L3-08 role-aware shell > T-UI-03 / AC-03 renders a safe forbidden state for a disallowed deep link
+ ✓ tests/lab-03/RoleShell.test.tsx > L3-08 role-aware shell > does not render inert account actions when handlers are unavailable
+ ✓ tests/lab-03/Login.test.tsx > L3-08 Login > T-UI-01 exposes a generic safe credential error and clears the password
+(node:98593) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98595) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98594) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/E2EArtifactRoot.test.tsx > E2E artifact root resolution > resolves a relative override against the repository root
+ ✓ tests/lab-04/E2EArtifactRoot.test.tsx > E2E artifact root resolution > preserves an absolute override instead of nesting it under the repository
+ ✓ tests/lab-04/E2EArtifactRoot.test.tsx > E2E artifact root resolution > allows an explicitly insecure cookie only for matching-origin local HTTP
+ ✓ tests/lab-04/E2EArtifactRoot.test.tsx > E2E artifact root resolution > rejects insecure cookies for HTTPS while allowing the secure default
+ ✓ tests/lab-04/E2EArtifactRoot.test.tsx > E2E artifact root resolution > rejects insecure cookies for non-local HTTP origins
+(node:98599) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > keeps the selected assignee valid during an empty search and closes create before editing 622ms
+ ✓ tests/lab-04/VisualAccessibility.test.tsx > T-STYLE-01 / T-A11Y-01 / AC-14, AC-19: visual and keyboard semantics > exposes status and priority as distinct text semantics, not color alone
+(node:98598) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/VisualAccessibility.test.tsx > T-STYLE-01 / T-A11Y-01 / AC-14, AC-19: visual and keyboard semantics > traps keyboard focus, cancels on Escape, and returns focus to the opener
+ ✓ tests/lab-03/AuthSecurity.test.tsx > L3-08 auth client hardening > does not reuse a CSRF token across login/session rotation
+stderr | tests/lab-01/App.test.tsx > App > renders the TokTickIT heading
+Warning: An update to RequesterProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at RequesterProvider (/Users/posh/Study/CPE334/toktickit/client/src/requester.tsx:25:30)
+    at AuthenticatedApp (/Users/posh/Study/CPE334/toktickit/client/src/App.tsx:369:39)
+    at AuthProvider (/Users/posh/Study/CPE334/toktickit/client/src/auth.tsx:13:25)
+    at App
+Warning: An update to RequesterProvider inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at RequesterProvider (/Users/posh/Study/CPE334/toktickit/client/src/requester.tsx:25:30)
+    at AuthenticatedApp (/Users/posh/Study/CPE334/toktickit/client/src/App.tsx:369:39)
+    at AuthProvider (/Users/posh/Study/CPE334/toktickit/client/src/auth.tsx:13:25)
+    at App
+
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > refreshes the parent Ticket summary after a successful Action mutation
+ ✓ tests/lab-01/App.test.tsx > App > renders the TokTickIT heading
+ ✓ tests/lab-01/App.test.tsx > App > shows Online and the seeded categories on success
+ ✓ tests/lab-01/App.test.tsx > App > shows an Offline error message when the API is unavailable
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-05 / AC-14 refreshes the Action workflow version after a successful Ticket status change
+(node:98603) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98604) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-04/previous-labs.test.tsx > T-UI-REG-02 / AC-13, AC-17: authenticated reference fetches > includes browser credentials when requesting authenticated categories
+ ✓ tests/lab-04/previous-labs.test.tsx > T-UI-REG-02 / AC-13, AC-17: authenticated reference fetches > includes browser credentials for both authenticated reference lists
+(node:98607) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-03/Accessibility.test.tsx > L3-08 accessibility contract > T-UI-08 / AC-15 traps focus, cancels on Escape, and restores focus
+ ✓ tests/lab-04/Regression.test.tsx > T-UI-REG-01 / AC-13, AC-17: safe inherited auth regression > clears a failed login password and shows only the safe API message
+(node:98610) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/lab-03/Responsive.test.tsx > L3-08 responsive role shell > T-UI-09 / AC-15 keeps role and status cues textual
+ ✓ tests/lab-04/ResponsiveShell.test.tsx > L4-08 authenticated shell responsive contract > uses the compact navigation through tablet widths so the Admin header fits
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > generates a UUID request key when randomUUID is unavailable
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-02 / AC-04: hides an open create form when the parent Ticket becomes terminal
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-02 / AC-04: dismisses a pending transition confirmation when the parent Ticket becomes terminal
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-03 exposes paginated revision history only in support mode
+ ✓ tests/lab-04/ActionsTaken.test.tsx > L4-05 Actions Taken UI > T-UI-ACT-04 / AC-09,14: prevents duplicate writes and preserves a stale-write draft for explicit refresh 322ms
+
+ Test Files  30 passed (30)
+      Tests  134 passed (134)
+   Start at  00:18:27
+   Duration  4.05s (transform 695ms, setup 1.36s, collect 3.89s, tests 10.99s, environment 7.94s, prepare 1.47s)
